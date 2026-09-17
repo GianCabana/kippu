@@ -1,6 +1,7 @@
 from django.db import models
 from django.contrib.admin.views.decorators import staff_member_required
 from django.shortcuts import render
+from django.conf import settings
 
 
 class Pedido(models.Model):
@@ -114,3 +115,43 @@ class Cuenta(models.Model):
 
     def __str__(self):
         return f"Cuenta #{self.pk} - Mesa {self.mesa.numero}"
+
+    class Pago(models.Model):
+        class Metodo(models.TextChoices):
+            EFECTIVO = "efectivo", "Efectivo"
+            DEBITO = "debito", "Tarjeta de débito"
+            CREDITO = "credito", "Tarjeta de crédito"
+            TRANSFERENCIA = "transferencia", "Transferencia"
+
+        cuenta = models.OneToOneField(
+            "Cuenta",
+            on_delete=models.PROTECT,
+            related_name="pago",
+        )
+        monto = models.DecimalField(
+            max_digits=12,
+            decimal_places=2,
+        )
+        metodo = models.CharField(
+            max_length=20,
+            choices=Metodo.choices,
+        )
+        registrado_por = models.ForeignKey(
+            settings.AUTH_USER_MODEL,
+            on_delete=models.PROTECT,
+            related_name="pagos_registrados",
+        )
+        creado = models.DateTimeField(auto_now_add=True)
+
+        class Meta:
+            ordering = ["-creado"]
+            constraints = [
+                models.CheckConstraint(
+                    condition=models.Q(monto__gt=0),
+                    name="pago_monto_positivo",
+            ),
+        ]
+
+    def __str__(self):
+        return f"Pago #{self.pk} - Cuenta #{self.cuenta_id}"
+    
