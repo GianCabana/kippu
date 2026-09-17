@@ -2,6 +2,8 @@ from django.contrib import messages
 from django.shortcuts import get_object_or_404, redirect
 from django.views.decorators.http import require_POST
 from django.db import transaction
+from decimal import Decimal
+from django.db.models import Prefetch
 
 from .models import Cuenta, DetallePedido, Pedido
 
@@ -273,5 +275,56 @@ def mis_pedidos(request, codigo):
         {
             "mesa": mesa,
             "pedidos": pedidos,
+        },
+    )
+@staff_member_required
+def caja(request):
+    pedidos_cobrables = (
+        Pedido.objects.exclude(estado=Pedido.Estado.CANCELADO)
+        .prefetch_related("detalles")
+        .order_by("creado", "pk")
+    )
+
+    cuentas = list(
+        Cuenta.objects.filter(estado=Cuenta.Estado.ABIERTA)
+        .select_related("mesa")
+        .prefetch_related(
+            Prefetch(
+                "pedidos",
+                queryset=pedidos_cobrables,
+                to_attr="pedidos_cobrables",
+            )
+        )
+        .order_by("creada", "pk")
+    )
+
+    total_abierto = Decimal("0.00")
+
+    for cuenta in cuentas:
+        cuenta.total_calculado = Decimal("0.00")
+        cuenta.pendientes_entrega = 0
+
+        for pedido in cuenta.pedidos_cobrables:
+            pedido.total_calculado = sum(
+                (
+                    detalle.subtotal
+                    for detalle in pedido.detalles.all()
+                ),
+                Decimal("0.00"),
+            )
+
+            cuenta.total_calculado += pedido.total_calculado
+
+            if pedido.estado != Pedido.Estado.ENTREGADO:
+                cuenta.pendientes_entrega += 1
+
+        total_abierto += cuenta.total_calculado
+
+    return render(
+        request,
+        "pedidos/caja.html",
+        {
+            "cuentas": cuentas,
+            "total_abierto": total_abierto,
         },
     )
