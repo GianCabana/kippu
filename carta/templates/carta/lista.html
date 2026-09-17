@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Carta de Kippu</title>
+
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            font-family: Arial, sans-serif;
+            background: #f6f5ef;
+            color: #24382c;
+            line-height: 1.5;
+        }
+
+        header {
+            background: #24382c;
+            color: white;
+            padding: 40px 20px;
+            text-align: center;
+        }
+
+        header h1 {
+            margin: 0;
+            font-size: 36px;
+        }
+
+        main {
+            max-width: 1000px;
+            margin: 32px auto;
+            padding: 0 20px;
+        }
+
+        section {
+            margin-bottom: 36px;
+        }
+
+        .productos {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+            gap: 20px;
+        }
+
+        .producto {
+            background: white;
+            border: 1px solid #dedfd5;
+            border-radius: 12px;
+            padding: 24px;
+            overflow-wrap: anywhere;
+        }
+
+        .producto h3 {
+            margin-top: 0;
+        }
+
+        .precio {
+            font-size: 22px;
+            font-weight: bold;
+            color: #315d39;
+            margin-bottom: 0;
+        }
+
+        @media (max-width: 480px) {
+            .productos {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <header>
+        <h1>Kippu</h1>
+        <p>Nuestra carta · Precios en pesos chilenos</p>
+    </header>
+
+    <main>
+        {% regroup productos by categoria as grupos %}
+
+        {% for grupo in grupos %}
+            <section>
+                <h2>{{ grupo.grouper.nombre }}</h2>
+
+                <div class="productos">
+                    {% for producto in grupo.list %}
+                        <article class="producto">
+                            <h3>{{ producto.nombre }}</h3>
+
+                            {% if producto.descripcion %}
+                                <p>{{ producto.descripcion }}</p>
+                            {% endif %}
+
+                            <p class="precio">
+                                ${{ producto.precio|floatformat:"0" }} CLP
+                            </p>
+                        </article>
+                    {% endfor %}
+                </div>
+            </section>
+        {% empty %}
+            <p>En este momento no hay productos disponibles.</p>
+        {% endfor %}
+    </main>
+</body>
+</html>
