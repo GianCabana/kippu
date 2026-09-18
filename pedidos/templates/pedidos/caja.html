@@ -1,79 +1,14 @@
-<!DOCTYPE html>
-<html lang="es">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-    <meta name="theme-color" content="#173e34">
-    <title>Caja · Kippu</title>
-    <style>
-        :root{--fondo:#f7f6f2;--papel:#fffefa;--verde:#173e34;--tinta:#243d34;--suave:#657168;--linea:#e3e5dc}
-        *{box-sizing:border-box}[hidden]{display:none!important}
-        body{margin:0;background:var(--fondo);color:var(--tinta);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;-webkit-font-smoothing:antialiased}
-        h1,h2,h3,p{margin-top:0}a{color:inherit}button,input{font:inherit}button,summary{cursor:pointer}
-        a,button,summary{-webkit-tap-highlight-color:transparent;touch-action:manipulation}
-        a:focus-visible,button:focus-visible,input:focus-visible,summary:focus-visible{outline:3px solid #a67e36;outline-offset:4px}
-        .contenedor{width:min(1160px,calc(100% - 48px));margin-inline:auto}
-        header{background:var(--papel);border-bottom:1px solid var(--linea)}.barra{min-height:86px;display:flex;align-items:center;justify-content:space-between;gap:18px}
-        .marca{display:flex;align-items:center;gap:12px}.monograma{display:grid;place-items:center;width:42px;height:42px;border:1px solid #bdc9bc;border-radius:50%;font:27px Georgia,serif}.nombre{font:29px Georgia,serif;letter-spacing:-.8px}.submarca{display:block;margin-top:2px;font-size:9px;font-weight:600;letter-spacing:2px;color:var(--suave);text-transform:uppercase}
-        nav{display:flex;gap:5px;flex-wrap:wrap}nav a{display:flex;align-items:center;min-height:44px;padding:10px 14px;border-radius:10px;font-size:12px;font-weight:600;text-decoration:none}nav a[aria-current]{background:#eaf0e3}
-        main{padding-block:36px 50px}.cabecera{display:flex;justify-content:space-between;align-items:flex-end;gap:18px;margin-bottom:28px}.etiqueta{font-size:10px;font-weight:600;letter-spacing:2.5px;text-transform:uppercase;color:var(--suave);margin-bottom:13px}
-        h1{font:52px/1.05 Georgia,serif;letter-spacing:-1.5px;margin-bottom:12px}.descripcion{font-size:13px;color:var(--suave);line-height:1.7;margin-bottom:0}
-        .actualizar{display:inline-flex;align-items:center;justify-content:center;min-height:46px;padding:12px 18px;border:1px solid var(--linea);border-radius:11px;text-decoration:none;background:var(--papel);font-size:12px;font-weight:600;white-space:nowrap}.actualizar:hover{background:#edf1e7}
-        .resumen{display:grid;grid-template-columns:1fr 1.5fr;gap:16px;margin-bottom:27px}.metrica{padding:24px;border:1px solid var(--linea);border-radius:18px;background:var(--papel)}.metrica.principal{background:var(--verde);color:white;border-color:var(--verde)}.metrica p{font-size:12px;margin-bottom:12px}.metrica strong{font:36px Georgia,serif;overflow-wrap:anywhere}.metrica small{display:block;margin-top:11px;font-size:10px;color:var(--suave);line-height:1.6}.metrica.principal small{color:#ceddd1}
-        .herramientas{display:flex;justify-content:space-between;align-items:center;gap:18px;margin-bottom:21px}.herramientas p{font-size:11px;color:var(--suave);margin:0}.buscador{width:320px;max-width:100%}.buscador input{width:100%;min-height:48px;padding:12px 16px;border:1px solid var(--linea);border-radius:11px;background:var(--papel);color:var(--tinta);font-size:16px}
-        .cuentas{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:20px;align-items:start}.cuenta{border:1px solid var(--linea);border-top:4px solid #658454;border-radius:18px;background:var(--papel);min-width:0;overflow:hidden}.cuenta-cabecera{padding:24px}.meta{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:15px;font-size:10px;color:var(--suave);font-weight:600}.badge{padding:6px 10px;border-radius:100px;background:#eaf0e2;color:#46602e}
-        h2{font:33px Georgia,serif;letter-spacing:-.7px;margin-bottom:10px}.fecha{font-size:11px;color:var(--suave);margin-bottom:0;line-height:1.6}.total{display:flex;justify-content:space-between;flex-wrap:wrap;align-items:center;gap:12px;margin-top:23px;padding-top:20px;border-top:1px solid var(--linea);font-size:12px}.importe{font-size:29px;font-weight:600;letter-spacing:-1px}.moneda{font-size:9px;color:var(--suave);margin-left:4px}
-        .situacion{margin:18px 0 0;padding:11px 13px;border-radius:9px;background:#f7efde;color:#7b5a1c;font-size:11px;line-height:1.6}.situacion.completo{background:#edf2e8;color:#46602e}.situacion.neutro{background:#f1f2ec;color:var(--suave)}
-        details{border-top:1px solid var(--linea)}summary{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:18px 24px;min-height:56px;font-size:12px;font-weight:600;list-style:none}summary::-webkit-details-marker{display:none}summary::after{content:'+';font-size:20px;font-weight:400}details[open]>summary::after{content:'−'}
-        .detalle{padding:0 24px 22px}.pedido{padding:18px 0;border-top:1px dashed #dce2d3}.pedido-cabecera{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap}.pedido h3{font-size:13px;margin:0}.estado{font-size:10px;color:var(--suave)}ul{list-style:none;padding:0;margin:12px 0}li{display:flex;align-items:flex-start;gap:10px;padding:9px 0;font-size:12px;line-height:1.6}.cantidad{color:var(--verde);font-weight:650;flex-shrink:0}.producto{flex:1;min-width:0;overflow-wrap:anywhere}.subtotal{white-space:nowrap;font-variant-numeric:tabular-nums}.pedido-total{text-align:right;font-size:12px;font-weight:650;margin-bottom:0}
-        .vacio{grid-column:1/-1;padding:45px 24px;text-align:center;background:var(--papel);border:1px dashed #cdd4c7;border-radius:18px}.vacio h2{font-size:28px}.vacio p{font-size:13px;color:var(--suave);line-height:1.7}.nota{margin:26px 0 0;text-align:center;color:var(--suave);font-size:11px;line-height:1.7}.mensaje{padding:15px 18px;border-radius:12px;background:#e7eee0;font-size:13px;line-height:1.6}.mensaje.error,.mensaje.warning{background:#fff2d8;color:#704710}
-        @media(max-width:700px){.contenedor{width:calc(100% - 36px)}.barra{min-height:76px;gap:10px}.marca{gap:8px}.monograma{width:34px;height:34px;font-size:23px}.nombre{font-size:26px}.submarca{font-size:8px;letter-spacing:1.4px}nav{gap:0}nav a{padding:9px;font-size:10px}nav a[aria-current]{display:none}main{padding-top:28px}h1{font-size:43px}.cabecera{align-items:flex-start;flex-wrap:wrap}.resumen{grid-template-columns:1fr;gap:12px}.metrica{padding:20px}.metrica strong{font-size:31px}.herramientas{align-items:stretch;flex-direction:column;gap:13px}.buscador{width:100%}.cuentas{grid-template-columns:minmax(0,1fr)}.cuenta-cabecera{padding:21px}summary{padding-inline:21px}.detalle{padding-inline:21px}.importe{font-size:26px}}
-    </style>
-</head>
-<body>
-    <header><div class="contenedor barra"><div class="marca"><span class="monograma" aria-hidden="true">k</span><div><span class="nombre">kippu</span><span class="submarca">Panel de servicio</span></div></div><nav aria-label="Paneles de servicio"><a href="{% url 'pedidos:cocina' %}">Cocina</a><a href="{% url 'pedidos:entregas' %}">Entregas</a><a href="{% url 'pedidos:caja' %}" aria-current="page">Caja</a></nav></div></header>
-    <main class="contenedor">
-        <div class="cabecera"><div><p class="etiqueta">Cada cuenta, en orden</p><h1>Caja</h1><p class="descripcion">Consulta el consumo acumulado de cada mesa.</p></div><a class="actualizar" href="{% url 'pedidos:caja' %}">Actualizar cuentas ↻</a></div>
-        {% for mensaje in messages %}<p class="mensaje {{ mensaje.tags }}" role="status">{{ mensaje }}</p>{% endfor %}
-        <div class="resumen">
-            <div class="metrica"><p>Cuentas abiertas</p><strong>{{ cuentas|length }}</strong><small>Una cuenta por visita de mesa.</small></div>
-            <div class="metrica principal"><p>Total acumulado en cuentas abiertas</p><strong data-pesos="{{ total_abierto|floatformat:'2u' }}">${{ total_abierto|floatformat:"0" }}</strong><small>Pedidos no cancelados · Montos en CLP · No corresponde a pagos recibidos.</small></div>
-        </div>
-        <div class="herramientas"><p>Los pedidos cancelados están excluidos del total.</p><div class="buscador" id="buscador" hidden><input id="buscar" type="search" placeholder="Buscar mesa o cuenta" aria-label="Buscar mesa o cuenta" autocomplete="off"></div></div>
-        <div class="cuentas">
-            {% for cuenta in cuentas %}
-                <article class="cuenta" data-busqueda="mesa {{ cuenta.mesa.numero }} cuenta {{ cuenta.pk }}" aria-labelledby="cuenta-{{ cuenta.pk }}">
-                    <div class="cuenta-cabecera"><div class="meta"><span>CUENTA #{{ cuenta.pk }}</span><span class="badge">Abierta</span></div><h2 id="cuenta-{{ cuenta.pk }}">Mesa {{ cuenta.mesa.numero }}</h2><p class="fecha">Apertura: <time datetime="{{ cuenta.creada|date:'c' }}">{{ cuenta.creada|date:"d/m/Y · H:i" }}</time></p>
-                        <div class="total"><span>Total de la cuenta</span><span><strong class="importe" data-pesos="{{ cuenta.total_calculado|floatformat:'2u' }}">${{ cuenta.total_calculado|floatformat:"0" }}</strong><span class="moneda">CLP</span></span></div>
-                        {% if cuenta.pendientes_entrega %}<p class="situacion">{{ cuenta.pendientes_entrega }} pedido{{ cuenta.pendientes_entrega|pluralize }} aún sin entregar.</p>{% elif cuenta.pedidos_cobrables %}<p class="situacion completo">Todos los pedidos no cancelados están entregados.</p>{% else %}<p class="situacion neutro">Sin pedidos no cancelados asociados a esta cuenta.</p>{% endif %}
-                    </div>
-                    <details><summary>Ver pedidos · {{ cuenta.pedidos_cobrables|length }}</summary><div class="detalle">
-                        {% for pedido in cuenta.pedidos_cobrables %}
-                            <section class="pedido"><div class="pedido-cabecera"><h3>Pedido #{{ pedido.pk }}</h3><span class="estado">{{ pedido.get_estado_display }}</span></div><ul>
-                                {% for detalle in pedido.detalles.all %}<li><span class="cantidad">{{ detalle.cantidad }}×</span><span class="producto">{{ detalle.nombre_producto }}</span><span class="subtotal" data-pesos="{{ detalle.subtotal|floatformat:'2u' }}">${{ detalle.subtotal|floatformat:"0" }}</span></li>{% endfor %}
-                            </ul><p class="pedido-total">Total del pedido: <span data-pesos="{{ pedido.total_calculado|floatformat:'2u' }}">${{ pedido.total_calculado|floatformat:"0" }}</span></p></section>
-                        {% empty %}<p class="descripcion">Esta cuenta no tiene pedidos para mostrar.</p>{% endfor %}
-                    </div></details>
-                </article>
-            {% empty %}<div class="vacio"><h2>No hay cuentas abiertas.</h2><p>Las cuentas nuevas aparecerán cuando se envíe un pedido desde una mesa.</p></div>{% endfor %}
-        </div>
-        <div class="vacio" id="sin-resultados" role="status" hidden><h2>No hay coincidencias.</h2><p>Prueba con otra mesa o número de cuenta.</p></div>
-        <p class="nota">Los importes incluyen pedidos pendientes, en preparación, listos y entregados de cada cuenta. Pulsa «Actualizar cuentas» para consultar los cambios.</p>
-    </main>
-    <script>
-        (() => {
-            const pesos = new Intl.NumberFormat('es-CL', { style:'currency', currency:'CLP', maximumFractionDigits:0 });
-            document.querySelectorAll('[data-pesos]').forEach(el => { const valor=Number(el.dataset.pesos); if(Number.isFinite(valor)) el.textContent=pesos.format(valor); });
-            const buscar=document.getElementById('buscar');
-            const cuentas=[...document.querySelectorAll('.cuenta')];
-            document.getElementById('buscador').hidden=false;
-            buscar.addEventListener('input', () => {
-                const consulta=buscar.value.toLowerCase().trim().replace(/#/g,'');
-                let visibles=0;
-                cuentas.forEach(cuenta => { cuenta.hidden=!cuenta.dataset.busqueda.toLowerCase().includes(consulta); if(!cuenta.hidden) visibles++; });
-                document.getElementById('sin-resultados').hidden=visibles>0 || cuentas.length===0;
-            });
-        })();
-    </script>
-</body>
-</html>
+<!DOCTYPE html><html lang="es"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta http-equiv="refresh" content="15"><title>Caja · Kippu</title><style>*{box-sizing:border-box}body{margin:0;background:#f6f5ef;color:#24382c;font-family:Arial,sans-serif;line-height:1.6}header{background:#173e34;color:#fff;padding:32px 20px}header>div,main{max-width:1100px;margin:auto}main{padding:28px 18px}h1{font:36px Georgia,serif;margin:6px 0}h2{font:26px Georgia,serif}h3{margin:0}nav{display:flex;gap:20px;flex-wrap:wrap}a{color:inherit;text-underline-offset:4px}nav a{padding:10px 0;min-height:44px}.grilla{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,300px),1fr));gap:18px}.tarjeta{min-width:0;background:white;border:1px solid #dfe4d9;border-radius:18px;padding:24px;overflow-wrap:anywhere}.etiqueta{text-transform:uppercase;font-size:11px;letter-spacing:2px;opacity:.75}.estado{display:inline-block;border-radius:20px;background:#e6eee4;color:#23412f;padding:6px 12px;font-size:12px;font-weight:bold}.sin_pagar,.aviso{background:#fff1d8;color:#745414}.cancelado{background:#f3e5e2;color:#8b4036}.muted{font-size:13px;color:#627367}li{padding:10px 0;border-bottom:1px solid #edf0e9}ul{list-style:none;padding:0}.boton{display:block;padding:12px 16px;margin-top:16px;border-radius:10px;background:#173e34;color:white;text-align:center;text-decoration:none;min-height:46px}.mensaje{padding:14px;border-radius:10px;background:#e6eee4}a:focus-visible{outline:3px solid #b88c36;outline-offset:4px}@media(max-width:480px){h1{font-size:30px}.tarjeta{padding:20px}}button.boton{width:100%;border:0;cursor:pointer;font:inherit}button:disabled{opacity:.45;cursor:not-allowed}button:focus-visible{outline:3px solid #b88c36;outline-offset:4px}</style></head><body><header><div><p class="etiqueta">Kippu · Administración</p><h1>Pagos y seguimiento</h1><p>El cliente paga desde su carrito antes de enviar el pedido a cocina.</p><nav><a href="{% url 'pedidos:cocina' %}">Cocina</a><a href="{% url 'pedidos:entregas' %}">Entregas</a><a href="{% url 'pedidos:caja' %}">Actualizar</a></nav></div></header><main>
+{% for mensaje in messages %}<p class="mensaje" role="status">{{ mensaje }}</p>{% endfor %}
+<h2>Mesas con cuenta abierta</h2>
+<div class="grilla">{% for cuenta in cuentas %}<article class="tarjeta">
+<span class="estado {% if not cuenta.revision.puede_cerrar %}aviso{% endif %}">{% if cuenta.revision.puede_cerrar %}Lista para cerrar{% else %}En atención{% endif %}</span>
+<h2>Mesa {{ cuenta.mesa.numero }}</h2><p class="muted">Cuenta #{{ cuenta.pk }} · Abierta {{ cuenta.creada|date:"d/m/Y H:i" }}</p>
+<p>{{ cuenta.revision.cantidad_pedidos }} pedido(s) registrados</p><p><strong>Pagado: ${{ cuenta.revision.total_pagado|floatformat:"0" }} CLP</strong></p>
+{% if cuenta.revision.motivo %}<p class="muted">{{ cuenta.revision.motivo }}</p>{% endif %}
+{% if cuenta.revision.borradores %}<p class="muted">Al cerrar se descartarán {{ cuenta.revision.borradores }} borrador(es) sin pago. No se cancelan pedidos pagados.</p>{% endif %}
+<form method="post" action="{% url 'pedidos:cerrar_mesa' cuenta_id=cuenta.pk %}">{% csrf_token %}<button class="boton" type="submit" {% if not cuenta.revision.puede_cerrar %}disabled{% endif %}>Cerrar mesa {{ cuenta.mesa.numero }}</button></form>
+</article>{% empty %}<p>No hay cuentas abiertas. La próxima compra abrirá una cuenta nueva.</p>{% endfor %}</div>
+<h2>Últimos cierres</h2><div class="grilla">{% for cuenta in cerradas %}<article class="tarjeta"><span class="estado">Cerrada</span><h3>Mesa {{ cuenta.mesa.numero }} · Cuenta #{{ cuenta.pk }}</h3><p class="muted">{{ cuenta.cerrada|date:"d/m/Y H:i" }}</p></article>{% empty %}<p>Aún no hay cuentas cerradas.</p>{% endfor %}</div>
+<h2>Pagos pendientes de confirmar</h2><div class="grilla">{% for intento in pendientes %}<article class="tarjeta"><span class="estado aviso">{{ intento.get_estado_display }}</span><h3>Mesa {{ intento.cuenta.mesa.numero }}</h3><p>{% if intento.pedido_id %}Pedido #{{ intento.pedido_id }}{% else %}Cuenta anterior #{{ intento.cuenta_id }}{% endif %}</p><p>${{ intento.monto|floatformat:"0" }} CLP</p><p class="muted">No cobrar nuevamente mientras el resultado esté pendiente.</p><a class="boton" href="{% url 'pedidos:webpay_resultado' intento_id=intento.pk %}">Revisar pago</a></article>{% empty %}<p>No hay pagos por verificar.</p>{% endfor %}</div>
+<h2>Últimos 100 pagos registrados</h2><div class="grilla">{% for pago in pagos %}<article class="tarjeta"><span class="estado">Pago registrado</span><h3>Mesa {{ pago.cuenta.mesa.numero }}</h3><p>{% if pago.pedido_id %}Pedido #{{ pago.pedido_id }} · {{ pago.pedido.get_estado_display }}{% else %}Cuenta anterior #{{ pago.cuenta_id }}{% endif %}</p><h2>${{ pago.monto|floatformat:"0" }} CLP</h2><p class="muted">{{ pago.creado|date:"d/m/Y H:i" }} · {{ pago.get_metodo_display }}</p>{% if pago.intento_webpay_id %}<a class="boton" href="{% url 'pedidos:webpay_resultado' intento_id=pago.intento_webpay_id %}">Ver comprobante</a>{% endif %}</article>{% empty %}<p>Aún no hay pagos registrados.</p>{% endfor %}</div></main></body></html>

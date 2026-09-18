@@ -1,11 +1,12 @@
 from django.contrib import messages
 from django.shortcuts import get_object_or_404, redirect
 from django.views.decorators.http import require_POST
+from django.views.decorators.cache import never_cache
 from django.db import transaction
-from decimal import Decimal
-from django.db.models import Prefetch
 
-from .models import Cuenta, DetallePedido, Pedido
+from .models import Cuenta, DetallePedido, Pedido, IntentoWebpay, Pago
+from .pagos import ESTADOS_ACTIVOS, intento_activo, sincronizar_carrito, renovar_carrito, cliente_clave
+from django.db.models import Q
 
 from carta.models import Producto
 from mesas.models import Mesa
@@ -13,15 +14,25 @@ from django.contrib.admin.views.decorators import staff_member_required
 from django.shortcuts import render
 
 from .carrito import Carrito
+from .cierre import revisar_cierre, cerrar_cuenta
+from .pagos import ErrorPago
 
 
 @require_POST
+@transaction.atomic
 def agregar_al_carrito(request, codigo, producto_id):
     mesa = get_object_or_404(
-        Mesa,
+        Mesa.objects.select_for_update(),
         codigo=codigo,
         activa=True,
     )
+
+    activo = intento_activo(request, mesa)
+    if activo:
+        from .vistas_webpay import _url_resultado
+        messages.info(request, 'Resuelve el pago en curso antes de modificar el carrito.')
+        return redirect(_url_resultado(activo.pk))
+    sincronizar_carrito(request, mesa)
 
     producto = get_object_or_404(
         Producto,
@@ -33,6 +44,7 @@ def agregar_al_carrito(request, codigo, producto_id):
     carrito = Carrito(request, mesa)
 
     if carrito.agregar(producto):
+        renovar_carrito(request, mesa)
         messages.success(
             request,
             f"Agregaste {producto.nombre}.",
@@ -50,12 +62,20 @@ def agregar_al_carrito(request, codigo, producto_id):
 
 
 @require_POST
+@transaction.atomic
 def quitar_del_carrito(request, codigo, producto_id):
     mesa = get_object_or_404(
-        Mesa,
+        Mesa.objects.select_for_update(),
         codigo=codigo,
         activa=True,
     )
+
+    activo = intento_activo(request, mesa)
+    if activo:
+        from .vistas_webpay import _url_resultado
+        messages.info(request, 'Resuelve el pago en curso antes de modificar el carrito.')
+        return redirect(_url_resultado(activo.pk))
+    sincronizar_carrito(request, mesa)
 
     producto = get_object_or_404(
         Producto,
@@ -64,6 +84,7 @@ def quitar_del_carrito(request, codigo, producto_id):
 
     carrito = Carrito(request, mesa)
     carrito.quitar(producto)
+    renovar_carrito(request, mesa)
 
     messages.success(
         request,
@@ -76,91 +97,15 @@ def quitar_del_carrito(request, codigo, producto_id):
     )
 @require_POST
 def enviar_pedido(request, codigo):
-    with transaction.atomic():
-        # Coordina los pedidos simultáneos de una misma mesa.
-        mesa = get_object_or_404(
-            Mesa.objects.select_for_update(),
-            codigo=codigo,
-            activa=True,
-        )
+    # La URL antigua también debe pasar por Webpay; nunca envía sin pagar.
+    from .vistas_webpay import iniciar_cliente
+    return iniciar_cliente(request, codigo)
 
-        carrito = Carrito(request, mesa)
-
-        if not carrito.productos:
-            messages.warning(request, "Tu carrito está vacío.")
-            return redirect("carta:por_mesa", codigo=mesa.codigo)
-
-        productos = list(
-            Producto.objects.filter(
-                pk__in=carrito.productos.keys(),
-                disponible=True,
-                categoria__activa=True,
-            )
-        )
-
-        if len(productos) != len(carrito.productos):
-            messages.error(
-                request,
-                "Algún producto ya no está disponible. "
-                "Quítalo del carrito antes de enviar el pedido.",
-            )
-            return redirect("carta:por_mesa", codigo=mesa.codigo)
-
-        for producto in productos:
-            cantidad = carrito.productos[str(producto.pk)]
-
-            if (
-                type(cantidad) is not int
-                or cantidad < 1
-                or cantidad > Carrito.MAXIMO_POR_PRODUCTO
-            ):
-                messages.error(
-                    request,
-                    "Hay una cantidad inválida en el carrito.",
-                )
-                return redirect("carta:por_mesa", codigo=mesa.codigo)
-
-        cuenta, _ = Cuenta.objects.get_or_create(
-            mesa=mesa,
-            estado=Cuenta.Estado.ABIERTA,
-        )
-
-        pedido = Pedido.objects.create(
-            mesa=mesa,
-            cuenta=cuenta,
-        )
-
-        DetallePedido.objects.bulk_create(
-            [
-                DetallePedido(
-                    pedido=pedido,
-                    producto=producto,
-                    nombre_producto=producto.nombre,
-                    precio_unitario=producto.precio,
-                    cantidad=carrito.productos[str(producto.pk)],
-                )
-                for producto in productos
-            ]
-        )
-
-    clave_pedidos = f"pedidos_{mesa.codigo}"
-    pedidos_sesion = request.session.get(clave_pedidos, [])
-    pedidos_sesion.append(pedido.pk)
-    request.session[clave_pedidos] = pedidos_sesion
-
-    carrito.productos = {}
-    carrito.guardar()
-
-    messages.success(
-        request,
-        f"¡Pedido #{pedido.pk} enviado! Puedes seguir su estado aquí.",
-    )
-
-    return redirect("pedidos:mis_pedidos", codigo=mesa.codigo)
 @staff_member_required
 def cocina(request):
     pedidos = (
         Pedido.objects.filter(
+            pago__isnull=False,
             estado__in=[
                 Pedido.Estado.PENDIENTE,
                 Pedido.Estado.EN_PREPARACION,
@@ -196,6 +141,7 @@ def cambiar_estado(request, pedido_id):
 
     actualizado = Pedido.objects.filter(
         pk=pedido.pk,
+        pago__isnull=False,
         estado=estado_anterior,
     ).update(estado=nuevo_estado)
 
@@ -215,7 +161,7 @@ def cambiar_estado(request, pedido_id):
 @staff_member_required
 def entregas(request):
     pedidos = (
-        Pedido.objects.filter(estado=Pedido.Estado.LISTO)
+        Pedido.objects.filter(estado=Pedido.Estado.LISTO, pago__isnull=False)
         .select_related("mesa")
         .prefetch_related("detalles")
         .order_by("creado", "pk")
@@ -235,6 +181,7 @@ def marcar_entregado(request, pedido_id):
 
     actualizado = Pedido.objects.filter(
         pk=pedido.pk,
+        pago__isnull=False,
         estado=Pedido.Estado.LISTO,
     ).update(estado=Pedido.Estado.ENTREGADO)
 
@@ -250,6 +197,7 @@ def marcar_entregado(request, pedido_id):
         )
 
     return redirect("pedidos:entregas")
+@never_cache
 def mis_pedidos(request, codigo):
     mesa = get_object_or_404(
         Mesa,
@@ -257,17 +205,21 @@ def mis_pedidos(request, codigo):
         activa=True,
     )
 
+    sincronizar_carrito(request, mesa)
     clave_pedidos = f"pedidos_{mesa.codigo}"
     pedidos_sesion = request.session.get(clave_pedidos, [])
 
     pedidos = (
-        Pedido.objects.filter(
-            mesa=mesa,
-            pk__in=pedidos_sesion,
-        )
-        .prefetch_related("detalles")
+        Pedido.objects.filter(Q(pk__in=pedidos_sesion) | Q(cliente_clave=cliente_clave(request)), mesa=mesa)
+        .prefetch_related("detalles", "intentos_webpay")
         .order_by("-creado", "-pk")
     )
+
+    from .vistas_webpay import _url_resultado
+    for pedido in pedidos:
+        intentos = list(pedido.intentos_webpay.all())
+        ultimo = next((i for i in intentos if i.estado == 'autorizado'), intentos[0] if intentos else None)
+        pedido.resultado_url = _url_resultado(ultimo.pk) if ultimo else ''
 
     return render(
         request,
@@ -279,52 +231,27 @@ def mis_pedidos(request, codigo):
     )
 @staff_member_required
 def caja(request):
-    pedidos_cobrables = (
-        Pedido.objects.exclude(estado=Pedido.Estado.CANCELADO)
-        .prefetch_related("detalles")
-        .order_by("creado", "pk")
-    )
-
-    cuentas = list(
-        Cuenta.objects.filter(estado=Cuenta.Estado.ABIERTA)
-        .select_related("mesa")
-        .prefetch_related(
-            Prefetch(
-                "pedidos",
-                queryset=pedidos_cobrables,
-                to_attr="pedidos_cobrables",
-            )
-        )
-        .order_by("creada", "pk")
-    )
-
-    total_abierto = Decimal("0.00")
-
+    pagos = Pago.objects.select_related('cuenta__mesa', 'pedido', 'intento_webpay').order_by('-creado')[:100]
+    pendientes = IntentoWebpay.objects.filter(estado__in=ESTADOS_ACTIVOS).select_related('cuenta__mesa', 'pedido').order_by('creado')
+    cuentas = list(Cuenta.objects.filter(estado=Cuenta.Estado.ABIERTA).select_related('mesa').order_by('mesa__numero'))
     for cuenta in cuentas:
-        cuenta.total_calculado = Decimal("0.00")
-        cuenta.pendientes_entrega = 0
+        cuenta.revision = revisar_cierre(cuenta)
+    cerradas = Cuenta.objects.filter(estado=Cuenta.Estado.CERRADA).select_related('mesa').order_by('-cerrada')[:10]
+    return render(request, 'pedidos/caja.html', {'pagos': pagos, 'pendientes': pendientes,
+        'cuentas': cuentas, 'cerradas': cerradas})
 
-        for pedido in cuenta.pedidos_cobrables:
-            pedido.total_calculado = sum(
-                (
-                    detalle.subtotal
-                    for detalle in pedido.detalles.all()
-                ),
-                Decimal("0.00"),
-            )
 
-            cuenta.total_calculado += pedido.total_calculado
-
-            if pedido.estado != Pedido.Estado.ENTREGADO:
-                cuenta.pendientes_entrega += 1
-
-        total_abierto += cuenta.total_calculado
-
-    return render(
-        request,
-        "pedidos/caja.html",
-        {
-            "cuentas": cuentas,
-            "total_abierto": total_abierto,
-        },
-    )
+@staff_member_required
+@require_POST
+def cerrar_mesa(request, cuenta_id):
+    get_object_or_404(Cuenta, pk=cuenta_id)
+    try:
+        cuenta, cerrada = cerrar_cuenta(cuenta_id)
+    except ErrorPago as exc:
+        messages.warning(request, str(exc))
+    else:
+        if cerrada:
+            messages.success(request, f'Mesa {cuenta.mesa.numero}: cuenta #{cuenta.pk} cerrada. Lista para una nueva visita.')
+        else:
+            messages.info(request, f'La cuenta #{cuenta.pk} ya estaba cerrada.')
+    return redirect('pedidos:caja')
