@@ -1,0 +1,175 @@
+<!doctype html>
+<html lang="es-CL">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Kippu · Muestrario del sistema de diseño</title>
+    <link rel="stylesheet" href="css/kippu.css">
+    <style>
+        /* Solo para ordenar esta página de muestra; los componentes vienen de kippu.css. */
+        .seccion { padding: 28px 0; border-top: 1px solid var(--linea); }
+        .seccion > h2 { margin: 6px 0 18px; }
+        .grilla { display: grid; gap: 12px; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); }
+        .grilla--comandas { grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); }
+        .color { overflow: hidden; border: 1px solid var(--linea); border-radius: 10px; background: var(--papel); }
+        .color__muestra { height: 56px; }
+        .color__datos { padding: 8px 10px; font-size: 13px; }
+        .color__datos .cifra { display: block; color: var(--texto-2); font-size: 12px; }
+        .fila { display: flex; flex-wrap: wrap; align-items: center; gap: 12px; }
+        .fuente-serif { font-family: var(--serif); font-size: 27px; font-weight: 600; color: var(--tinta); }
+        .fuente-mono { font-family: var(--mono); font-size: 20px; }
+        .nota { margin-top: 32px; color: var(--texto-2); font-size: 12.5px; }
+    </style>
+</head>
+<body>
+    <header class="contenedor contenedor--ancho encabezado">
+        <span class="logo" aria-hidden="true">券</span>
+        <span class="marca">Kippu</span>
+    </header>
+
+    <main class="contenedor contenedor--ancho">
+        <p class="etiqueta">Sistema de diseño</p>
+        <h1>Muestrario</h1>
+        <p class="texto-secundario">Cada bloque usa las clases y variables de <span class="cifra">kippu.css</span>. Referencia: <span class="cifra">sistema-de-diseno-kippu.md</span>.</p>
+
+        <section class="seccion">
+            <p class="etiqueta">01 · Paleta</p>
+            <h2>Colores</h2>
+            <div class="grilla">
+                <div class="color"><div class="color__muestra" style="background: var(--papel)"></div><div class="color__datos">Papel<span class="cifra">#fbf7f0</span></div></div>
+                <div class="color"><div class="color__muestra" style="background: var(--superficie)"></div><div class="color__datos">Superficie<span class="cifra">#f3eadc</span></div></div>
+                <div class="color"><div class="color__muestra" style="background: var(--superficie-2)"></div><div class="color__datos">Superficie 2<span class="cifra">#e6d8c2</span></div></div>
+                <div class="color"><div class="color__muestra" style="background: var(--tinta)"></div><div class="color__datos">Tinta<span class="cifra">#17140f</span></div></div>
+                <div class="color"><div class="color__muestra" style="background: var(--texto)"></div><div class="color__datos">Texto<span class="cifra">#3b342b</span></div></div>
+                <div class="color"><div class="color__muestra" style="background: var(--texto-2)"></div><div class="color__datos">Texto 2<span class="cifra">#5c5245</span></div></div>
+                <div class="color"><div class="color__muestra" style="background: var(--texto-3)"></div><div class="color__datos">Texto 3<span class="cifra">#8a7c69</span></div></div>
+                <div class="color"><div class="color__muestra" style="background: var(--linea)"></div><div class="color__datos">Línea<span class="cifra">#d8d0c3</span></div></div>
+                <div class="color"><div class="color__muestra" style="background: var(--linea-suave)"></div><div class="color__datos">Línea suave<span class="cifra">#e7dece</span></div></div>
+                <div class="color"><div class="color__muestra" style="background: var(--aji)"></div><div class="color__datos">Rojo-ají<span class="cifra">#a83a22</span></div></div>
+                <div class="color"><div class="color__muestra" style="background: var(--aji-claro)"></div><div class="color__datos">Ají claro<span class="cifra">#c24a2d</span></div></div>
+                <div class="color"><div class="color__muestra" style="background: var(--aji-suave)"></div><div class="color__datos">Ají suave<span class="cifra">#f6e4dd</span></div></div>
+                <div class="color"><div class="color__muestra" style="background: var(--semaforo-verde)"></div><div class="color__datos">Semáforo verde<span class="cifra">#6f8f5a</span></div></div>
+                <div class="color"><div class="color__muestra" style="background: var(--semaforo-ambar)"></div><div class="color__datos">Semáforo ámbar<span class="cifra">#c9a24a</span></div></div>
+                <div class="color"><div class="color__muestra" style="background: var(--semaforo-rojo)"></div><div class="color__datos">Semáforo rojo<span class="cifra">#a83a22</span></div></div>
+            </div>
+        </section>
+
+        <section class="seccion">
+            <p class="etiqueta">02 · Tipografías</p>
+            <h2>Fraunces, Work Sans e IBM Plex Mono</h2>
+            <p class="fuente-serif">Ceviche clásico</p>
+            <p>Work Sans para la interfaz: pescado del día, leche de tigre, camote y choclo.</p>
+            <p class="fuente-mono">$10.900 · Pedido #47 · 20:34</p>
+        </section>
+
+        <section class="seccion">
+            <p class="etiqueta">03 · Logo</p>
+            <h2>Boleto perforado, kanji en peso 200</h2>
+            <div class="fila">
+                <span class="logo logo--grande" role="img" aria-label="Kippu">券</span>
+                <span class="logo" role="img" aria-label="Kippu">券</span>
+                <span class="logo logo--chico" role="img" aria-label="Kippu">券</span>
+            </div>
+        </section>
+
+        <section class="seccion">
+            <p class="etiqueta">04 · Botones</p>
+            <h2>Acciones</h2>
+            <div class="fila">
+                <button class="boton" type="button">Agregar al pedido</button>
+                <button class="boton boton--fantasma" type="button">Seguir mirando</button>
+                <button class="boton boton--oscuro" type="button">Marcar lista</button>
+                <button class="boton" type="button" disabled>Deshabilitado</button>
+                <button class="boton-agregar" type="button" aria-label="Agregar Ceviche clásico">+</button>
+            </div>
+            <div style="max-width: 390px; margin-top: 16px;">
+                <button class="boton boton--bloque" type="button">Pagar con tarjeta <span class="cifra">$35.300</span></button>
+            </div>
+        </section>
+
+        <section class="seccion">
+            <p class="etiqueta">05 · Tarjetas</p>
+            <h2>Superficies</h2>
+            <div class="grilla" style="grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));">
+                <div class="tarjeta">Tarjeta sobre superficie</div>
+                <div class="tarjeta tarjeta--contorno">Tarjeta con contorno</div>
+                <div class="tarjeta tarjeta--seleccionada">Tarjeta seleccionada</div>
+            </div>
+        </section>
+
+        <section class="seccion">
+            <p class="etiqueta">06 · Carta y totales</p>
+            <h2>Cebiches</h2>
+            <div style="max-width: 420px;">
+            <div class="producto">
+                <div><div class="producto__nombre">Ceviche clásico</div><div class="producto__descripcion">Pescado del día en leche de tigre.</div><div class="producto__precio precio">$10.900</div></div>
+                <div class="producto__accion"><button class="boton-agregar" type="button" aria-label="Agregar Ceviche clásico">+</button></div>
+            </div>
+            <div class="producto">
+                <div><div class="producto__nombre">Ceviche mixto</div><div class="producto__descripcion">Pescado y mariscos.</div><div class="producto__precio precio">$12.500</div></div>
+                <div class="producto__accion"><button class="boton-agregar" type="button" aria-label="Agregar Ceviche mixto">+</button></div>
+            </div>
+            <div class="producto">
+                <div><div class="producto__nombre">Tiradito de corvina</div><div class="producto__descripcion">Láminas de corvina con crema de ají.</div><div class="producto__precio precio">$11.500</div></div>
+                <div class="producto__accion"><button class="boton-agregar" type="button" aria-label="Agregar Tiradito de corvina">+</button></div>
+            </div>
+            <div class="producto">
+                <div><div class="producto__nombre">Pulpo al olivo</div><div class="producto__descripcion">Pulpo en salsa de aceituna.</div><div class="producto__precio precio">$12.900</div></div>
+                <div class="producto__accion"><button class="boton-agregar" type="button" aria-label="Agregar Pulpo al olivo">+</button></div>
+            </div>
+            <div style="margin-top: 18px;">
+                <div class="total"><span>Ceviche clásico × 1</span><span class="total__valor">$10.900</span></div>
+                <div class="total"><span>Tiradito de corvina × 1</span><span class="total__valor">$11.500</span></div>
+                <div class="total"><span>Pulpo al olivo × 1</span><span class="total__valor">$12.900</span></div>
+                <div class="total total--final"><span class="total__etiqueta">Total a pagar</span><span class="total__valor">$35.300</span></div>
+            </div>
+            </div>
+        </section>
+
+        <section class="seccion">
+            <p class="etiqueta">07 · Mensajes</p>
+            <h2>Avisos al usuario</h2>
+            <ul class="mensajes" style="max-width: 480px;">
+                <li class="mensaje mensaje--success">Agregaste Ceviche clásico.</li>
+                <li class="mensaje mensaje--warning">Puedes agregar hasta 20 unidades de cada producto.</li>
+                <li class="mensaje mensaje--error">El cambio solicitado no es válido.</li>
+                <li class="mensaje mensaje--info">Resuelve el pago en curso antes de modificar el carrito.</li>
+            </ul>
+        </section>
+
+        <section class="seccion">
+            <p class="etiqueta">08 · Cocina</p>
+            <h2>Semáforo de comandas</h2>
+            <p class="texto-secundario">Verde bajo 10 minutos · ámbar entre 10 y 20 · rojo sobre 20.</p>
+            <div class="grilla grilla--comandas">
+                <article class="comanda comanda--rojo">
+                    <div class="comanda__cabecera"><span class="comanda__mesa">Mesa 5</span><span class="comanda__codigo">#47</span><span class="comanda__espera">26 min</span></div>
+                    <ul class="comanda__items">
+                        <li class="comanda__item"><span class="comanda__cantidad">1×</span><span>Lomo saltado</span></li>
+                        <li class="comanda__item"><span class="comanda__cantidad">1×</span><span>Chicha morada</span></li>
+                    </ul>
+                    <div class="comanda__pie"><span class="comanda__estado">En preparación</span><button class="boton boton--oscuro" type="button">Marcar lista</button></div>
+                </article>
+                <article class="comanda comanda--ambar">
+                    <div class="comanda__cabecera"><span class="comanda__mesa">Mesa 12</span><span class="comanda__codigo">#49</span><span class="comanda__espera">15 min</span></div>
+                    <ul class="comanda__items">
+                        <li class="comanda__item"><span class="comanda__cantidad">2×</span><span>Anticuchos de corazón</span></li>
+                        <li class="comanda__item"><span class="comanda__cantidad">1×</span><span>Papa a la huancaína</span></li>
+                    </ul>
+                    <div class="comanda__pie"><span class="comanda__estado">Pendiente</span><button class="boton boton--fantasma" type="button">Empezar</button></div>
+                </article>
+                <article class="comanda comanda--verde">
+                    <div class="comanda__cabecera"><span class="comanda__mesa">Mesa 9</span><span class="comanda__codigo">#51</span><span class="comanda__espera">6 min</span></div>
+                    <ul class="comanda__items">
+                        <li class="comanda__item"><span class="comanda__cantidad">1×</span><span>Tiradito de corvina</span></li>
+                        <li class="comanda__item"><span class="comanda__cantidad">1×</span><span>Chaufa de mariscos</span></li>
+                    </ul>
+                    <div class="comanda__pie"><span class="comanda__estado">Pendiente</span><button class="boton boton--fantasma" type="button">Empezar</button></div>
+                </article>
+            </div>
+        </section>
+
+        <p class="nota">Los platos y precios son de ejemplo. La Casa Causa es un restaurante ficticio creado como caso de estudio.</p>
+    </main>
+</body>
+</html>
