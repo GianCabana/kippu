@@ -1,0 +1,486 @@
+/* Kippu — sistema de diseño.
+   Único lugar donde se definen colores y tipografías: las plantillas usan estas variables. */
+
+/* ---------- Fuentes (archivos locales, licencia OFL en ../fuentes) ---------- */
+
+@font-face {
+  font-family: "Fraunces";
+  font-weight: 600;
+  font-style: normal;
+  font-display: swap;
+  src: url("../fuentes/fraunces-600.woff2") format("woff2");
+}
+@font-face {
+  font-family: "Work Sans";
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+  src: url("../fuentes/work-sans-400.woff2") format("woff2");
+}
+@font-face {
+  font-family: "Work Sans";
+  font-weight: 500;
+  font-style: normal;
+  font-display: swap;
+  src: url("../fuentes/work-sans-500.woff2") format("woff2");
+}
+@font-face {
+  font-family: "Work Sans";
+  font-weight: 600;
+  font-style: normal;
+  font-display: swap;
+  src: url("../fuentes/work-sans-600.woff2") format("woff2");
+}
+@font-face {
+  font-family: "IBM Plex Mono";
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+  src: url("../fuentes/ibm-plex-mono-400.woff2") format("woff2");
+}
+@font-face {
+  font-family: "IBM Plex Mono";
+  font-weight: 500;
+  font-style: normal;
+  font-display: swap;
+  src: url("../fuentes/ibm-plex-mono-500.woff2") format("woff2");
+}
+/* Recortada para contener solo 券: el logo es su único uso. */
+@font-face {
+  font-family: "Kippu Kanji";
+  font-weight: 200;
+  font-style: normal;
+  font-display: block;
+  src: url("../fuentes/noto-serif-jp-200-ken.woff2") format("woff2");
+  unicode-range: U+5238;
+}
+
+/* ---------- Variables ---------- */
+
+:root {
+  --papel: #fbf7f0;
+  --superficie: #f3eadc;
+  --superficie-2: #e6d8c2;
+  --tinta: #17140f;
+  --texto: #3b342b;
+  --texto-2: #5c5245;
+  --texto-3: #8a7c69;
+  --linea: #d8d0c3;
+  --linea-suave: #e7dece;
+  --aji: #a83a22;
+  --aji-claro: #c24a2d;
+  --aji-suave: #f6e4dd;
+  --oscuro: #050403;
+
+  --semaforo-verde: #6f8f5a;
+  --semaforo-ambar: #c9a24a;
+  --semaforo-rojo: #a83a22;
+  /* Fondo y texto de la pastilla de minutos: tomados del mockup, no del documento. */
+  --semaforo-verde-fondo: #e8efe2;
+  --semaforo-verde-texto: #4d6b39;
+  --semaforo-ambar-fondo: #f6eeda;
+  --semaforo-ambar-texto: #8a6d1e;
+  --semaforo-rojo-fondo: #f6e4dd;
+  --semaforo-rojo-texto: #a83a22;
+
+  --serif: "Fraunces", Georgia, serif;
+  --sans: "Work Sans", system-ui, sans-serif;
+  --mono: "IBM Plex Mono", ui-monospace, monospace;
+  --kanji: "Kippu Kanji", "Noto Serif JP", serif;
+
+  --radio: 12px;
+  --radio-tarjeta: 14px;
+}
+
+/* ---------- Base ---------- */
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  background: var(--papel);
+  color: var(--texto);
+  font-family: var(--sans);
+  font-size: 15px;
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+}
+
+h1,
+h2,
+h3 {
+  margin: 0;
+  color: var(--tinta);
+  font-family: var(--serif);
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  line-height: 1.1;
+}
+h1 { font-size: 40px; }
+h2 { font-size: 27px; }
+h3 { font-size: 19px; }
+
+a {
+  color: var(--aji);
+}
+
+:focus-visible {
+  outline: 2px solid var(--aji);
+  outline-offset: 2px;
+}
+
+.contenedor {
+  width: 100%;
+  max-width: 720px;
+  margin: 0 auto;
+  padding: 0 16px;
+}
+.contenedor--ancho {
+  max-width: 1280px;
+}
+
+.texto-secundario {
+  color: var(--texto-2);
+}
+
+.separador {
+  height: 1px;
+  margin: 20px 0;
+  border: 0;
+  background: var(--linea);
+}
+
+/* ---------- Logo: boleto con dos muescas y 券 en peso 200 ---------- */
+
+.logo {
+  --logo-tamano: 38px;
+  --logo-muesca: 6px;
+  display: inline-flex;
+  flex: none;
+  align-items: center;
+  justify-content: center;
+  width: var(--logo-tamano);
+  height: var(--logo-tamano);
+  border-radius: calc(var(--logo-tamano) * 0.24);
+  background: var(--aji);
+  color: var(--papel);
+  font-family: var(--kanji);
+  font-size: calc(var(--logo-tamano) * 0.5);
+  font-weight: 200;
+  line-height: 1;
+  -webkit-mask:
+    radial-gradient(circle var(--logo-muesca) at 0 50%, transparent 98%, #000 100%),
+    radial-gradient(circle var(--logo-muesca) at 100% 50%, transparent 98%, #000 100%);
+  -webkit-mask-composite: source-in;
+  mask:
+    radial-gradient(circle var(--logo-muesca) at 0 50%, transparent 98%, #000 100%),
+    radial-gradient(circle var(--logo-muesca) at 100% 50%, transparent 98%, #000 100%);
+  mask-composite: intersect;
+  user-select: none;
+}
+.logo--chico {
+  --logo-tamano: 28px;
+  --logo-muesca: 4.5px;
+}
+.logo--grande {
+  --logo-tamano: 64px;
+  --logo-muesca: 10px;
+}
+
+.encabezado {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding-block: 16px;
+}
+.marca {
+  color: var(--tinta);
+  font-family: var(--serif);
+  font-size: 21px;
+  font-weight: 600;
+}
+
+/* ---------- Texto y cifras ---------- */
+
+.etiqueta {
+  color: var(--texto-3);
+  font-family: var(--mono);
+  font-size: 12px;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+}
+
+/* Todo número que el usuario compare o verifique va en monoespaciada. */
+.precio,
+.cifra {
+  font-family: var(--mono);
+  font-variant-numeric: tabular-nums;
+}
+.precio {
+  color: var(--tinta);
+}
+
+/* ---------- Botones ---------- */
+
+.boton {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 9px;
+  min-height: 44px;
+  padding: 12px 20px;
+  border: 1px solid transparent;
+  border-radius: var(--radio);
+  background: var(--aji);
+  color: var(--papel);
+  font-family: var(--sans);
+  font-size: 16px;
+  font-weight: 600;
+  line-height: 1.2;
+  text-decoration: none;
+  cursor: pointer;
+}
+.boton:hover {
+  filter: brightness(0.93);
+}
+.boton:disabled,
+.boton[aria-disabled="true"] {
+  opacity: 0.5;
+  cursor: not-allowed;
+  filter: none;
+}
+.boton .cifra {
+  font-weight: 400;
+  opacity: 0.85;
+}
+.boton--bloque {
+  width: 100%;
+  padding: 17px;
+}
+.boton--fantasma {
+  border-color: var(--linea);
+  background: transparent;
+  color: var(--tinta);
+  font-weight: 500;
+}
+.boton--oscuro {
+  background: var(--tinta);
+}
+
+/* ---------- Tarjetas ---------- */
+
+.tarjeta {
+  padding: 16px 18px;
+  border: 1px solid transparent;
+  border-radius: var(--radio-tarjeta);
+  background: var(--superficie);
+}
+.tarjeta--contorno {
+  border-color: var(--linea);
+  background: transparent;
+}
+.tarjeta--seleccionada {
+  border-color: var(--aji);
+  background: var(--aji-suave);
+}
+
+/* ---------- Carta ---------- */
+
+.producto {
+  display: flex;
+  align-items: flex-start;
+  gap: 14px;
+  padding: 15px 0;
+  border-bottom: 1px solid var(--linea-suave);
+}
+.producto__nombre {
+  color: var(--tinta);
+  font-size: 15.5px;
+  font-weight: 600;
+}
+.producto__descripcion {
+  margin-top: 3px;
+  color: var(--texto-2);
+  font-size: 12.5px;
+  line-height: 1.35;
+}
+.producto__precio {
+  margin-top: 7px;
+  font-size: 14.5px;
+}
+.producto__accion {
+  flex: none;
+  margin-left: auto;
+}
+
+.boton-agregar {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  border: 1px solid var(--aji);
+  border-radius: 10px;
+  background: transparent;
+  color: var(--aji);
+  font-size: 20px;
+  line-height: 1;
+  cursor: pointer;
+}
+
+/* ---------- Totales ---------- */
+
+.total {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  margin-bottom: 9px;
+  color: var(--texto-2);
+  font-size: 14px;
+}
+.total__valor {
+  color: var(--tinta);
+  font-family: var(--mono);
+  font-size: 14.5px;
+  font-variant-numeric: tabular-nums;
+}
+.total--final {
+  margin-top: 14px;
+}
+.total--final .total__etiqueta {
+  color: var(--tinta);
+  font-family: var(--serif);
+  font-size: 19px;
+  font-weight: 600;
+}
+.total--final .total__valor {
+  font-size: 27px;
+}
+
+/* ---------- Mensajes de Django (messages) ---------- */
+
+.mensajes {
+  margin: 0 0 16px;
+  padding: 0;
+  list-style: none;
+}
+.mensaje {
+  margin-bottom: 8px;
+  padding: 12px 14px;
+  border-left: 4px solid var(--texto-3);
+  border-radius: 8px;
+  background: var(--superficie);
+  color: var(--texto);
+}
+.mensaje--success { border-left-color: var(--semaforo-verde); }
+.mensaje--warning { border-left-color: var(--semaforo-ambar); }
+.mensaje--error { border-left-color: var(--aji); }
+
+/* ---------- Cocina: comanda con semáforo ---------- */
+/* Verde bajo 10 min, ámbar entre 10 y 20, rojo sobre 20. La clase la elige la plantilla. */
+
+.comanda {
+  --semaforo: var(--linea);
+  --semaforo-fondo: var(--superficie);
+  --semaforo-texto: var(--texto-2);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  border: 1px solid var(--linea);
+  border-top: 5px solid var(--semaforo);
+  border-radius: var(--radio-tarjeta);
+  background: var(--papel);
+}
+.comanda--verde {
+  --semaforo: var(--semaforo-verde);
+  --semaforo-fondo: var(--semaforo-verde-fondo);
+  --semaforo-texto: var(--semaforo-verde-texto);
+}
+.comanda--ambar {
+  --semaforo: var(--semaforo-ambar);
+  --semaforo-fondo: var(--semaforo-ambar-fondo);
+  --semaforo-texto: var(--semaforo-ambar-texto);
+}
+.comanda--rojo {
+  --semaforo: var(--semaforo-rojo);
+  --semaforo-fondo: var(--semaforo-rojo-fondo);
+  --semaforo-texto: var(--semaforo-rojo-texto);
+}
+.comanda__cabecera {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  padding: 11px 15px 8px;
+}
+.comanda__mesa {
+  color: var(--tinta);
+  font-family: var(--serif);
+  font-size: 19px;
+  font-weight: 600;
+}
+.comanda__codigo {
+  color: var(--texto-2);
+  font-family: var(--mono);
+  font-size: 14px;
+}
+.comanda__espera {
+  margin-left: auto;
+  padding: 3px 9px;
+  border-radius: 6px;
+  background: var(--semaforo-fondo);
+  color: var(--semaforo-texto);
+  font-family: var(--mono);
+  font-size: 13px;
+  font-weight: 500;
+  font-variant-numeric: tabular-nums;
+}
+.comanda__items {
+  flex: 1;
+  margin: 0;
+  padding: 11px 15px;
+  border-top: 1px solid var(--linea-suave);
+  list-style: none;
+}
+.comanda__item {
+  display: flex;
+  align-items: baseline;
+  gap: 9px;
+  margin-bottom: 7px;
+  font-size: 15px;
+}
+.comanda__cantidad {
+  flex: none;
+  color: var(--texto-2);
+  font-family: var(--mono);
+  font-size: 14px;
+}
+.comanda__pie {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 15px 12px;
+  border-top: 1px solid var(--linea-suave);
+}
+.comanda__estado {
+  color: var(--texto-3);
+  font-family: var(--mono);
+  font-size: 11.5px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+.comanda__pie .boton {
+  margin-left: auto;
+  padding: 9px 15px;
+  font-size: 13px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  * {
+    transition: none !important;
+    animation: none !important;
+  }
+}
