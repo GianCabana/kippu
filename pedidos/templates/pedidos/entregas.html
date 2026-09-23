@@ -150,8 +150,9 @@
         <div class="contenedor barra-interior">
             <div class="marca" aria-label="Kippu, panel de servicio"><span class="monograma" aria-hidden="true">k</span><div><span class="marca-nombre">kippu</span><span class="marca-detalle">Panel de servicio</span></div></div>
             <nav class="navegacion" aria-label="Paneles de servicio">
-                <a href="{% url 'pedidos:cocina' %}"><svg class="icono" aria-hidden="true"><use href="#i-cocina"/></svg> Cocina</a>
+                <a href="{% url 'pedidos:cocina' %}"><svg class="icono" aria-hidden="true"><use href="#i-cocina"/></svg> Cocina</a>                
                 <a href="{% url 'pedidos:entregas' %}" aria-current="page"><svg class="icono" aria-hidden="true"><use href="#i-plato"/></svg> Entregas <svg class="icono" aria-hidden="true"><use href="#i-flecha"/></svg></a>
+                <a href="{% url 'pedidos:caja' %}">Caja</a>            
             </nav>
         </div>
     </header>

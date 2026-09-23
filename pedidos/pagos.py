@@ -138,6 +138,10 @@ def crear_intento_cliente(request, codigo, return_url):
         intento = IntentoWebpay.objects.create(cuenta=cuenta, pedido=pedido,
             monto=total, detalle=lineas,
             iniciado_por=request.user if request.user.is_authenticated else None)
+    return _abrir_transaccion(intento, return_url)
+
+
+def _abrir_transaccion(intento, return_url):
     try:
         respuesta = obtener_webpay().create(intento.orden_compra, str(intento.session_id),
                                             int(intento.monto), return_url)
@@ -171,7 +175,7 @@ def _coincide(respuesta, intento):
         and respuesta.get('session_id') == str(intento.session_id))
 
 
-def resolver_intento(intento_id, confirmar=False):
+def resolver_intento(intento_id, confirmar=False, cancelar=False):
     referencia = IntentoWebpay.objects.only('cuenta_id').get(pk=intento_id)
     with transaction.atomic():
         cuenta = _bloquear_cuenta(referencia.cuenta_id)
@@ -180,7 +184,9 @@ def resolver_intento(intento_id, confirmar=False):
             return intento
         if intento.estado in ('rechazado', 'anulado', 'fallido'):
             return intento
-        if confirmar:
+        if cancelar and not intento.retorno_confirmable:
+            intento.cancelacion_solicitada = True
+        if confirmar and not intento.cancelacion_solicitada:
             intento.retorno_confirmable = True
         intento.estado = IntentoWebpay.Estado.POR_VERIFICAR
         if not intento.token:
@@ -246,7 +252,15 @@ def resolver_intento(intento_id, confirmar=False):
             # Se consulta primero la API y se verifican monto, orden y sesión.
             # 20 min da margen sobre 5 min de acceso + 10 min de formulario TEST.
             antiguedad = timezone.now() - intento.creado
-            if (cliente.options.integration_type == IntegrationType.TEST
+            if (intento.cancelacion_solicitada
+                    and respuesta.get('response_code') is None
+                    and not respuesta.get('authorization_code')
+                    and not intento.codigo_autorizacion):
+                intento.estado = IntentoWebpay.Estado.ANULADO
+                intento.url_webpay = ''
+                intento.observacion = ('Intento cancelado sin autorización en la consulta. '
+                    'Tu carrito se conserva. Puedes reintentar con un pago nuevo.')
+            elif (cliente.options.integration_type == IntegrationType.TEST
                     and antiguedad >= timedelta(minutes=20)
                     and respuesta.get('response_code') is None
                     and not respuesta.get('authorization_code')
@@ -262,7 +276,7 @@ def resolver_intento(intento_id, confirmar=False):
                         'En integración, verifica nuevamente al cumplirse 20 minutos desde su creación. '
                         'En producción se requiere revisión del proveedor.')
                 else:
-                    intento.observacion = 'El pago no está completado. Puedes continuar este mismo intento.'
+                    intento.observacion = 'El pago no está completado. Puedes cancelar o reintentar con un token nuevo.'
         elif status == 'FAILED':
             intento.estado = IntentoWebpay.Estado.RECHAZADO
             intento.observacion = 'Pago rechazado. Tu carrito se conserva y el pedido no pasó a cocina.'
@@ -273,3 +287,67 @@ def resolver_intento(intento_id, confirmar=False):
             intento.observacion = 'Webpay aún no confirma un resultado final. Verifica antes de reintentar.'
         intento.save()
         return intento
+
+
+def reintentar_pago(intento_id, usuario, return_url):
+    """Abandona el anterior únicamente tras consultar; crea un sucesor idempotente."""
+    ref = IntentoWebpay.objects.only('cuenta_id').get(pk=intento_id)
+    sucesor = IntentoWebpay.objects.filter(reintento_de_id=intento_id).first()
+    if sucesor:
+        return sucesor, False
+    # Confirmar la cancelación en su propia transacción. Si luego cambió un precio,
+    # el usuario debe poder editar el carrito sin reactivar el intento abandonado.
+    resolver_intento(intento_id, cancelar=True)
+    with transaction.atomic():
+        cuenta = _bloquear_cuenta(ref.cuenta_id)
+        anterior = IntentoWebpay.objects.select_for_update().get(pk=intento_id)
+        siguiente = IntentoWebpay.objects.filter(reintento_de=anterior).first()
+        if siguiente:
+            return siguiente, False
+        if not anterior.pedido_id:
+            raise ErrorPago('Este intento es de una cuenta antigua. Cancélalo y vuelve a tu carrito para crear un pedido nuevo.')
+        pagado = Pago.objects.filter(pedido_id=anterior.pedido_id).first()
+        if pagado:
+            if pagado.intento_webpay_id:
+                return pagado.intento_webpay, False
+            raise ErrorPago('Este pedido ya tiene un pago registrado.')
+        if anterior.estado not in ('rechazado', 'anulado', 'fallido'):
+            return anterior, False
+        if cuenta.estado != Cuenta.Estado.ABIERTA:
+            raise ErrorPago('Esta cuenta está cerrada. Vuelve a la carta para una nueva compra.')
+        pedido = Pedido.objects.select_for_update().get(pk=anterior.pedido_id)
+        if pedido.estado != Pedido.Estado.SIN_PAGAR:
+            raise ErrorPago('El pedido no está pendiente de pago. Revisa su estado con el personal.')
+        activo = pedido.intentos_webpay.filter(estado__in=ESTADOS_ACTIVOS).first()
+        if activo:
+            return activo, False
+        detalles = list(pedido.detalles.select_related('producto__categoria').order_by('producto_id'))
+        if not detalles or any(not d.producto.disponible or not d.producto.categoria.activa
+                or d.precio_unitario != d.producto.precio or d.cantidad < 1
+                or d.cantidad > Carrito.MAXIMO_POR_PRODUCTO for d in detalles):
+            raise ErrorPago('Cambió la disponibilidad o el precio. Vuelve a la carta y modifica el carrito antes de pagar.')
+        lineas, total = detalle_pedido(pedido)
+        if total <= 0 or total != total.to_integral_value():
+            raise ErrorPago('El importe del pedido no es válido.')
+        nuevo = IntentoWebpay.objects.create(cuenta=cuenta, pedido=pedido,
+            reintento_de=anterior, monto=total, detalle=lineas,
+            iniciado_por=usuario if usuario.is_authenticated else None)
+    return _abrir_transaccion(nuevo, return_url)
+
+
+def consumir_formulario(intento_id):
+    ref = IntentoWebpay.objects.only('cuenta_id').get(pk=intento_id)
+    with transaction.atomic():
+        cuenta = _bloquear_cuenta(ref.cuenta_id)
+        intento = IntentoWebpay.objects.select_for_update().get(pk=intento_id)
+        pagado = (Pago.objects.filter(pedido_id=intento.pedido_id).exists()
+                  if intento.pedido_id else Pago.objects.filter(cuenta=cuenta).exists())
+        if (pagado or cuenta.estado != Cuenta.Estado.ABIERTA
+                or intento.estado != IntentoWebpay.Estado.INICIADO
+                or intento.formulario_abierto or intento.cancelacion_solicitada
+                or intento.retorno_confirmable or not intento.url_webpay
+                or timezone.now() - intento.creado >= timedelta(minutes=5)):
+            return intento, False
+        intento.formulario_abierto = True
+        intento.save(update_fields=['formulario_abierto', 'actualizado'])
+        return intento, True

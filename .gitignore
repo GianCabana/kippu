@@ -1,0 +1,22 @@
+# Secretos
+.env
+
+# Entorno virtual
+.venv/
+venv/
+
+# Python
+__pycache__/
+*.pyc
+
+# Base local y archivos generados
+db.sqlite3
+media/
+staticfiles/
+
+# Respaldos
+*.rar
+*.zip
+
+# Sistema operativo
+.DS_Store

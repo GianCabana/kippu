@@ -17,6 +17,8 @@ from dotenv import load_dotenv
 BASE_DIR = Path(__file__).resolve().parent.parent
 load_dotenv(BASE_DIR / ".env", interpolate=False)
 
+PUBLIC_BASE_URL = os.environ["PUBLIC_BASE_URL"].rstrip("/")
+
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/5.2/howto/deployment/checklist/
 
@@ -26,12 +28,17 @@ SECRET_KEY = os.environ["DJANGO_SECRET_KEY"]
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = [
+    "127.0.0.1",
+    "localhost",
+    "192.168.18.44",
+]
 
 
 # Application definition
 
 INSTALLED_APPS = [
+    "pedidos.apps.PedidosConfig",
     "django.contrib.admin",
     "django.contrib.auth",
     "django.contrib.contenttypes",
@@ -39,6 +46,7 @@ INSTALLED_APPS = [
     "django.contrib.messages",
     "django.contrib.staticfiles",
     "carta.apps.CartaConfig",
+    "mesas.apps.MesasConfig",
 ]
 
 MIDDLEWARE = [

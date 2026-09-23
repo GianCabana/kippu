@@ -5,6 +5,9 @@ from . import views, vistas_webpay
 app_name = "pedidos"
 
 urlpatterns = [
+    path("webpay/reintentar/<int:intento_id>/", vistas_webpay.reintentar, name="webpay_reintentar"),
+    path("webpay/cancelar/<int:intento_id>/", vistas_webpay.cancelar, name="webpay_cancelar"),
+    path("webpay/abrir/<int:intento_id>/", vistas_webpay.abrir, name="webpay_abrir"),
     path("caja/cuenta/<int:cuenta_id>/cerrar/", views.cerrar_mesa, name="cerrar_mesa"),
     path("mesa/<uuid:codigo>/pagar/", vistas_webpay.iniciar_cliente, name="webpay_cliente"),
     path(

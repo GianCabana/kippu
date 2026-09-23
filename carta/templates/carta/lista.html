@@ -323,10 +323,10 @@
                 {% if detalle_carrito %}
                     <div class="carrito-resumen">
                         <div class="total-fila"><span>Total del pedido</span><span><strong class="total-importe" data-pesos="{{ total_carrito|floatformat:'0u' }}">${{ total_carrito|floatformat:"0" }}</strong><span class="moneda">CLP</span></span></div>
-                        <p class="nota-pedido">Revisa tu selección antes de enviarla a cocina.</p>
-                        <form method="post" action="{% url 'pedidos:enviar' codigo=mesa.codigo %}" id="enviar-pedido">
+                        <p class="nota-pedido">Paga con Webpay. Tu pedido llegará a cocina cuando se confirme el pago.</p>
+                        <form method="post" action="{% url 'pedidos:webpay_cliente' codigo=mesa.codigo %}" id="enviar-pedido">
                             {% csrf_token %}
-                            <button class="enviar" type="submit"><span>Enviar pedido</span><svg class="icono" aria-hidden="true"><use href="#i-flecha"/></svg></button>
+                            <button class="enviar" type="submit"><span>Pagar con Webpay</span><svg class="icono" aria-hidden="true"><use href="#i-flecha"/></svg></button>
                         </form>
                         <button class="seguir" type="button" data-cerrar>Seguir explorando</button>
                     </div>
@@ -437,7 +437,7 @@
                     });
                     // No reintentar automáticamente un POST: podría duplicar un pedido.
                     document.querySelectorAll('button[type="submit"]').forEach(boton => { boton.disabled = true; });
-                    if (form.id === 'enviar-pedido') form.querySelector('button span').textContent = 'Enviando pedido…';
+                    if (form.id === 'enviar-pedido') form.querySelector('button span').textContent = 'Preparando pago…';
                 });
             });
             window.addEventListener('pageshow', evento => { if (evento.persisted) window.location.reload(); });
