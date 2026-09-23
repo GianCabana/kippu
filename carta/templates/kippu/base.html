@@ -1,0 +1,37 @@
+{% load static %}<!doctype html>
+<html lang="es-CL">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>{% block titulo %}Kippu{% endblock %}</title>
+    <link rel="preload" href="{% static 'kippu/fuentes/work-sans-400.woff2' %}" as="font" type="font/woff2" crossorigin>
+    <link rel="preload" href="{% static 'kippu/fuentes/fraunces-600.woff2' %}" as="font" type="font/woff2" crossorigin>
+    <link rel="preload" href="{% static 'kippu/fuentes/noto-serif-jp-200-ken.woff2' %}" as="font" type="font/woff2" crossorigin>
+    <link rel="stylesheet" href="{% static 'kippu/css/kippu.css' %}">
+    {% block estilos %}{% endblock %}
+</head>
+<body class="{% block clase_body %}{% endblock %}">
+    {% block encabezado %}
+    <header class="contenedor encabezado">
+        <span class="logo" aria-hidden="true">券</span>
+        <span class="marca">Kippu</span>
+    </header>
+    {% endblock %}
+
+    <main class="{% block clase_main %}contenedor{% endblock %}">
+        {% block mensajes %}
+        {% if messages %}
+        <ul class="mensajes" aria-live="polite">
+            {% for mensaje in messages %}
+            <li class="mensaje mensaje--{{ mensaje.level_tag }}">{{ mensaje }}</li>
+            {% endfor %}
+        </ul>
+        {% endif %}
+        {% endblock %}
+
+        {% block contenido %}{% endblock %}
+    </main>
+
+    {% block scripts %}{% endblock %}
+</body>
+</html>
