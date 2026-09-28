@@ -51,6 +51,15 @@ def agregar_al_carrito(request, codigo, producto_id):
         Mesa.objects.select_for_update(),
         codigo=codigo,
         activa=True,
+        local__activo=True,
+    )
+
+    producto = get_object_or_404(
+        Producto,
+        pk=producto_id,
+        disponible=True,
+        categoria__activa=True,
+        categoria__local=mesa.local,
     )
 
     activo = intento_activo(request, mesa)
@@ -59,13 +68,6 @@ def agregar_al_carrito(request, codigo, producto_id):
         messages.info(request, 'Resuelve el pago en curso antes de modificar el carrito.')
         return _redireccion_carrito(request, _url_resultado(activo.pk))
     sincronizar_carrito(request, mesa)
-
-    producto = get_object_or_404(
-        Producto,
-        pk=producto_id,
-        disponible=True,
-        categoria__activa=True,
-    )
 
     carrito = Carrito(request, mesa)
 
@@ -91,6 +93,13 @@ def quitar_del_carrito(request, codigo, producto_id):
         Mesa.objects.select_for_update(),
         codigo=codigo,
         activa=True,
+        local__activo=True,
+    )
+
+    producto = get_object_or_404(
+        Producto,
+        pk=producto_id,
+        categoria__local=mesa.local,
     )
 
     activo = intento_activo(request, mesa)
@@ -99,11 +108,6 @@ def quitar_del_carrito(request, codigo, producto_id):
         messages.info(request, 'Resuelve el pago en curso antes de modificar el carrito.')
         return _redireccion_carrito(request, _url_resultado(activo.pk))
     sincronizar_carrito(request, mesa)
-
-    producto = get_object_or_404(
-        Producto,
-        pk=producto_id,
-    )
 
     carrito = Carrito(request, mesa)
     carrito.quitar(producto)
@@ -223,6 +227,7 @@ def mis_pedidos(request, codigo):
         Mesa,
         codigo=codigo,
         activa=True,
+        local__activo=True,
     )
 
     sincronizar_carrito(request, mesa)

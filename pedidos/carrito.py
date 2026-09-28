@@ -6,6 +6,7 @@ class Carrito:
 
     def __init__(self, request, mesa):
         self.session = request.session
+        self.mesa = mesa
         self.clave = f"carrito_{mesa.codigo}"
         self.productos = self.session.get(self.clave, {})
 
@@ -41,7 +42,15 @@ class Carrito:
     def obtener_detalle(self):
         productos = Producto.objects.filter(
             pk__in=self.productos.keys(),
-        ).select_related("categoria")
+            categoria__local=self.mesa.local,
+        ).select_related("categoria", "categoria__local")
+
+        ids_validos = {str(producto.pk) for producto in productos}
+        ids_invalidos = set(self.productos) - ids_validos
+        if ids_invalidos:
+            for producto_id in ids_invalidos:
+                self.productos.pop(producto_id, None)
+            self.guardar()
 
         detalle = []
         total = 0

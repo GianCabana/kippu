@@ -2,17 +2,39 @@ from django.core.validators import MinValueValidator
 from django.db import models
 
 
+def local_principal_pk():
+    from mesas.models import Local
+
+    local, _ = Local.objects.get_or_create(
+        slug="kippu-principal",
+        defaults={"nombre": "Kippu Principal", "activo": True},
+    )
+    return local.pk
+
+
 class Categoria(models.Model):
-    nombre = models.CharField(max_length=100, unique=True)
+    local = models.ForeignKey(
+        "mesas.Local",
+        on_delete=models.PROTECT,
+        related_name="categorias",
+        default=local_principal_pk,
+    )
+    nombre = models.CharField(max_length=100)
     activa = models.BooleanField(default=True)
 
     class Meta:
         verbose_name = "categoría"
         verbose_name_plural = "categorías"
-        ordering = ["nombre"]
+        ordering = ["local__nombre", "nombre"]
+        constraints = [
+            models.UniqueConstraint(
+                fields=["local", "nombre"],
+                name="carta_local_categoria_unica",
+            ),
+        ]
 
     def __str__(self):
-        return self.nombre
+        return f"{self.local.nombre} · {self.nombre}"
 
 
 class Producto(models.Model):

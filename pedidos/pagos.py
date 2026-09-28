@@ -82,7 +82,11 @@ def _bloquear_cuenta(cuenta_id):
 
 def crear_intento_cliente(request, codigo, return_url):
     with transaction.atomic():
-        mesa = Mesa.objects.select_for_update().get(codigo=codigo, activa=True)
+        mesa = Mesa.objects.select_for_update().get(
+            codigo=codigo,
+            activa=True,
+            local__activo=True,
+        )
         # Protege contra doble clic y contra otro POST mientras el resultado es incierto.
         activo = intento_activo(request, mesa)
         if activo:
@@ -101,7 +105,8 @@ def crear_intento_cliente(request, codigo, return_url):
         if not carrito.productos:
             raise ErrorPago('Tu carrito está vacío.')
         productos = list(Producto.objects.filter(pk__in=carrito.productos,
-            disponible=True, categoria__activa=True).order_by('pk'))
+            disponible=True, categoria__activa=True,
+            categoria__local=mesa.local).order_by('pk'))
         if len(productos) != len(carrito.productos):
             raise ErrorPago('Un producto ya no está disponible. Revisa tu carrito.')
         total = Decimal('0')

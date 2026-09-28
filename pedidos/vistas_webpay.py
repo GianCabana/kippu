@@ -63,7 +63,12 @@ def iniciar(request, cuenta_id):
 @never_cache
 @require_POST
 def iniciar_cliente(request, codigo):
-    mesa = get_object_or_404(Mesa, codigo=codigo, activa=True)
+    mesa = get_object_or_404(
+        Mesa,
+        codigo=codigo,
+        activa=True,
+        local__activo=True,
+    )
     return_url = getattr(settings, 'WEBPAY_RETURN_URL', '') or request.build_absolute_uri(reverse('pedidos:webpay_retorno'))
     parsed = urlsplit(return_url)
     if parsed.scheme not in ('http', 'https') or not parsed.hostname or parsed.username or parsed.password:
