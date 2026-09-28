@@ -1,0 +1,56 @@
+            <div class="carrito-panel" data-cantidad="{{ cantidad_carrito }}" data-total="{{ total_carrito|floatformat:'0u' }}">
+                <span class="asa" aria-hidden="true"></span>
+                <div class="carrito-cabecera">
+                    <div><p class="etiqueta" id="carrito-descripcion">Mesa {{ mesa.numero }} · {{ cantidad_carrito }} unidad{{ cantidad_carrito|pluralize:"es" }}</p><h2 id="carrito-titulo">Tu selección</h2></div>
+                    <button class="cerrar" type="button" @click="cerrarCarrito()" aria-label="Cerrar carrito" autofocus><svg class="icono" aria-hidden="true"><use href="#i-cerrar"/></svg></button>
+                </div>
+                <p class="estado-peticion" x-show="ocupado" x-cloak role="status">Actualizando carrito…</p>
+                <div class="mensaje error error-carrito" x-show="error" x-cloak role="alert"><span x-text="error"></span> <a href="{% url 'carta:por_mesa' codigo=mesa.codigo %}">Actualizar la carta</a></div>
+                <div class="carrito-contenido" id="carrito-contenido">
+                    {% if messages %}
+                        <div class="mensajes" aria-live="polite">
+                            {% for mensaje in messages %}<p class="mensaje {{ mensaje.tags }}" role="status">{{ mensaje }}</p>{% endfor %}
+                        </div>
+                    {% endif %}
+                    {% if detalle_carrito %}
+                        {% for item in detalle_carrito %}
+                            <article class="carrito-item">
+                                <h3>{{ item.producto.nombre }}</h3>
+                                <p class="precio-unitario"><span data-pesos="{{ item.producto.precio|floatformat:'0u' }}">${{ item.producto.precio|floatformat:"0" }}</span> por unidad</p>
+                                <div class="item-pie">
+                                    <div class="control-cantidad" role="group" aria-label="Cantidad de {{ item.producto.nombre }}">
+                                        <form method="post" action="{% url 'pedidos:quitar' codigo=mesa.codigo producto_id=item.producto.pk %}" data-carrito-form hx-post="{% url 'pedidos:quitar' codigo=mesa.codigo producto_id=item.producto.pk %}" hx-target="#carrito-datos" hx-swap="innerHTML" hx-sync="#carta-app:drop">
+                                            {% csrf_token %}
+                                            <button :disabled="ocupado || pagando || !!error" id="quitar-{{ item.producto.pk }}" type="submit" aria-label="Quitar una unidad de {{ item.producto.nombre }}">−</button>
+                                        </form>
+                                        <span>{{ item.cantidad }}</span>
+                                        <form method="post" action="{% url 'pedidos:agregar' codigo=mesa.codigo producto_id=item.producto.pk %}" data-carrito-form hx-post="{% url 'pedidos:agregar' codigo=mesa.codigo producto_id=item.producto.pk %}" hx-target="#carrito-datos" hx-swap="innerHTML" hx-sync="#carta-app:drop">
+                                            {% csrf_token %}
+                                            <button :disabled="ocupado || pagando || !!error" id="sumar-{{ item.producto.pk }}" type="submit" aria-label="Agregar una unidad de {{ item.producto.nombre }}">+</button>
+                                        </form>
+                                    </div>
+                                    <p class="subtotal" data-pesos="{{ item.subtotal|floatformat:'0u' }}">${{ item.subtotal|floatformat:"0" }}</p>
+                                </div>
+                            </article>
+                        {% endfor %}
+                    {% else %}
+                        <div class="carrito-vacio">
+                            <span class="vacio-icono"><svg class="icono" aria-hidden="true"><use href="#i-bolsa"/></svg></span>
+                            <h3>Algo rico te espera.</h3>
+                            <p>Tu carrito está vacío. Explora la carta y agrega lo que más te guste.</p>
+                            <button class="agregar" type="button" @click="cerrarCarrito()">Explorar la carta <svg class="icono" aria-hidden="true"><use href="#i-flecha"/></svg></button>
+                        </div>
+                    {% endif %}
+                </div>
+                {% if detalle_carrito %}
+                    <div class="carrito-resumen">
+                        <div class="total-fila"><span>Total del pedido</span><span><strong class="total-importe" data-pesos="{{ total_carrito|floatformat:'0u' }}">${{ total_carrito|floatformat:"0" }}</strong><span class="moneda">CLP</span></span></div>
+                        <p class="nota-pedido">Paga con Webpay. Tu pedido llegará a cocina cuando se confirme el pago.</p>
+                        <form method="post" action="{% url 'pedidos:webpay_cliente' codigo=mesa.codigo %}" id="enviar-pedido" hx-boost="false" @submit="iniciarPago($event)">
+                            {% csrf_token %}
+                            <button class="enviar" :disabled="ocupado || pagando || !!error" type="submit"><span x-text="pagando ? 'Preparando pago…' : 'Pagar con Webpay'">Pagar con Webpay</span><svg class="icono" aria-hidden="true"><use href="#i-flecha"/></svg></button>
+                        </form>
+                        <button class="seguir" type="button" @click="cerrarCarrito()">Seguir explorando</button>
+                    </div>
+                {% endif %}
+            </div>

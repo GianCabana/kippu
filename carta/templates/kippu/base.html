@@ -2,13 +2,17 @@
 <html lang="es-CL">
 <head>
     <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
     <title>{% block titulo %}Kippu{% endblock %}</title>
     <link rel="preload" href="{% static 'kippu/fuentes/work-sans-400.woff2' %}" as="font" type="font/woff2" crossorigin>
     <link rel="preload" href="{% static 'kippu/fuentes/fraunces-600.woff2' %}" as="font" type="font/woff2" crossorigin>
     <link rel="preload" href="{% static 'kippu/fuentes/noto-serif-jp-200-ken.woff2' %}" as="font" type="font/woff2" crossorigin>
     <link rel="stylesheet" href="{% static 'kippu/css/kippu.css' %}">
     {% block estilos %}{% endblock %}
+    <style>[x-cloak] { display: none !important; }</style>
+    <script defer src="{% static 'kippu/js/vendor/htmx-2.0.11.min.js' %}"></script>
+    <script defer src="{% static 'kippu/js/carta.js' %}"></script>
+    <script defer src="{% static 'kippu/js/vendor/alpine-3.14.9.min.js' %}"></script>
 </head>
 <body class="{% block clase_body %}{% endblock %}">
     {% block encabezado %}

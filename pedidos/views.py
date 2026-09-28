@@ -16,6 +16,32 @@ from django.shortcuts import render
 from .carrito import Carrito
 from .cierre import revisar_cierre, cerrar_cuenta
 from .pagos import ErrorPago
+from django.http import HttpResponse
+from django.utils.cache import patch_cache_control, patch_vary_headers
+
+
+def _redireccion_carrito(request, url):
+    if request.headers.get('HX-Request') == 'true':
+        respuesta = HttpResponse(status=200)
+        respuesta['HX-Redirect'] = url
+    else:
+        respuesta = redirect(url)
+    patch_cache_control(respuesta, no_store=True, private=True)
+    patch_vary_headers(respuesta, ['HX-Request', 'Cookie'])
+    return respuesta
+
+
+def _respuesta_carrito(request, mesa, carrito):
+    if request.headers.get('HX-Request') != 'true':
+        return redirect('carta:por_mesa', codigo=mesa.codigo)
+    detalle, total = carrito.obtener_detalle()
+    respuesta = render(request, 'carta/fragmentos/carrito.html', {
+        'mesa': mesa, 'detalle_carrito': detalle,
+        'cantidad_carrito': carrito.cantidad_total(), 'total_carrito': total,
+    })
+    patch_cache_control(respuesta, no_store=True, private=True)
+    patch_vary_headers(respuesta, ['HX-Request', 'Cookie'])
+    return respuesta
 
 
 @require_POST
@@ -31,7 +57,7 @@ def agregar_al_carrito(request, codigo, producto_id):
     if activo:
         from .vistas_webpay import _url_resultado
         messages.info(request, 'Resuelve el pago en curso antes de modificar el carrito.')
-        return redirect(_url_resultado(activo.pk))
+        return _redireccion_carrito(request, _url_resultado(activo.pk))
     sincronizar_carrito(request, mesa)
 
     producto = get_object_or_404(
@@ -55,10 +81,7 @@ def agregar_al_carrito(request, codigo, producto_id):
             "Puedes agregar hasta 20 unidades de cada producto.",
         )
 
-    return redirect(
-        "carta:por_mesa",
-        codigo=mesa.codigo,
-    )
+    return _respuesta_carrito(request, mesa, carrito)
 
 
 @require_POST
@@ -74,7 +97,7 @@ def quitar_del_carrito(request, codigo, producto_id):
     if activo:
         from .vistas_webpay import _url_resultado
         messages.info(request, 'Resuelve el pago en curso antes de modificar el carrito.')
-        return redirect(_url_resultado(activo.pk))
+        return _redireccion_carrito(request, _url_resultado(activo.pk))
     sincronizar_carrito(request, mesa)
 
     producto = get_object_or_404(
@@ -91,10 +114,7 @@ def quitar_del_carrito(request, codigo, producto_id):
         f"Quitaste una unidad de {producto.nombre}.",
     )
 
-    return redirect(
-        "carta:por_mesa",
-        codigo=mesa.codigo,
-    )
+    return _respuesta_carrito(request, mesa, carrito)
 @require_POST
 def enviar_pedido(request, codigo):
     # La URL antigua también debe pasar por Webpay; nunca envía sin pagar.
