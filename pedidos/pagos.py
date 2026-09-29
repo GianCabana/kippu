@@ -8,7 +8,7 @@ import json
 import uuid
 from datetime import timedelta
 from transbank.common.integration_type import IntegrationType
-from decimal import Decimal, InvalidOperation
+from decimal import Decimal, InvalidOperation, ROUND_CEILING
 from urllib.parse import urlsplit
 
 from django.db import transaction
@@ -74,6 +74,23 @@ def detalle_pedido(pedido):
     return lineas, total
 
 
+def calcular_propina(subtotal, opcion):
+    """Calcula la propina opcional en pesos enteros.
+
+    La interfaz sugiere 10 %. Si el cliente la acepta, cualquier fracción de
+    peso se redondea hacia arriba. Solo se aceptan opciones definidas por el
+    servidor para impedir que el navegador altere el monto arbitrariamente.
+    """
+    if opcion in (None, '', '0'):
+        return Decimal('0')
+    if opcion != '10':
+        raise ErrorPago('Selecciona una opción de propina válida.')
+    return (subtotal * Decimal('0.10')).quantize(
+        Decimal('1'),
+        rounding=ROUND_CEILING,
+    )
+
+
 def _bloquear_cuenta(cuenta_id):
     mesa_id = Cuenta.objects.values_list('mesa_id', flat=True).get(pk=cuenta_id)
     Mesa.objects.select_for_update().get(pk=mesa_id)
@@ -109,14 +126,16 @@ def crear_intento_cliente(request, codigo, return_url):
             categoria__local=mesa.local).order_by('pk'))
         if len(productos) != len(carrito.productos):
             raise ErrorPago('Un producto ya no está disponible. Revisa tu carrito.')
-        total = Decimal('0')
+        subtotal = Decimal('0')
         for producto in productos:
             cantidad = carrito.productos[str(producto.pk)]
             if type(cantidad) is not int or not 1 <= cantidad <= Carrito.MAXIMO_POR_PRODUCTO or producto.precio < 0:
                 raise ErrorPago('Hay una cantidad o precio inválido en el carrito.')
-            total += producto.precio * cantidad
-        if total <= 0 or total != total.to_integral_value():
+            subtotal += producto.precio * cantidad
+        if subtotal <= 0 or subtotal != subtotal.to_integral_value():
             raise ErrorPago('El total debe ser positivo y estar expresado en pesos enteros.')
+        propina = calcular_propina(subtotal, request.POST.get('propina'))
+        total = subtotal + propina
         cuenta, _ = Cuenta.objects.get_or_create(mesa=mesa, estado=Cuenta.Estado.ABIERTA)
         if cuenta.intentos_webpay.filter(pedido__isnull=True, estado__in=ESTADOS_ACTIVOS).exists():
             raise ErrorPago('Existe un pago anterior de esta cuenta por verificar. Consulta al personal.')
@@ -126,7 +145,8 @@ def crear_intento_cliente(request, codigo, return_url):
             Pedido.objects.filter(mesa=mesa, cliente_clave=cliente_clave(request),
                 estado=Pedido.Estado.SIN_PAGAR, pago__isnull=True).update(estado=Pedido.Estado.CANCELADO)
             pedido = Pedido.objects.create(mesa=mesa, cuenta=cuenta,
-                cliente_clave=cliente_clave(request), checkout_clave=clave)
+                cliente_clave=cliente_clave(request), checkout_clave=clave,
+                propina=propina)
             DetallePedido.objects.bulk_create([DetallePedido(pedido=pedido, producto=p,
                 nombre_producto=p.nombre, precio_unitario=p.precio,
                 cantidad=carrito.productos[str(p.pk)]) for p in productos])
@@ -139,9 +159,14 @@ def crear_intento_cliente(request, codigo, return_url):
                 'producto_id', 'nombre_producto', 'precio_unitario', 'cantidad'))
             if actuales != guardados:
                 raise ErrorPago('El producto o su precio cambió. Modifica el carrito antes de pagar nuevamente.')
-        lineas, total = detalle_pedido(pedido)
+            if pedido.propina != propina:
+                pedido.propina = propina
+                pedido.save(update_fields=['propina'])
+        lineas, subtotal_guardado = detalle_pedido(pedido)
+        if subtotal_guardado != subtotal:
+            raise ErrorPago('El subtotal del pedido cambió. Actualiza el carrito antes de pagar.')
         intento = IntentoWebpay.objects.create(cuenta=cuenta, pedido=pedido,
-            monto=total, detalle=lineas,
+            monto=total, subtotal=subtotal, propina=propina, detalle=lineas,
             iniciado_por=request.user if request.user.is_authenticated else None)
     return _abrir_transaccion(intento, return_url)
 
@@ -236,11 +261,14 @@ def resolver_intento(intento_id, confirmar=False, cancelar=False):
                     monto=intento.monto, metodo=Pago.Metodo.WEBPAY,
                     registrado_por_id=intento.iniciado_por_id)
                 try:
-                    lineas, total = detalle_pedido(pedido)
+                    lineas, subtotal = detalle_pedido(pedido)
                 except ErrorPago:
-                    lineas, total = [], Decimal('-1')
+                    lineas, subtotal = [], Decimal('-1')
                 if (pedido.estado == Pedido.Estado.SIN_PAGAR and cuenta.estado == Cuenta.Estado.ABIERTA
-                        and total == intento.monto and lineas == intento.detalle):
+                        and subtotal == intento.subtotal
+                        and pedido.propina == intento.propina
+                        and subtotal + pedido.propina == intento.monto
+                        and lineas == intento.detalle):
                     pedido.estado = Pedido.Estado.PENDIENTE
                     pedido.save(update_fields=['estado'])
                     intento.observacion = ''
@@ -331,11 +359,16 @@ def reintentar_pago(intento_id, usuario, return_url):
                 or d.precio_unitario != d.producto.precio or d.cantidad < 1
                 or d.cantidad > Carrito.MAXIMO_POR_PRODUCTO for d in detalles):
             raise ErrorPago('Cambió la disponibilidad o el precio. Vuelve a la carta y modifica el carrito antes de pagar.')
-        lineas, total = detalle_pedido(pedido)
-        if total <= 0 or total != total.to_integral_value():
+        lineas, subtotal = detalle_pedido(pedido)
+        propina = pedido.propina
+        total = subtotal + propina
+        if (subtotal <= 0 or subtotal != subtotal.to_integral_value()
+                or propina < 0 or propina != propina.to_integral_value()
+                or total <= 0 or total != total.to_integral_value()):
             raise ErrorPago('El importe del pedido no es válido.')
         nuevo = IntentoWebpay.objects.create(cuenta=cuenta, pedido=pedido,
-            reintento_de=anterior, monto=total, detalle=lineas,
+            reintento_de=anterior, monto=total, subtotal=subtotal,
+            propina=propina, detalle=lineas,
             iniciado_por=usuario if usuario.is_authenticated else None)
     return _abrir_transaccion(nuevo, return_url)
 

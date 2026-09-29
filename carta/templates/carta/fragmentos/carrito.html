@@ -43,11 +43,20 @@
                     {% endif %}
                 </div>
                 {% if detalle_carrito %}
+                    <style>
+                        .propina-opciones{margin:16px 0;padding:0;border:0}.propina-opciones legend{margin-bottom:9px;font-size:12px;font-weight:650}.propina-eleccion{display:flex;align-items:center;gap:10px;margin-top:8px;padding:12px;border:1px solid #dfe4d9;border-radius:10px;background:#fff;cursor:pointer;font-size:13px}.propina-eleccion:has(input:checked){border-color:#315d49;background:#eef3e9}.propina-eleccion input{width:18px;height:18px;accent-color:#173e34}.propina-nota{margin:9px 0 0;color:#657168;font-size:11px;line-height:1.5}
+                    </style>
                     <div class="carrito-resumen">
-                        <div class="total-fila"><span>Total del pedido</span><span><strong class="total-importe" data-pesos="{{ total_carrito|floatformat:'0u' }}">${{ total_carrito|floatformat:"0" }}</strong><span class="moneda">CLP</span></span></div>
-                        <p class="nota-pedido">Paga con Webpay. Tu pedido llegará a cocina cuando se confirme el pago.</p>
+                        <div class="total-fila"><span>Subtotal del pedido</span><span><strong class="total-importe" data-pesos="{{ total_carrito|floatformat:'0u' }}">${{ total_carrito|floatformat:"0" }}</strong><span class="moneda">CLP</span></span></div>
                         <form method="post" action="{% url 'pedidos:webpay_cliente' codigo=mesa.codigo %}" id="enviar-pedido" hx-boost="false" @submit="iniciarPago($event)">
                             {% csrf_token %}
+                            <fieldset class="propina-opciones">
+                                <legend>¿Deseas agregar propina?</legend>
+                                <label class="propina-eleccion"><input type="radio" name="propina" value="10" checked><span><strong>Sí, agregar 10%</strong><br>Propina sugerida</span></label>
+                                <label class="propina-eleccion"><input type="radio" name="propina" value="0"><span><strong>Sin propina</strong><br>Continuar solo con el subtotal</span></label>
+                                <p class="propina-nota">La propina es opcional. El monto se calcula en pesos enteros, redondeando hacia arriba, y podrás revisarlo antes de entrar a Webpay.</p>
+                            </fieldset>
+                            <p class="nota-pedido">Tu pedido llegará a cocina cuando Webpay confirme el pago.</p>
                             <button class="enviar" :disabled="ocupado || pagando || !!error" type="submit"><span x-text="pagando ? 'Preparando pago…' : 'Pagar con Webpay'">Pagar con Webpay</span><svg class="icono" aria-hidden="true"><use href="#i-flecha"/></svg></button>
                         </form>
                         <button class="seguir" type="button" @click="cerrarCarrito()">Seguir explorando</button>

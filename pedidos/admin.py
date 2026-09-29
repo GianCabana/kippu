@@ -28,6 +28,7 @@ class PedidoAdmin(admin.ModelAdmin):
         "id",
         "mesa",
         "estado",
+        "propina_clp",
         "creado",
         "total",
     )
@@ -39,6 +40,8 @@ class PedidoAdmin(admin.ModelAdmin):
         "mesa",
         "cuenta",
         "creado",
+        "subtotal",
+        "propina",
         "total",
      )
 
@@ -48,9 +51,18 @@ class PedidoAdmin(admin.ModelAdmin):
     def get_queryset(self, request):
         return super().get_queryset(request).prefetch_related("detalles")
 
+    @admin.display(description="Subtotal CLP")
+    def subtotal(self, obj):
+        monto = sum(detalle.subtotal for detalle in obj.detalles.all())
+        return f"${monto:,.0f}".replace(",", ".")
+
+    @admin.display(description="Propina CLP")
+    def propina_clp(self, obj):
+        return f"${obj.propina:,.0f}".replace(",", ".")
+
     @admin.display(description="Total CLP")
     def total(self, obj):
-        monto = sum(detalle.subtotal for detalle in obj.detalles.all())
+        monto = sum(detalle.subtotal for detalle in obj.detalles.all()) + obj.propina
         return f"${monto:,.0f}".replace(",", ".")
 
     def has_add_permission(self, request):

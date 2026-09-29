@@ -120,7 +120,10 @@ def retorno(request):
 @require_GET
 def resultado(request, intento_id):
     _autorizar_resultado(request, intento_id)
-    intento = get_object_or_404(IntentoWebpay.objects.select_related("cuenta__mesa", "pedido"), pk=intento_id)
+    intento = get_object_or_404(
+        IntentoWebpay.objects.select_related("cuenta__mesa__local", "pedido"),
+        pk=intento_id,
+    )
     pago = Pago.objects.filter(intento_webpay=intento).first()
     if pago and intento.pedido_id:
         sincronizar_carrito(request, intento.cuenta.mesa)
