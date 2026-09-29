@@ -74,6 +74,7 @@
         .pedido h2 { margin:0; font:34px/1.1 Georgia,serif; letter-spacing:-.8px; overflow-wrap:anywhere; }
         .tiempo { display:inline-flex; align-items:center; gap:5px; padding:6px 8px; background:#f3f4ee; border-radius:7px; font-size:11px; color:var(--suave); white-space:nowrap; }
         .tiempo .icono { width:13px; height:13px; }
+        .local { margin:7px 0 0; color:var(--verde); font-size:10px; font-weight:650; letter-spacing:.9px; text-transform:uppercase; }
         .fecha { margin:10px 0 0; font-size:10px; color:var(--suave); line-height:1.6; }
         .productos { list-style:none; padding:9px 23px; margin:0; }
         .producto { display:flex; align-items:flex-start; gap:12px; padding:13px 0; border-bottom:1px solid #edf0e8; }
@@ -169,15 +170,15 @@
         </div>
         <div class="herramientas">
             <span class="orden"><svg class="icono" aria-hidden="true"><use href="#i-reloj"/></svg> Más antiguos primero · Tiempo desde recepción</span>
-            <div class="buscador" id="buscador" hidden><svg class="icono" aria-hidden="true"><use href="#i-buscar"/></svg><input type="search" id="buscar" placeholder="Mesa, pedido o producto" aria-label="Buscar mesa, pedido o producto" autocomplete="off"><button class="limpiar" type="button" id="limpiar" aria-label="Borrar búsqueda" hidden><svg class="icono" aria-hidden="true"><use href="#i-cerrar"/></svg></button></div>
+            <div class="buscador" id="buscador" hidden><svg class="icono" aria-hidden="true"><use href="#i-buscar"/></svg><input type="search" id="buscar" placeholder="Local, mesa, pedido o producto" aria-label="Buscar local, mesa, pedido o producto" autocomplete="off"><button class="limpiar" type="button" id="limpiar" aria-label="Borrar búsqueda" hidden><svg class="icono" aria-hidden="true"><use href="#i-cerrar"/></svg></button></div>
         </div>
         <p class="sr-only" id="anuncio" role="status" aria-live="polite" aria-atomic="true"></p>
         <div class="pedidos" id="lista-entregas" data-panel="kippu-entregas">
             {% for pedido in pedidos %}
-                <article class="pedido" id="pedido-{{ pedido.pk }}" data-estado="{{ pedido.estado }}" data-numero="{{ pedido.pk }}" data-mesa="{{ pedido.mesa.numero }}" data-creado="{{ pedido.creado|date:'c' }}" aria-labelledby="mesa-{{ pedido.pk }}">
+                <article class="pedido" id="pedido-{{ pedido.pk }}" data-estado="{{ pedido.estado }}" data-numero="{{ pedido.pk }}" data-mesa="{{ pedido.mesa.numero }}" data-local="{{ pedido.mesa.local.nombre }}" data-creado="{{ pedido.creado|date:'c' }}" aria-labelledby="mesa-{{ pedido.pk }}">
                     <div class="pedido-cabecera">
                         <div class="pedido-meta"><span class="numero">PEDIDO #{{ pedido.pk }}</span><span class="badge">Listo para entregar</span></div>
-                        <div class="mesa-fila"><h2 id="mesa-{{ pedido.pk }}">Mesa {{ pedido.mesa.numero }}</h2><span class="tiempo" hidden><svg class="icono" aria-hidden="true"><use href="#i-reloj"/></svg><span data-tiempo></span></span></div>
+                        <div class="mesa-fila"><div><h2 id="mesa-{{ pedido.pk }}">Mesa {{ pedido.mesa.numero }}</h2><p class="local">{{ pedido.mesa.local.nombre }}</p></div><span class="tiempo" hidden><svg class="icono" aria-hidden="true"><use href="#i-reloj"/></svg><span data-tiempo></span></span></div>
                         <p class="fecha">Recibido <time datetime="{{ pedido.creado|date:'c' }}">{{ pedido.creado|date:"d/m/Y · H:i" }}</time></p>
                     </div>
                     <ul class="productos">
@@ -187,7 +188,7 @@
                         <p class="unidades" hidden></p>
                         <form method="post" action="{% url 'pedidos:marcar_entregado' pedido_id=pedido.pk %}" data-estado-form>
                             {% csrf_token %}
-                            <button class="accion" id="accion-{{ pedido.pk }}" type="submit" aria-label="Marcar entregado el pedido {{ pedido.pk }}, mesa {{ pedido.mesa.numero }}"><svg class="icono" aria-hidden="true"><use href="#i-check"/></svg><span>Marcar entregado</span></button>
+                            <button class="accion" id="accion-{{ pedido.pk }}" type="submit" aria-label="Marcar entregado el pedido {{ pedido.pk }}, {{ pedido.mesa.local.nombre }}, mesa {{ pedido.mesa.numero }}"><svg class="icono" aria-hidden="true"><use href="#i-check"/></svg><span>Marcar entregado</span></button>
                         </form>
                     </div>
                 </article>
@@ -195,7 +196,7 @@
                 <div class="vacio" id="sin-pedidos"><span class="vacio-icono"><svg class="icono" aria-hidden="true"><use href="#i-check"/></svg></span><h2>Sin entregas pendientes.</h2><p>Cuando cocina marque un pedido como listo, aparecerá aquí para llevarlo a la mesa.</p></div>
             {% endfor %}
         </div>
-        <div class="vacio" id="sin-resultados" hidden><h2>No hay coincidencias.</h2><p>Prueba con otra mesa, número de pedido o producto.</p><button class="restablecer" type="button" id="restablecer">Ver todas las entregas</button></div>
+        <div class="vacio" id="sin-resultados" hidden><h2>No hay coincidencias.</h2><p>Prueba con otro local, mesa, número de pedido o producto.</p><button class="restablecer" type="button" id="restablecer">Ver todas las entregas</button></div>
         <p class="nota">Marca el pedido como entregado después de llevarlo a la mesa.</p>
     </main>
     <script>
@@ -214,7 +215,7 @@
             const firmas = new Map();
             const normalizar = texto => texto.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().trim();
             const tarjetas = () => [...lista.querySelectorAll('.pedido')];
-            const firma = tarjeta => JSON.stringify({ mesa: tarjeta.dataset.mesa, creado: tarjeta.dataset.creado, productos: [...tarjeta.querySelectorAll('.producto')].map(el => [el.dataset.cantidad, el.querySelector('.nombre-producto').textContent]) });
+            const firma = tarjeta => JSON.stringify({ local: tarjeta.dataset.local, mesa: tarjeta.dataset.mesa, creado: tarjeta.dataset.creado, productos: [...tarjeta.querySelectorAll('.producto')].map(el => [el.dataset.cantidad, el.querySelector('.nombre-producto').textContent]) });
             const actualizarTiempos = () => tarjetas().forEach(tarjeta => {
                 const fecha = Date.parse(tarjeta.dataset.creado);
                 if (!Number.isFinite(fecha)) return;
@@ -236,14 +237,14 @@
                 const consulta = normalizar(buscar.value);
                 let visibles = 0;
                 todas.forEach(tarjeta => {
-                    const texto = normalizar('mesa ' + tarjeta.dataset.mesa + ' pedido #' + tarjeta.dataset.numero + ' ' + tarjeta.querySelector('.productos').textContent);
+                    const texto = normalizar('local ' + tarjeta.dataset.local + ' mesa ' + tarjeta.dataset.mesa + ' pedido #' + tarjeta.dataset.numero + ' ' + tarjeta.querySelector('.productos').textContent);
                     const coincide = texto.includes(consulta);
                     tarjeta.hidden = !coincide;
                     if (coincide) visibles++;
                 });
                 // El resumen cuenta todas las entregas, también al utilizar la búsqueda.
                 document.querySelector('[data-contador="pedidos"]').textContent = todas.length;
-                document.querySelector('[data-contador="mesas"]').textContent = new Set(todas.map(t => t.dataset.mesa)).size;
+                document.querySelector('[data-contador="mesas"]').textContent = new Set(todas.map(t => t.dataset.local + '|' + t.dataset.mesa)).size;
                 document.querySelector('[data-contador="unidades"]').textContent = todas.reduce((s, t) => s + unidadesDe(t), 0);
                 limpiar.hidden = !buscar.value;
                 document.getElementById('sin-resultados').hidden = visibles > 0 || todas.length === 0;
@@ -273,7 +274,7 @@
                 const nuevas = [...nuevaLista.querySelectorAll('.pedido')];
                 const ids = new Set(nuevas.map(el => el.id));
                 const cambios = [];
-                tarjetas().forEach(t => { if (!ids.has(t.id)) { cambios.push('Pedido ' + t.dataset.numero + ' retirado de entregas pendientes'); t.remove(); firmas.delete(t.id); } });
+                tarjetas().forEach(t => { if (!ids.has(t.id)) { cambios.push('Pedido ' + t.dataset.numero + ', ' + t.dataset.local + ', mesa ' + t.dataset.mesa + ': retirado de entregas pendientes'); t.remove(); firmas.delete(t.id); } });
                 if (!nuevas.length) {
                     if (!lista.querySelector('#sin-pedidos')) lista.replaceChildren(document.importNode(nuevaLista.querySelector('#sin-pedidos'), true));
                 } else {
@@ -283,7 +284,7 @@
                         const nuevaFirma = firma(nueva);
                         if (!tarjeta || firmas.get(nueva.id) !== nuevaFirma) {
                             const copia = document.importNode(nueva, true);
-                            cambios.push('Pedido ' + nueva.dataset.numero + ', mesa ' + nueva.dataset.mesa + ': listo para entregar');
+                            cambios.push('Pedido ' + nueva.dataset.numero + ', ' + nueva.dataset.local + ', mesa ' + nueva.dataset.mesa + ': listo para entregar');
                             if (tarjeta) tarjeta.replaceWith(copia);
                             tarjeta = copia;
                             firmas.set(nueva.id, nuevaFirma);

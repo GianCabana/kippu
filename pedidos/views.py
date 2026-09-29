@@ -135,7 +135,7 @@ def cocina(request):
                 Pedido.Estado.EN_PREPARACION,
             ]
         )
-        .select_related("mesa")
+        .select_related("mesa", "mesa__local")
         .prefetch_related("detalles")
         .order_by("creado", "pk")
     )
@@ -161,7 +161,10 @@ def cambiar_estado(request, pedido_id):
         messages.error(request, "El cambio solicitado no es válido.")
         return redirect("pedidos:cocina")
 
-    pedido = get_object_or_404(Pedido, pk=pedido_id)
+    pedido = get_object_or_404(
+        Pedido.objects.select_related("mesa", "mesa__local"),
+        pk=pedido_id,
+    )
 
     actualizado = Pedido.objects.filter(
         pk=pedido.pk,
@@ -186,7 +189,7 @@ def cambiar_estado(request, pedido_id):
 def entregas(request):
     pedidos = (
         Pedido.objects.filter(estado=Pedido.Estado.LISTO, pago__isnull=False)
-        .select_related("mesa")
+        .select_related("mesa", "mesa__local")
         .prefetch_related("detalles")
         .order_by("creado", "pk")
     )
@@ -201,7 +204,10 @@ def entregas(request):
 @staff_member_required
 @require_POST
 def marcar_entregado(request, pedido_id):
-    pedido = get_object_or_404(Pedido, pk=pedido_id)
+    pedido = get_object_or_404(
+        Pedido.objects.select_related("mesa", "mesa__local"),
+        pk=pedido_id,
+    )
 
     actualizado = Pedido.objects.filter(
         pk=pedido.pk,
@@ -212,7 +218,8 @@ def marcar_entregado(request, pedido_id):
     if actualizado:
         messages.success(
             request,
-            f"Pedido #{pedido.pk} entregado a Mesa {pedido.mesa.numero}.",
+            f"Pedido #{pedido.pk} entregado: {pedido.mesa.local.nombre}, "
+            f"Mesa {pedido.mesa.numero}.",
         )
     else:
         messages.warning(
@@ -256,12 +263,12 @@ def mis_pedidos(request, codigo):
     )
 @staff_member_required
 def caja(request):
-    pagos = Pago.objects.select_related('cuenta__mesa', 'pedido', 'intento_webpay').order_by('-creado')[:100]
-    pendientes = IntentoWebpay.objects.filter(estado__in=ESTADOS_ACTIVOS).select_related('cuenta__mesa', 'pedido').order_by('creado')
-    cuentas = list(Cuenta.objects.filter(estado=Cuenta.Estado.ABIERTA).select_related('mesa').order_by('mesa__numero'))
+    pagos = Pago.objects.select_related('cuenta__mesa', 'cuenta__mesa__local', 'pedido', 'intento_webpay').order_by('-creado')[:100]
+    pendientes = IntentoWebpay.objects.filter(estado__in=ESTADOS_ACTIVOS).select_related('cuenta__mesa', 'cuenta__mesa__local', 'pedido').order_by('creado')
+    cuentas = list(Cuenta.objects.filter(estado=Cuenta.Estado.ABIERTA).select_related('mesa', 'mesa__local').order_by('mesa__local__nombre', 'mesa__numero'))
     for cuenta in cuentas:
         cuenta.revision = revisar_cierre(cuenta)
-    cerradas = Cuenta.objects.filter(estado=Cuenta.Estado.CERRADA).select_related('mesa').order_by('-cerrada')[:10]
+    cerradas = Cuenta.objects.filter(estado=Cuenta.Estado.CERRADA).select_related('mesa', 'mesa__local').order_by('-cerrada')[:10]
     return render(request, 'pedidos/caja.html', {'pagos': pagos, 'pendientes': pendientes,
         'cuentas': cuentas, 'cerradas': cerradas})
 
@@ -276,7 +283,8 @@ def cerrar_mesa(request, cuenta_id):
         messages.warning(request, str(exc))
     else:
         if cerrada:
-            messages.success(request, f'Mesa {cuenta.mesa.numero}: cuenta #{cuenta.pk} cerrada. Lista para una nueva visita.')
+            messages.success(request, f'{cuenta.mesa.local.nombre}, Mesa {cuenta.mesa.numero}: cuenta '
+                f'#{cuenta.pk} cerrada. Lista para una nueva visita.')
         else:
             messages.info(request, f'La cuenta #{cuenta.pk} ya estaba cerrada.')
     return redirect('pedidos:caja')
