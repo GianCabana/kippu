@@ -13,11 +13,19 @@ from mesas.models import Mesa
 from django.contrib.admin.views.decorators import staff_member_required
 from django.shortcuts import render
 
-from .carrito import Carrito
+from .carrito import Carrito, ErrorOpciones
 from .cierre import revisar_cierre, cerrar_cuenta
 from .pagos import ErrorPago
 from django.http import HttpResponse
 from django.utils.cache import patch_cache_control, patch_vary_headers
+
+
+def _opciones_post(request):
+    valores = request.POST.getlist("opcion")
+    for nombre in request.POST:
+        if nombre.startswith("opcion_grupo_"):
+            valores.extend(request.POST.getlist(nombre))
+    return valores
 
 
 def _redireccion_carrito(request, url):
@@ -35,9 +43,14 @@ def _respuesta_carrito(request, mesa, carrito):
     if request.headers.get('HX-Request') != 'true':
         return redirect('carta:por_mesa', codigo=mesa.codigo)
     detalle, total = carrito.obtener_detalle()
+    requiere_mayoria_edad = any(
+        item['producto'].requiere_mayoria_edad
+        for item in detalle
+    )
     respuesta = render(request, 'carta/fragmentos/carrito.html', {
         'mesa': mesa, 'detalle_carrito': detalle,
         'cantidad_carrito': carrito.cantidad_total(), 'total_carrito': total,
+        'requiere_mayoria_edad': requiere_mayoria_edad,
     })
     patch_cache_control(respuesta, no_store=True, private=True)
     patch_vary_headers(respuesta, ['HX-Request', 'Cookie'])
@@ -71,11 +84,26 @@ def agregar_al_carrito(request, codigo, producto_id):
 
     carrito = Carrito(request, mesa)
 
-    if carrito.agregar(producto):
+    try:
+        opciones = Carrito.validar_opciones(
+            producto,
+            _opciones_post(request),
+        )
+    except ErrorOpciones as exc:
+        messages.warning(request, str(exc))
+        return _respuesta_carrito(request, mesa, carrito)
+
+    if carrito.agregar(producto, [opcion.pk for opcion in opciones]):
         renovar_carrito(request, mesa)
         messages.success(
             request,
             f"Agregaste {producto.nombre}.",
+        )
+    elif carrito.ultimo_error == "opciones_distintas":
+        messages.warning(
+            request,
+            "Ese producto ya está en el carrito con otra configuración. "
+            "Quítalo antes de elegir opciones diferentes.",
         )
     else:
         messages.warning(

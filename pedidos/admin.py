@@ -12,6 +12,8 @@ class DetallePedidoInline(admin.TabularInline):
         "nombre_producto",
         "precio_unitario",
         "cantidad",
+        "requiere_mayoria_edad",
+        "opciones",
         "subtotal",
     )
 
@@ -42,6 +44,7 @@ class PedidoAdmin(admin.ModelAdmin):
         "creado",
         "subtotal",
         "propina",
+        "mayoria_edad_confirmada",
         "total",
      )
 

@@ -64,7 +64,7 @@
         .limpiar { display:grid; place-items:center; position:absolute; top:2px; right:2px; width:44px; height:44px; border:0; background:transparent; color:var(--suave); }
         .pedidos { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:19px; align-items:start; }
         .pedido { min-width:0; border:1px solid var(--linea); border-top:4px solid #638252; border-radius:17px; background:var(--papel); box-shadow:0 3px 9px #173e3403; overflow:hidden; }
-        
+
         .pedido-cabecera { padding:21px 23px 19px; border-bottom:1px dashed #dfe3d6; }
         .pedido-meta { display:flex; justify-content:space-between; flex-wrap:wrap; align-items:center; gap:10px; margin-bottom:16px; }
         .numero { font-size:11px; color:var(--suave); font-weight:600; letter-spacing:.4px; }
@@ -81,6 +81,9 @@
         .producto:last-child { border-bottom:0; }
         .cantidad { flex-shrink:0; display:grid; place-items:center; min-width:33px; height:33px; padding-inline:5px; background:#edf1e7; border:1px solid #dce4d3; border-radius:9px; color:var(--verde); font-size:14px; font-weight:650; }
         .nombre-producto { padding-top:6px; font-size:14px; font-weight:550; line-height:1.5; overflow-wrap:anywhere; min-width:0; }
+        .badge-18 { display:inline-flex; margin-left:6px; padding:3px 6px; border-radius:999px; background:#7b2d26; color:white; font-size:9px; font-weight:700; letter-spacing:.4px; vertical-align:middle; }
+        .aviso-edad { display:block; margin-top:4px; color:#7b2d26; font-size:10px; font-weight:700; }
+        .opciones-pedido { display:block; margin-top:4px; color:var(--suave); font-size:10px; line-height:1.5; }
         .pedido-pie { padding:13px 23px 22px; }
         .unidades { color:var(--suave); font-size:10px; margin-bottom:13px; }
         form { margin:0; }
@@ -151,9 +154,9 @@
         <div class="contenedor barra-interior">
             <div class="marca" aria-label="Kippu, panel de servicio"><span class="monograma" aria-hidden="true">k</span><div><span class="marca-nombre">kippu</span><span class="marca-detalle">Panel de servicio</span></div></div>
             <nav class="navegacion" aria-label="Paneles de servicio">
-                <a href="{% url 'pedidos:cocina' %}"><svg class="icono" aria-hidden="true"><use href="#i-cocina"/></svg> Cocina</a>                
+                <a href="{% url 'pedidos:cocina' %}"><svg class="icono" aria-hidden="true"><use href="#i-cocina"/></svg> Cocina</a>
                 <a href="{% url 'pedidos:entregas' %}" aria-current="page"><svg class="icono" aria-hidden="true"><use href="#i-plato"/></svg> Entregas <svg class="icono" aria-hidden="true"><use href="#i-flecha"/></svg></a>
-                <a href="{% url 'pedidos:caja' %}">Caja</a>            
+                <a href="{% url 'pedidos:caja' %}">Caja</a>
             </nav>
         </div>
     </header>
@@ -182,7 +185,7 @@
                         <p class="fecha">Recibido <time datetime="{{ pedido.creado|date:'c' }}">{{ pedido.creado|date:"d/m/Y · H:i" }}</time></p>
                     </div>
                     <ul class="productos">
-                        {% for detalle in pedido.detalles.all %}<li class="producto" data-cantidad="{{ detalle.cantidad }}"><span class="cantidad" aria-label="{{ detalle.cantidad }} unidades">{{ detalle.cantidad }}×</span><span class="nombre-producto">{{ detalle.nombre_producto }}</span></li>{% endfor %}
+                        {% for detalle in pedido.detalles.all %}<li class="producto" data-cantidad="{{ detalle.cantidad }}"><span class="cantidad" aria-label="{{ detalle.cantidad }} unidades">{{ detalle.cantidad }}×</span><span class="nombre-producto">{{ detalle.nombre_producto }}{% if detalle.requiere_mayoria_edad %}<span class="badge-18" aria-label="Producto para mayores de 18 años">+18</span><small class="aviso-edad">Solicitar identificación antes de entregar</small>{% endif %}{% if detalle.opciones %}<small class="opciones-pedido">{% for opcion in detalle.opciones %}{{ opcion.grupo }}: {{ opcion.nombre }}{% if not forloop.last %} · {% endif %}{% endfor %}</small>{% endif %}</span></li>{% endfor %}
                     </ul>
                     <div class="pedido-pie">
                         <p class="unidades" hidden></p>

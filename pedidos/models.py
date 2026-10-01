@@ -18,6 +18,7 @@ class Pedido(models.Model):
     cliente_clave = models.CharField(max_length=64, blank=True, db_index=True)
     checkout_clave = models.CharField(max_length=64, unique=True, null=True, blank=True)
     propina = models.DecimalField(max_digits=12, decimal_places=2, default=0)
+    mayoria_edad_confirmada = models.BooleanField(default=False)
     creado = models.DateTimeField(auto_now_add=True)
 
     class Meta:
@@ -46,6 +47,8 @@ class DetallePedido(models.Model):
     nombre_producto = models.CharField(max_length=255)
     precio_unitario = models.DecimalField(max_digits=12, decimal_places=2)
     cantidad = models.PositiveIntegerField()
+    requiere_mayoria_edad = models.BooleanField(default=False)
+    opciones = models.JSONField(default=list, blank=True)
 
     @property
     def subtotal(self):

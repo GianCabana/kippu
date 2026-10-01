@@ -15,8 +15,9 @@
                     {% if detalle_carrito %}
                         {% for item in detalle_carrito %}
                             <article class="carrito-item">
-                                <h3>{{ item.producto.nombre }}</h3>
-                                <p class="precio-unitario"><span data-pesos="{{ item.producto.precio|floatformat:'0u' }}">${{ item.producto.precio|floatformat:"0" }}</span> por unidad</p>
+                                <h3>{{ item.producto.nombre }}{% if item.producto.requiere_mayoria_edad %} <span class="badge-18" aria-label="Producto para mayores de 18 años">+18</span>{% endif %}</h3>
+                                {% if item.opciones %}<ul class="opciones-elegidas">{% for opcion in item.opciones %}<li>{{ opcion.grupo.nombre }}: <strong>{{ opcion.nombre }}</strong>{% if opcion.precio_extra %} (+${{ opcion.precio_extra|floatformat:"0" }}){% endif %}</li>{% endfor %}</ul>{% endif %}
+                                <p class="precio-unitario"><span data-pesos="{{ item.precio_unitario|floatformat:'0u' }}">${{ item.precio_unitario|floatformat:"0" }}</span> por unidad</p>
                                 <div class="item-pie">
                                     <div class="control-cantidad" role="group" aria-label="Cantidad de {{ item.producto.nombre }}">
                                         <form method="post" action="{% url 'pedidos:quitar' codigo=mesa.codigo producto_id=item.producto.pk %}" data-carrito-form hx-post="{% url 'pedidos:quitar' codigo=mesa.codigo producto_id=item.producto.pk %}" hx-target="#carrito-datos" hx-swap="innerHTML" hx-sync="#carta-app:drop">
@@ -26,6 +27,7 @@
                                         <span>{{ item.cantidad }}</span>
                                         <form method="post" action="{% url 'pedidos:agregar' codigo=mesa.codigo producto_id=item.producto.pk %}" data-carrito-form hx-post="{% url 'pedidos:agregar' codigo=mesa.codigo producto_id=item.producto.pk %}" hx-target="#carrito-datos" hx-swap="innerHTML" hx-sync="#carta-app:drop">
                                             {% csrf_token %}
+                                            {% for opcion_id in item.opcion_ids %}<input type="hidden" name="opcion" value="{{ opcion_id }}">{% endfor %}
                                             <button :disabled="ocupado || pagando || !!error" id="sumar-{{ item.producto.pk }}" type="submit" aria-label="Agregar una unidad de {{ item.producto.nombre }}">+</button>
                                         </form>
                                     </div>
@@ -44,12 +46,19 @@
                 </div>
                 {% if detalle_carrito %}
                     <style>
-                        .propina-opciones{margin:16px 0;padding:0;border:0}.propina-opciones legend{margin-bottom:9px;font-size:12px;font-weight:650}.propina-eleccion{display:flex;align-items:center;gap:10px;margin-top:8px;padding:12px;border:1px solid #dfe4d9;border-radius:10px;background:#fff;cursor:pointer;font-size:13px}.propina-eleccion:has(input:checked){border-color:#315d49;background:#eef3e9}.propina-eleccion input{width:18px;height:18px;accent-color:#173e34}.propina-nota{margin:9px 0 0;color:#657168;font-size:11px;line-height:1.5}
+                        .badge-18{display:inline-flex;align-items:center;padding:3px 7px;border-radius:999px;background:#7b2d26;color:#fff;font:700 10px/1.2 Arial,sans-serif;letter-spacing:.5px;vertical-align:middle}.opciones-elegidas{margin:8px 0;padding:0;list-style:none;color:#657168;font-size:11px}.opciones-elegidas li{margin-top:3px}.propina-opciones,.mayoria-opciones{margin:16px 0;padding:0;border:0}.propina-opciones legend,.mayoria-opciones legend{margin-bottom:9px;font-size:12px;font-weight:650}.propina-eleccion,.mayoria-eleccion{display:flex;align-items:flex-start;gap:10px;margin-top:8px;padding:12px;border:1px solid #dfe4d9;border-radius:10px;background:#fff;cursor:pointer;font-size:13px}.propina-eleccion:has(input:checked){border-color:#315d49;background:#eef3e9}.mayoria-eleccion{border-color:#dab7ae;background:#fff8f5}.propina-eleccion input,.mayoria-eleccion input{width:18px;height:18px;flex:0 0 auto;accent-color:#173e34}.propina-nota,.mayoria-nota{margin:9px 0 0;color:#657168;font-size:11px;line-height:1.5}
                     </style>
                     <div class="carrito-resumen">
                         <div class="total-fila"><span>Subtotal del pedido</span><span><strong class="total-importe" data-pesos="{{ total_carrito|floatformat:'0u' }}">${{ total_carrito|floatformat:"0" }}</strong><span class="moneda">CLP</span></span></div>
                         <form method="post" action="{% url 'pedidos:webpay_cliente' codigo=mesa.codigo %}" id="enviar-pedido" hx-boost="false" @submit="iniciarPago($event)">
                             {% csrf_token %}
+                            {% if requiere_mayoria_edad %}
+                                <fieldset class="mayoria-opciones">
+                                    <legend>Confirmación obligatoria +18</legend>
+                                    <label class="mayoria-eleccion"><input type="checkbox" name="confirma_mayoria_edad" value="si" required><span><strong>Confirmo que tengo 18 años o más.</strong><br>El personal podrá solicitar identificación al entregar el pedido.</span></label>
+                                    <p class="mayoria-nota">Los productos marcados +18 no se entregarán a menores de edad.</p>
+                                </fieldset>
+                            {% endif %}
                             <fieldset class="propina-opciones">
                                 <legend>¿Deseas agregar propina?</legend>
                                 <label class="propina-eleccion"><input type="radio" name="propina" value="10" checked><span><strong>Sí, agregar 10%</strong><br>Propina sugerida</span></label>

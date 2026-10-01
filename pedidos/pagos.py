@@ -15,7 +15,7 @@ from django.db import transaction
 from django.utils import timezone
 from carta.models import Producto
 from mesas.models import Mesa
-from .carrito import Carrito
+from .carrito import Carrito, ErrorOpciones
 from .models import Cuenta, Pedido, DetallePedido, Pago, IntentoWebpay
 from .webpay import obtener_webpay
 
@@ -50,15 +50,44 @@ def intento_activo(request, mesa):
 def sincronizar_carrito(request, mesa):
     """Limpieza idempotente; nunca borra un carrito editado después del pago."""
     carrito = Carrito(request, mesa)
-    clave = clave_checkout(request, mesa, carrito.productos)
+    clave = clave_checkout(request, mesa, carrito.snapshot())
     pedido = Pedido.objects.filter(checkout_clave=clave, pago__isnull=False).first()
     if pedido:
         ids = request.session.get(f'pedidos_{mesa.codigo}', [])
         if pedido.pk not in ids:
             request.session[f'pedidos_{mesa.codigo}'] = [*ids, pedido.pk]
-        carrito.productos = {}
-        carrito.guardar()
+        carrito.vaciar()
         renovar_carrito(request, mesa)
+
+
+def snapshot_opciones(opciones):
+    return [
+        {
+            'id': opcion.pk,
+            'grupo': opcion.grupo.nombre,
+            'nombre': opcion.nombre,
+            'precio_extra': format(opcion.precio_extra, '.2f'),
+        }
+        for opcion in opciones
+    ]
+
+
+def opciones_detalle_vigentes(detalle):
+    guardadas = detalle.opciones or []
+    try:
+        ids = [int(opcion['id']) for opcion in guardadas]
+    except (KeyError, TypeError, ValueError):
+        return False
+    try:
+        opciones = Carrito.validar_opciones(detalle.producto, ids)
+    except ErrorOpciones:
+        return False
+    if snapshot_opciones(opciones) != guardadas:
+        return False
+    precio_actual = detalle.producto.precio + sum(
+        opcion.precio_extra for opcion in opciones
+    )
+    return precio_actual == detalle.precio_unitario
 
 
 def detalle_pedido(pedido):
@@ -67,10 +96,16 @@ def detalle_pedido(pedido):
         if d.cantidad <= 0 or d.precio_unitario < 0:
             raise ErrorPago('El pedido contiene cantidades o precios inválidos.')
         total += d.subtotal
-        lineas.append({'pedido': pedido.pk, 'producto': d.producto_id,
+        linea = {'pedido': pedido.pk, 'producto': d.producto_id,
             'nombre': d.nombre_producto, 'cantidad': d.cantidad,
             'precio_unitario': format(d.precio_unitario, '.2f'),
-            'subtotal': format(d.subtotal, '.2f')})
+            'subtotal': format(d.subtotal, '.2f')}
+        # Omitir False conserva compatibilidad con snapshots anteriores.
+        if d.requiere_mayoria_edad:
+            linea['requiere_mayoria_edad'] = True
+        if d.opciones:
+            linea['opciones'] = d.opciones
+        lineas.append(linea)
     return lineas, total
 
 
@@ -109,7 +144,7 @@ def crear_intento_cliente(request, codigo, return_url):
         if activo:
             return activo, False
         carrito = Carrito(request, mesa)
-        clave = clave_checkout(request, mesa, carrito.productos)
+        clave = clave_checkout(request, mesa, carrito.snapshot())
         pedido = Pedido.objects.filter(checkout_clave=clave).first()
         if pedido and Pago.objects.filter(pedido=pedido).exists():
             return pedido.intentos_webpay.get(pago_confirmado__isnull=False), False
@@ -117,7 +152,7 @@ def crear_intento_cliente(request, codigo, return_url):
         if (pedido and pedido.estado == Pedido.Estado.CANCELADO
                 and pedido.cuenta.estado == Cuenta.Estado.CERRADA):
             renovar_carrito(request, mesa)
-            clave = clave_checkout(request, mesa, carrito.productos)
+            clave = clave_checkout(request, mesa, carrito.snapshot())
             pedido = None
         if not carrito.productos:
             raise ErrorPago('Tu carrito está vacío.')
@@ -126,12 +161,40 @@ def crear_intento_cliente(request, codigo, return_url):
             categoria__local=mesa.local).order_by('pk'))
         if len(productos) != len(carrito.productos):
             raise ErrorPago('Un producto ya no está disponible. Revisa tu carrito.')
+        requiere_mayoria_edad = any(
+            producto.requiere_mayoria_edad
+            for producto in productos
+        )
+        mayoria_edad_confirmada = (
+            request.POST.get('confirma_mayoria_edad') == 'si'
+        )
+        if requiere_mayoria_edad and not mayoria_edad_confirmada:
+            raise ErrorPago(
+                'Debes confirmar que tienes 18 años o más para comprar '
+                'los productos marcados +18.'
+            )
         subtotal = Decimal('0')
+        configuracion = {}
         for producto in productos:
             cantidad = carrito.productos[str(producto.pk)]
             if type(cantidad) is not int or not 1 <= cantidad <= Carrito.MAXIMO_POR_PRODUCTO or producto.precio < 0:
                 raise ErrorPago('Hay una cantidad o precio inválido en el carrito.')
-            subtotal += producto.precio * cantidad
+            try:
+                opciones = Carrito.validar_opciones(
+                    producto,
+                    carrito.opciones_producto(producto),
+                )
+            except ErrorOpciones as exc:
+                raise ErrorPago(str(exc))
+            precio_unitario = producto.precio + sum(
+                opcion.precio_extra for opcion in opciones
+            )
+            opciones_guardadas = snapshot_opciones(opciones)
+            configuracion[producto.pk] = {
+                'precio_unitario': precio_unitario,
+                'opciones': opciones_guardadas,
+            }
+            subtotal += precio_unitario * cantidad
         if subtotal <= 0 or subtotal != subtotal.to_integral_value():
             raise ErrorPago('El total debe ser positivo y estar expresado en pesos enteros.')
         propina = calcular_propina(subtotal, request.POST.get('propina'))
@@ -146,22 +209,40 @@ def crear_intento_cliente(request, codigo, return_url):
                 estado=Pedido.Estado.SIN_PAGAR, pago__isnull=True).update(estado=Pedido.Estado.CANCELADO)
             pedido = Pedido.objects.create(mesa=mesa, cuenta=cuenta,
                 cliente_clave=cliente_clave(request), checkout_clave=clave,
-                propina=propina)
+                propina=propina,
+                mayoria_edad_confirmada=(
+                    requiere_mayoria_edad and mayoria_edad_confirmada
+                ))
             DetallePedido.objects.bulk_create([DetallePedido(pedido=pedido, producto=p,
-                nombre_producto=p.nombre, precio_unitario=p.precio,
-                cantidad=carrito.productos[str(p.pk)]) for p in productos])
+                nombre_producto=p.nombre,
+                precio_unitario=configuracion[p.pk]['precio_unitario'],
+                cantidad=carrito.productos[str(p.pk)],
+                requiere_mayoria_edad=p.requiere_mayoria_edad,
+                opciones=configuracion[p.pk]['opciones'])
+                for p in productos])
         elif pedido.cuenta_id != cuenta.pk or pedido.estado != Pedido.Estado.SIN_PAGAR:
             raise ErrorPago('Este pedido ya no admite pagos. Actualiza tu carrito.')
         # Reintentar tras rechazo usa los precios vigentes; no cambia una autorización.
         else:
-            actuales = [(p.pk, p.nombre, p.precio, carrito.productos[str(p.pk)]) for p in productos]
+            actuales = [(p.pk, p.nombre,
+                configuracion[p.pk]['precio_unitario'],
+                carrito.productos[str(p.pk)], p.requiere_mayoria_edad,
+                configuracion[p.pk]['opciones'])
+                for p in productos]
             guardados = list(pedido.detalles.order_by('producto_id').values_list(
-                'producto_id', 'nombre_producto', 'precio_unitario', 'cantidad'))
+                'producto_id', 'nombre_producto', 'precio_unitario', 'cantidad',
+                'requiere_mayoria_edad', 'opciones'))
             if actuales != guardados:
-                raise ErrorPago('El producto o su precio cambió. Modifica el carrito antes de pagar nuevamente.')
+                raise ErrorPago(
+                    'El producto, sus opciones o su precio cambiaron. '
+                    'Modifica el carrito antes de pagar nuevamente.'
+                )
             if pedido.propina != propina:
                 pedido.propina = propina
-                pedido.save(update_fields=['propina'])
+            confirmacion = requiere_mayoria_edad and mayoria_edad_confirmada
+            if pedido.mayoria_edad_confirmada != confirmacion:
+                pedido.mayoria_edad_confirmada = confirmacion
+            pedido.save(update_fields=['propina', 'mayoria_edad_confirmada'])
         lineas, subtotal_guardado = detalle_pedido(pedido)
         if subtotal_guardado != subtotal:
             raise ErrorPago('El subtotal del pedido cambió. Actualiza el carrito antes de pagar.')
@@ -264,10 +345,15 @@ def resolver_intento(intento_id, confirmar=False, cancelar=False):
                     lineas, subtotal = detalle_pedido(pedido)
                 except ErrorPago:
                     lineas, subtotal = [], Decimal('-1')
+                requiere_mayoria_edad = pedido.detalles.filter(
+                    requiere_mayoria_edad=True,
+                ).exists()
                 if (pedido.estado == Pedido.Estado.SIN_PAGAR and cuenta.estado == Cuenta.Estado.ABIERTA
                         and subtotal == intento.subtotal
                         and pedido.propina == intento.propina
                         and subtotal + pedido.propina == intento.monto
+                        and (not requiere_mayoria_edad
+                            or pedido.mayoria_edad_confirmada)
                         and lineas == intento.detalle):
                     pedido.estado = Pedido.Estado.PENDIENTE
                     pedido.save(update_fields=['estado'])
@@ -356,9 +442,20 @@ def reintentar_pago(intento_id, usuario, return_url):
             return activo, False
         detalles = list(pedido.detalles.select_related('producto__categoria').order_by('producto_id'))
         if not detalles or any(not d.producto.disponible or not d.producto.categoria.activa
-                or d.precio_unitario != d.producto.precio or d.cantidad < 1
+                or not opciones_detalle_vigentes(d) or d.cantidad < 1
+                or d.requiere_mayoria_edad != d.producto.requiere_mayoria_edad
                 or d.cantidad > Carrito.MAXIMO_POR_PRODUCTO for d in detalles):
-            raise ErrorPago('Cambió la disponibilidad o el precio. Vuelve a la carta y modifica el carrito antes de pagar.')
+            raise ErrorPago(
+                'Cambió la disponibilidad o el precio de una opción o '
+                'producto. Vuelve '
+                'a la carta y modifica el carrito antes de pagar.'
+            )
+        if (any(d.requiere_mayoria_edad for d in detalles)
+                and not pedido.mayoria_edad_confirmada):
+            raise ErrorPago(
+                'Falta la confirmación de mayoría de edad. Vuelve a la '
+                'carta antes de pagar.'
+            )
         lineas, subtotal = detalle_pedido(pedido)
         propina = pedido.propina
         total = subtotal + propina

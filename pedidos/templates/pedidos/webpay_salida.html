@@ -5,6 +5,7 @@
 <h1>Tu pago está preparado.</h1><p>{{ intento.cuenta.mesa.local.nombre }} · Mesa {{ intento.cuenta.mesa.numero }} · Pedido #{{ intento.pedido_id }}</p>
 <div class="dato"><span>Subtotal</span><span data-pesos="{{ intento.subtotal|floatformat:'2u' }}">${{ intento.subtotal|floatformat:"0" }}</span></div>
 <div class="dato"><span>Propina opcional</span><span data-pesos="{{ intento.propina|floatformat:'2u' }}">${{ intento.propina|floatformat:"0" }}</span></div>
+{% if intento.pedido.mayoria_edad_confirmada %}<p class="estado advertencia">Este pedido contiene productos +18. La edad podrá verificarse al entregar.</p>{% endif %}
 <p class="total">Total: <span data-pesos="{{ intento.monto|floatformat:'2u' }}">${{ intento.monto|floatformat:"0" }}</span> CLP</p><p>Revisa el total y continúa a Transbank para realizar el pago de prueba.</p>
 <form id="salida" method="post" action="{% url 'pedidos:webpay_abrir' intento_id=intento.pk %}">{% csrf_token %}<input type="hidden" name="firma" value="{{ firma }}"><button type="submit">Ir a Webpay con este pago nuevo</button></form>
 <form method="post" action="{% url 'pedidos:webpay_cancelar' intento_id=intento.pk %}">{% csrf_token %}<input type="hidden" name="firma" value="{{ firma }}"><button type="submit">Cancelar y volver</button></form>

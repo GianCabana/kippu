@@ -13,7 +13,8 @@
 <div class="dato"><span>Autorización</span><span>{{ intento.codigo_autorizacion }}</span></div>
 <div class="dato"><span>Medio de pago</span><span>Webpay Plus · {{ intento.tipo_pago }}</span></div>
 {% if intento.ultimos_digitos %}<div class="dato"><span>Tarjeta</span><span>•••• {{ intento.ultimos_digitos }}</span></div>{% endif %}
-<ul>{% for item in intento.detalle %}<li><span>{{ item.cantidad }} × {{ item.nombre }}<br><small>Pedido #{{ item.pedido }}</small></span><span data-pesos="{{ item.subtotal }}">${{ item.subtotal }}</span></li>{% endfor %}</ul>
+<ul>{% for item in intento.detalle %}<li><span>{{ item.cantidad }} × {{ item.nombre }}{% if item.requiere_mayoria_edad %} · <strong>+18</strong>{% endif %}{% if item.opciones %}<br><small>{% for opcion in item.opciones %}{{ opcion.grupo }}: {{ opcion.nombre }}{% if opcion.precio_extra != '0.00' %} (+${{ opcion.precio_extra|floatformat:"0" }}){% endif %}{% if not forloop.last %} · {% endif %}{% endfor %}</small>{% endif %}<br><small>Pedido #{{ item.pedido }}</small></span><span data-pesos="{{ item.subtotal }}">${{ item.subtotal }}</span></li>{% endfor %}</ul>
+{% if intento.pedido.mayoria_edad_confirmada %}<div class="dato"><span>Control de edad</span><span>Confirmación +18 registrada</span></div>{% endif %}
 <div class="dato"><span>Subtotal</span><span data-pesos="{{ intento.subtotal|floatformat:'2u' }}">${{ intento.subtotal|floatformat:"0" }}</span></div>
 <div class="dato"><span>Propina opcional</span><span data-pesos="{{ intento.propina|floatformat:'2u' }}">${{ intento.propina|floatformat:"0" }}</span></div>
 <p class="total">Total: <span data-pesos="{{ pago.monto|floatformat:'2u' }}">${{ pago.monto|floatformat:"0" }}</span> CLP</p>

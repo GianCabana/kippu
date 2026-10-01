@@ -84,6 +84,9 @@
         .producto:last-child { border-bottom:0; }
         .cantidad { flex-shrink:0; display:grid; place-items:center; min-width:33px; height:33px; padding-inline:5px; background:#edf1e7; border:1px solid #dce4d3; border-radius:9px; color:var(--verde); font-size:14px; font-weight:650; }
         .nombre-producto { padding-top:6px; font-size:14px; font-weight:550; line-height:1.5; overflow-wrap:anywhere; min-width:0; }
+        .badge-18 { display:inline-flex; margin-left:6px; padding:3px 6px; border-radius:999px; background:#7b2d26; color:white; font-size:9px; font-weight:700; letter-spacing:.4px; vertical-align:middle; }
+        .aviso-edad { display:block; margin-top:4px; color:#7b2d26; font-size:10px; font-weight:650; }
+        .opciones-pedido { display:block; margin-top:4px; color:var(--suave); font-size:10px; line-height:1.5; }
         .pedido-pie { padding:13px 23px 22px; }
         .unidades { color:var(--suave); font-size:10px; margin-bottom:13px; }
         form { margin:0; }
@@ -187,7 +190,7 @@
                         <p class="fecha">Recibido <time datetime="{{ pedido.creado|date:'c' }}">{{ pedido.creado|date:"d/m/Y · H:i" }}</time></p>
                     </div>
                     <ul class="productos">
-                        {% for detalle in pedido.detalles.all %}<li class="producto" data-cantidad="{{ detalle.cantidad }}"><span class="cantidad" aria-label="{{ detalle.cantidad }} unidades">{{ detalle.cantidad }}×</span><span class="nombre-producto">{{ detalle.nombre_producto }}</span></li>{% endfor %}
+                        {% for detalle in pedido.detalles.all %}<li class="producto" data-cantidad="{{ detalle.cantidad }}"><span class="cantidad" aria-label="{{ detalle.cantidad }} unidades">{{ detalle.cantidad }}×</span><span class="nombre-producto">{{ detalle.nombre_producto }}{% if detalle.requiere_mayoria_edad %}<span class="badge-18" aria-label="Producto para mayores de 18 años">+18</span><small class="aviso-edad">Pedido con verificación de edad</small>{% endif %}{% if detalle.opciones %}<small class="opciones-pedido">{% for opcion in detalle.opciones %}{{ opcion.grupo }}: {{ opcion.nombre }}{% if not forloop.last %} · {% endif %}{% endfor %}</small>{% endif %}</span></li>{% endfor %}
                     </ul>
                     <div class="pedido-pie">
                         <p class="unidades" hidden></p>

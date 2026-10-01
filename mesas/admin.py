@@ -8,13 +8,27 @@ from django.shortcuts import get_object_or_404
 from django.urls import path, reverse
 from django.utils.html import format_html
 
-from .models import Mesa
+from .models import Local, Mesa
+
+
+@admin.register(Local)
+class LocalAdmin(admin.ModelAdmin):
+    list_display = ("nombre", "slug", "activo", "cantidad_mesas")
+    list_filter = ("activo",)
+    search_fields = ("nombre", "slug")
+    prepopulated_fields = {"slug": ("nombre",)}
+
+    @admin.display(description="Mesas")
+    def cantidad_mesas(self, obj):
+        return obj.mesas.count()
 
 
 @admin.register(Mesa)
 class MesaAdmin(admin.ModelAdmin):
-    list_display = ("numero", "activa", "boton_qr")
-    list_filter = ("activa",)
+    list_display = ("numero", "local", "activa", "boton_qr")
+    list_filter = ("local", "activa")
+    search_fields = ("local__nombre", "numero")
+    list_select_related = ("local",)
     readonly_fields = ("codigo", "boton_qr")
 
     def get_urls(self):
@@ -32,11 +46,7 @@ class MesaAdmin(admin.ModelAdmin):
         if obj is None or obj.pk is None:
             return "Guarda la mesa para descargar su QR."
 
-        enlace = reverse(
-            "admin:mesas_mesa_qr",
-            args=[obj.pk],
-        )
-
+        enlace = reverse("admin:mesas_mesa_qr", args=[obj.pk])
         return format_html(
             '<a class="button" href="{}">Descargar QR</a>',
             enlace,
@@ -51,17 +61,12 @@ class MesaAdmin(admin.ModelAdmin):
         if not self.has_view_or_change_permission(request, mesa):
             raise PermissionDenied
 
-        enlace = (
-            settings.PUBLIC_BASE_URL
-            + mesa.get_absolute_url()
-        )
-
+        enlace = settings.PUBLIC_BASE_URL + mesa.get_absolute_url()
         imagen = qrcode.make(enlace)
 
         respuesta = HttpResponse(content_type="image/png")
         respuesta["Content-Disposition"] = (
-            f'attachment; filename="kippu-mesa-{mesa.numero}.png"'
+            f'attachment; filename="kippu-{mesa.local.slug}-mesa-{mesa.numero}.png"'
         )
-
         imagen.save(respuesta, format="PNG")
         return respuesta
