@@ -79,7 +79,7 @@
                                 <h3 class="producto__nombre">{{ producto.nombre }}{% if producto.requiere_mayoria_edad %} <span class="insignia-18" aria-label="Producto para mayores de 18 años">+18</span>{% endif %}</h3>
                                 {% if producto.descripcion %}<p class="producto__descripcion">{{ producto.descripcion }}</p>{% endif %}
                                 {% if producto.requiere_mayoria_edad %}<p class="aviso-18">Venta exclusiva para mayores de 18 años.</p>{% endif %}
-                                <p class="precio producto__precio"><span data-pesos="{{ producto.precio|floatformat:'0u' }}">${{ producto.precio|floatformat:"0g" }}</span></p>
+                                <p class="precio producto__precio"><span data-pesos="{{ producto.precio|floatformat:'0u' }}" data-precio-base="{{ producto.precio|floatformat:'0u' }}">${{ producto.precio|floatformat:"0g" }}</span></p>
                             </div>
                             {% if mesa %}{% with grupos_producto=producto.grupos_opciones.all %}
                                 {% if grupos_producto %}
@@ -92,7 +92,7 @@
                                                     {% if grupo_opcion.seleccion_multiple %}<small>Elige hasta {{ grupo_opcion.max_selecciones }}.</small>{% endif %}
                                                     {% for opcion in grupo_opcion.opciones.all %}
                                                         <label class="opcion-producto">
-                                                            <input type="{% if grupo_opcion.seleccion_multiple %}checkbox{% else %}radio{% endif %}" name="opcion_grupo_{{ grupo_opcion.pk }}" value="{{ opcion.pk }}" form="form-producto-{{ producto.pk }}"{% if grupo_opcion.requerido and not grupo_opcion.seleccion_multiple %} required{% endif %}>
+                                                            <input type="{% if grupo_opcion.seleccion_multiple %}checkbox{% else %}radio{% endif %}" name="opcion_grupo_{{ grupo_opcion.pk }}" value="{{ opcion.pk }}" data-precio-extra="{{ opcion.precio_extra|floatformat:'0u' }}" form="form-producto-{{ producto.pk }}"{% if grupo_opcion.requerido and not grupo_opcion.seleccion_multiple %} required{% endif %}>
                                                             <span>{{ opcion.nombre }}</span>
                                                             {% if opcion.precio_extra %}<span class="recargo">+ ${{ opcion.precio_extra|floatformat:"0g" }}</span>{% endif %}
                                                         </label>
@@ -101,7 +101,7 @@
                                             {% endfor %}
                                             <form id="form-producto-{{ producto.pk }}" method="post" action="{% url 'pedidos:agregar' codigo=mesa.codigo producto_id=producto.pk %}" data-carrito-form hx-post="{% url 'pedidos:agregar' codigo=mesa.codigo producto_id=producto.pk %}" hx-target="#carrito-datos" hx-swap="innerHTML" hx-sync="#carta-app:drop">
                                                 {% csrf_token %}
-                                                <button class="boton boton--bloque" :disabled="ocupado || pagando || !!error" id="agregar-{{ producto.pk }}" type="submit" aria-label="Agregar {{ producto.nombre }} al carrito">Agregar</button>
+                                                <button class="boton boton--bloque" :disabled="ocupado || pagando || !!error" id="agregar-{{ producto.pk }}" type="submit" aria-label="Agregar {{ producto.nombre }} al carrito">Agregar <span class="cifra" data-pesos="{{ producto.precio|floatformat:'0u' }}" data-precio-base="{{ producto.precio|floatformat:'0u' }}">${{ producto.precio|floatformat:"0g" }}</span></button>
                                             </form>
                                         </div>
                                     </details>

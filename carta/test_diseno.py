@@ -141,3 +141,15 @@ class CartaConDisenoKippuTests(TestCase):
         self.assertIn('name="opcion_grupo_', panel.group(1))
         self.assertIn(f'id="agregar-{chicha.pk}"', panel.group(1))
         self.assertIn(f'<form class="producto__accion" id="form-producto-{self.producto.pk}"', html)
+
+    def test_la_carta_entrega_los_precios_para_mostrar_el_precio_con_opciones(self):
+        chicha = Producto.objects.create(nombre="Chicha morada", categoria=self.producto.categoria, precio=3200)
+        tamano = GrupoOpcion.objects.create(producto=chicha, nombre="Tamaño")
+        jarra = OpcionProducto.objects.create(grupo=tamano, nombre="Jarra", precio_extra=4500)
+        vaso = OpcionProducto.objects.create(grupo=tamano, nombre="Vaso")
+
+        html = self.client.get(reverse("carta:por_mesa", args=[self.mesa.codigo])).content.decode()
+
+        self.assertEqual(html.count('data-precio-base="3200"'), 2, "precio de la tarjeta y del botón Agregar")
+        self.assertIn(f'value="{jarra.pk}" data-precio-extra="4500"', html)
+        self.assertIn(f'value="{vaso.pk}" data-precio-extra="0"', html)

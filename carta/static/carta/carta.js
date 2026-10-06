@@ -30,6 +30,21 @@
                 : 'No pudimos confirmar el cambio. Actualiza la carta para ver el estado antes de volver a intentarlo.');
         });
     }
+    // Solo para mostrar: el total que se cobra lo sigue calculando el servidor.
+    const formatoPesos = new Intl.NumberFormat('es-CL', {style: 'currency', currency: 'CLP', maximumFractionDigits: 0});
+    const precioConOpciones = producto => {
+        let extra = 0;
+        producto.querySelectorAll('input[data-precio-extra]:checked').forEach(input => { extra += Number(input.dataset.precioExtra) || 0; });
+        producto.querySelectorAll('[data-precio-base]').forEach(el => {
+            const valor = Number(el.dataset.precioBase) + extra;
+            el.dataset.pesos = valor;
+            el.textContent = formatoPesos.format(valor);
+        });
+    };
+    document.addEventListener('change', event => {
+        if (event.target.matches('input[data-precio-extra]')) precioConOpciones(event.target.closest('.producto'));
+    });
+    document.addEventListener('DOMContentLoaded', () => document.querySelectorAll('.producto').forEach(precioConOpciones));
     document.addEventListener('alpine:init', () => {
         Alpine.data('cartaKippu', () => ({
             busqueda: '', categoria: 'todas', cantidad: 0, total: 0,
