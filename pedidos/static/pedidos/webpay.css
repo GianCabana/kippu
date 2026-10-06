@@ -1,0 +1,59 @@
+/* Pantallas de pago con Webpay (salida, redirección y resultado).
+   Solo usa las variables y componentes de kippu.css. */
+
+.wp-barra { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding-block: 16px; }
+.wp-barra__mesa { color: var(--texto-2); font-family: var(--mono); font-size: 12px; letter-spacing: .06em; text-align: right; }
+.wp-pagina { padding-bottom: 32px; }
+.wp-titulo { margin: 6px 0 18px; }
+.wp-subtitulo { margin: 22px 0 10px; color: var(--texto-2); font-size: 11.5px; }
+.wp-nota { margin: 12px 0 0; color: var(--texto-2); font-size: 13px; line-height: 1.5; }
+.wp-hint { margin: 10px 0 0; color: var(--texto-2); font-size: 12.5px; text-align: center; }
+.wp-enlace { margin: 18px 0 0; text-align: center; font-size: 14px; }
+.wp-enlace a { display: inline-flex; align-items: center; min-height: 44px; }
+.wp-demo { margin: 22px 0 0; padding: 12px; border: 1px dashed var(--linea); border-radius: 10px; color: var(--texto-2); font-size: 12px; text-align: center; }
+.wp-pagina form { margin: 0; }
+.wp-pagina .boton--bloque { margin-top: 12px; }
+.wp-pagina .mensaje { margin: 16px 0 0; }
+
+/* ---------- Salida: resumen antes de ir a Webpay (pantalla 5) ---------- */
+
+.wp-total { display: flex; align-items: center; justify-content: space-between; gap: 16px; margin-bottom: 14px; }
+.wp-total .etiqueta { margin: 0; color: var(--texto-2); font-size: 11.5px; }
+.wp-total__detalle { margin: 4px 0 0; color: var(--texto-2); font-size: 13px; }
+.wp-total__monto { margin: 0; color: var(--tinta); font-size: 25px; white-space: nowrap; }
+.wp-medio { display: flex; align-items: flex-start; gap: 14px; }
+.wp-medio__icono { display: grid; flex: none; place-items: center; width: 44px; height: 31px; border: 1px solid var(--aji); border-radius: 6px; color: var(--aji); font-size: 9px; }
+.wp-medio strong { color: var(--tinta); font-size: 15px; }
+.wp-medio p { margin: 3px 0 0; color: var(--texto-2); font-size: 13px; line-height: 1.45; }
+
+/* ---------- Redirección a Transbank ---------- */
+
+.wp-abriendo { padding: 28px 0 8px; text-align: center; }
+.wp-abriendo .wp-titulo { margin-bottom: 6px; }
+.wp-abriendo .wp-nota { margin-top: 0; }
+.wp-abriendo__carga { display: inline-block; width: 34px; height: 34px; margin-bottom: 14px; border: 3px solid var(--linea); border-top-color: var(--aji); border-radius: 50%; animation: wp-girar .9s linear infinite; }
+@keyframes wp-girar { to { transform: rotate(360deg); } }
+
+/* ---------- Resultado: comprobante como ticket (pantalla 6) o pago no completado ---------- */
+
+.wp-acciones { margin-top: 16px; }
+.wp-acciones .boton--bloque { margin-top: 0; }
+.wp-ref { margin: 14px 0 0; color: var(--texto-2); font-family: var(--mono); font-size: 12px; letter-spacing: .06em; text-transform: uppercase; }
+.wp-estado { margin: 12px 0 0; padding: 10px 12px; border-radius: 8px; background: var(--superficie); color: var(--texto); font-size: 13px; line-height: 1.45; }
+.wp-datos__titulo { margin: 0 0 6px; color: var(--texto-2); font-size: 11px; }
+.wp-datos { margin: 0; }
+.wp-datos div { display: flex; justify-content: space-between; gap: 14px; padding: 6px 0; border-bottom: 1px solid var(--linea-suave); font-size: 12.5px; }
+.wp-datos dt { flex: none; color: var(--texto-2); }
+.wp-datos dd { min-width: 0; margin: 0; color: var(--tinta); font-family: var(--mono); text-align: right; overflow-wrap: anywhere; }
+.wp-comprobante .tk .mensaje { margin: 12px 0 0; }
+.wp-comprobante .tk__pie { margin-top: 12px; }
+.wp-comprobante .wp-acciones { padding-bottom: 24px; }
+.wp-enlace-mis-pedidos { display: flex; align-items: center; justify-content: center; min-height: 44px; }
+
+@media print {
+    body.wp-comprobante { background: none; color: var(--tinta); }
+    .wp-comprobante .tk-barra, .wp-comprobante .mensajes, .wp-comprobante .tk-perforado, .wp-acciones { display: none !important; }
+    .wp-comprobante .tk-cuerpo { max-width: none; padding: 0; }
+    .wp-comprobante .tk { padding: 0; }
+    .wp-datos div, .tk__linea { break-inside: avoid; }
+}
