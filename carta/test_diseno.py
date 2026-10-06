@@ -125,6 +125,14 @@ class CartaConDisenoKippuTests(TestCase):
         self.assertNotIn("badge-18", html)
         self.assertEqual(html.count("<style"), 1, "solo debe quedar el [x-cloak] de base.html")
 
+    def test_ningun_monto_reactivo_queda_fijo_con_data_pesos(self):
+        html = self.client.get(reverse("carta:por_mesa", args=[self.mesa.codigo])).content.decode()
+
+        # formatear() reescribe los data-pesos con el valor de la carga y pisaría el x-text.
+        for etiqueta in re.findall(r"<[^>]*\bx-text=[^>]*>", html):
+            with self.subTest(etiqueta=etiqueta):
+                self.assertNotIn("data-pesos", etiqueta)
+
     def test_fragmento_del_carrito_sin_estilos_en_linea(self):
         agregar = reverse(
             "pedidos:agregar", kwargs={"codigo": self.mesa.codigo, "producto_id": self.producto.pk}
