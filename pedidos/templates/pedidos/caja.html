@@ -1,14 +1,93 @@
-<!DOCTYPE html><html lang="es"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta http-equiv="refresh" content="15"><title>Caja · Kippu</title><style>*{box-sizing:border-box}body{margin:0;background:#f6f5ef;color:#24382c;font-family:Arial,sans-serif;line-height:1.6}header{background:#173e34;color:#fff;padding:32px 20px}header>div,main{max-width:1100px;margin:auto}main{padding:28px 18px}h1{font:36px Georgia,serif;margin:6px 0}h2{font:26px Georgia,serif}h3{margin:0}nav{display:flex;gap:20px;flex-wrap:wrap}a{color:inherit;text-underline-offset:4px}nav a{padding:10px 0;min-height:44px}.grilla{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,300px),1fr));gap:18px}.tarjeta{min-width:0;background:white;border:1px solid #dfe4d9;border-radius:18px;padding:24px;overflow-wrap:anywhere}.etiqueta{text-transform:uppercase;font-size:11px;letter-spacing:2px;opacity:.75}.estado{display:inline-block;border-radius:20px;background:#e6eee4;color:#23412f;padding:6px 12px;font-size:12px;font-weight:bold}.sin_pagar,.aviso{background:#fff1d8;color:#745414}.cancelado{background:#f3e5e2;color:#8b4036}.local{margin:8px 0 2px;color:#315d49;font-size:12px;font-weight:bold;letter-spacing:.7px;text-transform:uppercase}.muted{font-size:13px;color:#627367}li{padding:10px 0;border-bottom:1px solid #edf0e9}ul{list-style:none;padding:0}.boton{display:block;padding:12px 16px;margin-top:16px;border-radius:10px;background:#173e34;color:white;text-align:center;text-decoration:none;min-height:46px}.mensaje{padding:14px;border-radius:10px;background:#e6eee4}a:focus-visible{outline:3px solid #b88c36;outline-offset:4px}@media(max-width:480px){h1{font-size:30px}.tarjeta{padding:20px}}button.boton{width:100%;border:0;cursor:pointer;font:inherit}button:disabled{opacity:.45;cursor:not-allowed}button:focus-visible{outline:3px solid #b88c36;outline-offset:4px}</style></head><body><header><div><p class="etiqueta">Kippu · Administración</p><h1>Pagos y seguimiento</h1><p>El cliente paga desde su carrito antes de enviar el pedido a cocina.</p><nav><a href="{% url 'pedidos:cocina' %}">Cocina</a><a href="{% url 'pedidos:entregas' %}">Entregas</a><a href="{% url 'pedidos:caja' %}">Actualizar</a></nav></div></header><main>
-{% for mensaje in messages %}<p class="mensaje" role="status">{{ mensaje }}</p>{% endfor %}
+{% extends "kippu/base.html" %}
+
+{% block meta %}<meta http-equiv="refresh" content="15">{% endblock %}
+{% block titulo %}Caja · Kippu{% endblock %}
+{% block encabezado %}{% include "pedidos/fragmentos/barra_panel.html" with actual="caja" %}{% endblock %}
+{% block clase_main %}caja{% endblock %}
+{% block mensajes %}{% endblock %}
+
+{% block contenido %}
+<div class="caja__titulo"><h1>Caja</h1><p>Se actualiza cada 15 segundos</p></div>
+
+{% if messages %}
+<ul class="mensajes" aria-live="polite">
+    {% for mensaje in messages %}<li class="mensaje mensaje--{{ mensaje.level_tag }}">{{ mensaje }}</li>{% endfor %}
+</ul>
+{% endif %}
+
 <h2>Mesas con cuenta abierta</h2>
-<div class="grilla">{% for cuenta in cuentas %}<article class="tarjeta">
-<span class="estado {% if not cuenta.revision.puede_cerrar %}aviso{% endif %}">{% if cuenta.revision.puede_cerrar %}Lista para cerrar{% else %}En atención{% endif %}</span>
-<h2>Mesa {{ cuenta.mesa.numero }}</h2><p class="local">{{ cuenta.mesa.local.nombre }}</p><p class="muted">Cuenta #{{ cuenta.pk }} · Abierta {{ cuenta.creada|date:"d/m/Y H:i" }}</p>
-<p>{{ cuenta.revision.cantidad_pedidos }} pedido(s) registrados</p><p><strong>Pagado: ${{ cuenta.revision.total_pagado|floatformat:"0g" }} CLP</strong></p>
-{% if cuenta.revision.motivo %}<p class="muted">{{ cuenta.revision.motivo }}</p>{% endif %}
-{% if cuenta.revision.borradores %}<p class="muted">Al cerrar se descartarán {{ cuenta.revision.borradores }} borrador(es) sin pago. No se cancelan pedidos pagados.</p>{% endif %}
-<form method="post" action="{% url 'pedidos:cerrar_mesa' cuenta_id=cuenta.pk %}">{% csrf_token %}<button class="boton" type="submit" {% if not cuenta.revision.puede_cerrar %}disabled{% endif %}>Cerrar mesa {{ cuenta.mesa.numero }}</button></form>
-</article>{% empty %}<p>No hay cuentas abiertas. La próxima compra abrirá una cuenta nueva.</p>{% endfor %}</div>
-<h2>Últimos cierres</h2><div class="grilla">{% for cuenta in cerradas %}<article class="tarjeta"><span class="estado">Cerrada</span><h3>Mesa {{ cuenta.mesa.numero }} · Cuenta #{{ cuenta.pk }}</h3><p class="local">{{ cuenta.mesa.local.nombre }}</p><p class="muted">{{ cuenta.cerrada|date:"d/m/Y H:i" }}</p></article>{% empty %}<p>Aún no hay cuentas cerradas.</p>{% endfor %}</div>
-<h2>Pagos pendientes de confirmar</h2><div class="grilla">{% for intento in pendientes %}<article class="tarjeta"><span class="estado aviso">{{ intento.get_estado_display }}</span><h3>Mesa {{ intento.cuenta.mesa.numero }}</h3><p class="local">{{ intento.cuenta.mesa.local.nombre }}</p><p>{% if intento.pedido_id %}Pedido #{{ intento.pedido_id }}{% else %}Cuenta anterior #{{ intento.cuenta_id }}{% endif %}</p><p>${{ intento.monto|floatformat:"0g" }} CLP</p><p class="muted">No cobrar nuevamente mientras el resultado esté pendiente.</p><a class="boton" href="{% url 'pedidos:webpay_resultado' intento_id=intento.pk %}">Revisar pago</a></article>{% empty %}<p>No hay pagos por verificar.</p>{% endfor %}</div>
-<h2>Últimos 100 pagos registrados</h2><div class="grilla">{% for pago in pagos %}<article class="tarjeta"><span class="estado">Pago registrado</span><h3>Mesa {{ pago.cuenta.mesa.numero }}</h3><p class="local">{{ pago.cuenta.mesa.local.nombre }}</p><p>{% if pago.pedido_id %}Pedido #{{ pago.pedido_id }} · {{ pago.pedido.get_estado_display }}{% else %}Cuenta anterior #{{ pago.cuenta_id }}{% endif %}</p><h2>${{ pago.monto|floatformat:"0g" }} CLP</h2><p class="muted">{{ pago.creado|date:"d/m/Y H:i" }} · {{ pago.get_metodo_display }}</p>{% if pago.intento_webpay_id %}<a class="boton" href="{% url 'pedidos:webpay_resultado' intento_id=pago.intento_webpay_id %}">Ver comprobante</a>{% endif %}</article>{% empty %}<p>Aún no hay pagos registrados.</p>{% endfor %}</div></main></body></html>
+<div class="caja-grilla">
+    {% for cuenta in cuentas %}
+    <article class="caja-mesa" x-data="{ confirmando: false }" :class="confirmando && 'caja-mesa--confirmando'">
+        <div class="caja-mesa__cabeza">
+            <div><h3 class="caja-mesa__numero">Mesa {{ cuenta.mesa.numero }}</h3><p class="caja-mesa__local">{{ cuenta.mesa.local.nombre }}</p></div>
+            {% if cuenta.revision.puede_cerrar %}<span class="chip chip--verde">Lista para cerrar</span>{% else %}<span class="chip chip--ambar">En atención</span>{% endif %}
+        </div>
+        <div class="caja-mesa__datos">
+            <span>Cuenta #{{ cuenta.pk }} · desde <span class="cifra">{{ cuenta.creada|date:"d/m H:i" }}</span><br>{{ cuenta.revision.cantidad_pedidos }} pedido{{ cuenta.revision.cantidad_pedidos|pluralize }}</span>
+            <span class="caja-mesa__monto">${{ cuenta.revision.total_pagado|floatformat:"0g" }}</span>
+        </div>
+        {% if cuenta.revision.motivo %}<p class="caja-mesa__motivo">{{ cuenta.revision.motivo }}</p>{% endif %}
+        {% if cuenta.revision.borradores %}<p class="caja-sub">Al cerrar se descartarán {{ cuenta.revision.borradores }} borrador{{ cuenta.revision.borradores|pluralize:"es" }} sin pago. No se cancelan pedidos pagados.</p>{% endif %}
+        <button class="boton boton--bloque" type="button" x-show="!confirmando" @click="confirmando = true"{% if not cuenta.revision.puede_cerrar %} disabled{% endif %}>Cerrar mesa {{ cuenta.mesa.numero }}</button>
+        {% if cuenta.revision.puede_cerrar %}
+        <form class="caja-mesa__confirmar" method="post" action="{% url 'pedidos:cerrar_mesa' cuenta_id=cuenta.pk %}" x-show="confirmando" x-cloak>
+            {% csrf_token %}
+            <p>¿Cerrar la Mesa {{ cuenta.mesa.numero }}? Queda lista para una nueva visita y no se puede deshacer.</p>
+            <div class="acciones">
+                <button class="boton boton--fantasma" type="button" @click="confirmando = false">Cancelar</button>
+                <button class="boton" type="submit">Sí, cerrar</button>
+            </div>
+        </form>
+        {% endif %}
+    </article>
+    {% empty %}
+    <p class="caja-vacio">No hay cuentas abiertas. La próxima compra abrirá una cuenta nueva.</p>
+    {% endfor %}
+</div>
+
+<h2>Pagos por verificar</h2>
+<div class="caja-lista">
+    {% for intento in pendientes %}
+    <div class="caja-lista__fila">
+        <span class="cifra">{{ intento.creado|date:"d/m H:i" }}</span>
+        <span>Mesa {{ intento.cuenta.mesa.numero }} · {% if intento.pedido_id %}Pedido #{{ intento.pedido_id }}{% else %}Cuenta anterior #{{ intento.cuenta_id }}{% endif %}<br><span class="caja-sub">{{ intento.cuenta.mesa.local.nombre }} · no cobrar de nuevo</span></span>
+        <span><span class="chip chip--ambar">{{ intento.get_estado_display }}</span></span>
+        <span class="cifra monto">${{ intento.monto|floatformat:"0g" }}</span>
+        <a href="{% url 'pedidos:webpay_resultado' intento_id=intento.pk %}">Revisar pago</a>
+    </div>
+    {% empty %}
+    <p class="caja-vacio">No hay pagos por verificar.</p>
+    {% endfor %}
+</div>
+
+<h2>Últimos pagos</h2>
+<div class="caja-lista">
+    {% if pagos %}<div class="caja-lista__fila caja-lista__fila--cabeza"><span>Hora</span><span>Mesa · pedido</span><span>Estado</span><span class="monto">Monto</span><span></span></div>{% endif %}
+    {% for pago in pagos %}
+    <div class="caja-lista__fila">
+        <span class="cifra">{{ pago.creado|date:"d/m H:i" }}</span>
+        <span>Mesa {{ pago.cuenta.mesa.numero }} · {% if pago.pedido_id %}Pedido #{{ pago.pedido_id }}{% else %}Cuenta anterior #{{ pago.cuenta_id }}{% endif %}<br><span class="caja-sub">{{ pago.cuenta.mesa.local.nombre }} · {{ pago.get_metodo_display }}</span></span>
+        <span>{% if pago.pedido_id %}<span class="chip {% if pago.pedido.estado == 'entregado' %}chip--verde{% elif pago.pedido.estado == 'cancelado' %}chip--gris{% else %}chip--ambar{% endif %}">{{ pago.pedido.get_estado_display }}</span>{% endif %}</span>
+        <span class="cifra monto">${{ pago.monto|floatformat:"0g" }}</span>
+        {% if pago.intento_webpay_id %}<a href="{% url 'pedidos:webpay_resultado' intento_id=pago.intento_webpay_id %}">Ver comprobante</a>{% else %}<span></span>{% endif %}
+    </div>
+    {% empty %}
+    <p class="caja-vacio">Aún no hay pagos registrados.</p>
+    {% endfor %}
+</div>
+
+<h2>Últimos cierres</h2>
+<div class="caja-lista">
+    {% for cuenta in cerradas %}
+    <div class="caja-lista__fila">
+        <span class="cifra">{{ cuenta.cerrada|date:"d/m H:i" }}</span>
+        <span>Mesa {{ cuenta.mesa.numero }} · Cuenta #{{ cuenta.pk }}<br><span class="caja-sub">{{ cuenta.mesa.local.nombre }}</span></span>
+        <span><span class="chip chip--gris">Cerrada</span></span>
+        <span></span><span></span>
+    </div>
+    {% empty %}
+    <p class="caja-vacio">Aún no hay cuentas cerradas.</p>
+    {% endfor %}
+</div>
+{% endblock %}

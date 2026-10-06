@@ -87,8 +87,24 @@ class CierreMesaTests(TestCase):
 
     def test_caja_muestra_montos_con_punto_de_miles(self):
         r=self.client.get(reverse('pedidos:caja'))
-        self.assertContains(r,'Pagado: $3.500 CLP')
+        self.assertContains(r,'$3.500')
         self.assertNotContains(r,'$3500')
+
+    def test_caja_pide_confirmacion_y_salir_es_post(self):
+        r=self.client.get(reverse('pedidos:caja'))
+        self.assertContains(r,'Lista para cerrar')
+        self.assertContains(r,'Sí, cerrar')
+        self.assertContains(r,f'action="{self.url}"')
+        self.assertContains(r,f'action="{reverse("admin:logout")}"')
+        self.assertContains(r,'http-equiv="refresh" content="15"')
+
+    def test_caja_sin_cierre_posible_no_ofrece_formulario(self):
+        Pedido.objects.filter(pk=self.pedido.pk).update(estado='listo')
+        r=self.client.get(reverse('pedidos:caja'))
+        self.assertContains(r,'En atención')
+        self.assertContains(r,'Falta entregar un pedido pagado')
+        self.assertNotContains(r,f'action="{self.url}"')
+        self.assertContains(r,' disabled>Cerrar mesa 902')
 
     def test_legacy_no_se_cierra_por_suposicion(self):
         Pago.objects.filter(pk=self.pago.pk).update(pedido=None)

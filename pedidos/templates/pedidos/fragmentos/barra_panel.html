@@ -1,0 +1,16 @@
+<header class="panel-barra">
+    <div class="panel-barra__marca"><span class="logo logo--chico" aria-hidden="true">券</span><span class="marca">Kippu</span><span class="etiqueta">· panel</span></div>
+    <nav class="pestanas" aria-label="Pantallas del personal">
+        <a href="{% url 'pedidos:cocina' %}"{% if actual == 'cocina' %} aria-current="page"{% endif %}>Cocina</a>
+        <a href="{% url 'pedidos:entregas' %}"{% if actual == 'entregas' %} aria-current="page"{% endif %}>Entregas</a>
+        <a href="{% url 'pedidos:caja' %}"{% if actual == 'caja' %} aria-current="page"{% endif %}>Caja</a>
+    </nav>
+    <div class="panel-barra__derecha">
+        <span>Actualizado <time class="cifra">{% now "H:i" %}</time></span>
+        <form method="post" action="{% url 'admin:logout' %}">
+            {% csrf_token %}
+            <input type="hidden" name="next" value="{% url 'pedidos:caja' %}">
+            <button class="enlace-salir" type="submit">Salir</button>
+        </form>
+    </div>
+</header>
