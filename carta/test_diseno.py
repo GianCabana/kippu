@@ -1,5 +1,6 @@
 import re
 
+from django.contrib.auth import get_user_model
 from django.contrib.messages import constants
 from django.contrib.messages.storage.base import Message
 from django.contrib.staticfiles import finders
@@ -108,7 +109,7 @@ class CartaConDisenoKippuTests(TestCase):
         )
 
     def test_las_hojas_de_pantalla_usan_solo_las_variables_de_kippu(self):
-        for ruta in ("carta/carta.css", "pedidos/webpay.css"):
+        for ruta in ("carta/carta.css", "pedidos/webpay.css", "pedidos/panel.css"):
             with self.subTest(hoja=ruta), open(finders.find(ruta), encoding="utf-8") as archivo:
                 css = re.sub(r"/\*.*?\*/", "", archivo.read(), flags=re.DOTALL)
 
@@ -169,3 +170,21 @@ class CartaConDisenoKippuTests(TestCase):
         self.assertEqual(html.count('data-precio-base="3200"'), 2, "precio de la tarjeta y del botón Agregar")
         self.assertIn(f'value="{jarra.pk}" data-precio-extra="4500"', html)
         self.assertIn(f'value="{vaso.pk}" data-precio-extra="0"', html)
+
+
+class PanelConDisenoKippuTests(TestCase):
+    def setUp(self):
+        personal = get_user_model().objects.create_user(username="panel_diseno", password="Pruebas123!", is_staff=True)
+        self.client.force_login(personal)
+
+    def test_cocina_y_entregas_usan_la_barra_y_la_hoja_del_panel(self):
+        for nombre, lista in (("cocina", "kippu-cocina"), ("entregas", "kippu-entregas")):
+            with self.subTest(pantalla=nombre):
+                respuesta = self.client.get(reverse(f"pedidos:{nombre}"))
+                html = re.sub(r"<noscript>.*?</noscript>", "", respuesta.content.decode(), flags=re.DOTALL)
+
+                self.assertContains(respuesta, 'href="/static/css/kippu.css"')
+                self.assertContains(respuesta, 'href="/static/pedidos/panel.css"')
+                self.assertContains(respuesta, 'class="panel-barra"')
+                self.assertContains(respuesta, f'id="lista-{nombre}" data-panel="{lista}"')
+                self.assertEqual(html.count("<style"), 1, "solo debe quedar el [x-cloak] de base.html")
