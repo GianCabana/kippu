@@ -98,14 +98,14 @@
                                             <label class="opcion-producto">
                                                 <input type="{% if grupo_opcion.seleccion_multiple %}checkbox{% else %}radio{% endif %}" name="opcion_grupo_{{ grupo_opcion.pk }}" value="{{ opcion.pk }}" form="form-producto-{{ producto.pk }}"{% if grupo_opcion.requerido and not grupo_opcion.seleccion_multiple %} required{% endif %}>
                                                 <span>{{ opcion.nombre }}</span>
-                                                {% if opcion.precio_extra %}<span class="recargo">+ ${{ opcion.precio_extra|floatformat:"0" }}</span>{% endif %}
+                                                {% if opcion.precio_extra %}<span class="recargo">+ ${{ opcion.precio_extra|floatformat:"0g" }}</span>{% endif %}
                                             </label>
                                         {% empty %}<small>No hay opciones disponibles.</small>{% endfor %}
                                     </fieldset>
                                 {% endfor %}
                             {% endif %}
                             <div class="producto-pie">
-                                <p class="precio"><span data-pesos="{{ producto.precio|floatformat:'0u' }}">${{ producto.precio|floatformat:"0" }}</span><span class="moneda">CLP</span></p>
+                                <p class="precio"><span data-pesos="{{ producto.precio|floatformat:'0u' }}">${{ producto.precio|floatformat:"0g" }}</span><span class="moneda">CLP</span></p>
                                 {% if mesa %}
                                     <form id="form-producto-{{ producto.pk }}" method="post" action="{% url 'pedidos:agregar' codigo=mesa.codigo producto_id=producto.pk %}" data-carrito-form hx-post="{% url 'pedidos:agregar' codigo=mesa.codigo producto_id=producto.pk %}" hx-target="#carrito-datos" hx-swap="innerHTML" hx-sync="#carta-app:drop">
                                         {% csrf_token %}
@@ -134,7 +134,7 @@
             <button class="abrir-carrito" type="button" id="abrir-carrito" x-ref="abrir" @click="abrirCarrito()" :aria-label="'Ver carrito, ' + cantidad + ' unidades'" aria-haspopup="dialog" aria-controls="carrito-modal" aria-label="Ver carrito, {{ cantidad_carrito }} unidades">
                 <span class="contador" x-text="cantidad">{{ cantidad_carrito }}</span>
                 <span class="barra-texto">Ver mi carrito</span>
-                <span x-text="pesos(total)" class="barra-total" data-pesos="{{ total_carrito|floatformat:'0u' }}">${{ total_carrito|floatformat:"0" }}</span>
+                <span x-text="pesos(total)" class="barra-total" data-pesos="{{ total_carrito|floatformat:'0u' }}">${{ total_carrito|floatformat:"0g" }}</span>
                 <svg class="icono" aria-hidden="true"><use href="#i-flecha"/></svg>
             </button>
         </div>

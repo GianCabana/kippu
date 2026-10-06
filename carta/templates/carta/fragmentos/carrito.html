@@ -16,8 +16,8 @@
                         {% for item in detalle_carrito %}
                             <article class="carrito-item">
                                 <h3>{{ item.producto.nombre }}{% if item.producto.requiere_mayoria_edad %} <span class="badge-18" aria-label="Producto para mayores de 18 años">+18</span>{% endif %}</h3>
-                                {% if item.opciones %}<ul class="opciones-elegidas">{% for opcion in item.opciones %}<li>{{ opcion.grupo.nombre }}: <strong>{{ opcion.nombre }}</strong>{% if opcion.precio_extra %} (+${{ opcion.precio_extra|floatformat:"0" }}){% endif %}</li>{% endfor %}</ul>{% endif %}
-                                <p class="precio-unitario"><span data-pesos="{{ item.precio_unitario|floatformat:'0u' }}">${{ item.precio_unitario|floatformat:"0" }}</span> por unidad</p>
+                                {% if item.opciones %}<ul class="opciones-elegidas">{% for opcion in item.opciones %}<li>{{ opcion.grupo.nombre }}: <strong>{{ opcion.nombre }}</strong>{% if opcion.precio_extra %} (+${{ opcion.precio_extra|floatformat:"0g" }}){% endif %}</li>{% endfor %}</ul>{% endif %}
+                                <p class="precio-unitario"><span data-pesos="{{ item.precio_unitario|floatformat:'0u' }}">${{ item.precio_unitario|floatformat:"0g" }}</span> por unidad</p>
                                 <div class="item-pie">
                                     <div class="control-cantidad" role="group" aria-label="Cantidad de {{ item.producto.nombre }}">
                                         <form method="post" action="{% url 'pedidos:quitar' codigo=mesa.codigo producto_id=item.producto.pk %}" data-carrito-form hx-post="{% url 'pedidos:quitar' codigo=mesa.codigo producto_id=item.producto.pk %}" hx-target="#carrito-datos" hx-swap="innerHTML" hx-sync="#carta-app:drop">
@@ -31,7 +31,7 @@
                                             <button :disabled="ocupado || pagando || !!error" id="sumar-{{ item.producto.pk }}" type="submit" aria-label="Agregar una unidad de {{ item.producto.nombre }}">+</button>
                                         </form>
                                     </div>
-                                    <p class="subtotal" data-pesos="{{ item.subtotal|floatformat:'0u' }}">${{ item.subtotal|floatformat:"0" }}</p>
+                                    <p class="subtotal" data-pesos="{{ item.subtotal|floatformat:'0u' }}">${{ item.subtotal|floatformat:"0g" }}</p>
                                 </div>
                             </article>
                         {% endfor %}
@@ -49,7 +49,7 @@
                         .badge-18{display:inline-flex;align-items:center;padding:3px 7px;border-radius:999px;background:#7b2d26;color:#fff;font:700 10px/1.2 Arial,sans-serif;letter-spacing:.5px;vertical-align:middle}.opciones-elegidas{margin:8px 0;padding:0;list-style:none;color:#657168;font-size:11px}.opciones-elegidas li{margin-top:3px}.propina-opciones,.mayoria-opciones{margin:16px 0;padding:0;border:0}.propina-opciones legend,.mayoria-opciones legend{margin-bottom:9px;font-size:12px;font-weight:650}.propina-eleccion,.mayoria-eleccion{display:flex;align-items:flex-start;gap:10px;margin-top:8px;padding:12px;border:1px solid #dfe4d9;border-radius:10px;background:#fff;cursor:pointer;font-size:13px}.propina-eleccion:has(input:checked){border-color:#315d49;background:#eef3e9}.mayoria-eleccion{border-color:#dab7ae;background:#fff8f5}.propina-eleccion input,.mayoria-eleccion input{width:18px;height:18px;flex:0 0 auto;accent-color:#173e34}.propina-nota,.mayoria-nota{margin:9px 0 0;color:#657168;font-size:11px;line-height:1.5}
                     </style>
                     <div class="carrito-resumen">
-                        <div class="total-fila"><span>Subtotal del pedido</span><span><strong class="total-importe" data-pesos="{{ total_carrito|floatformat:'0u' }}">${{ total_carrito|floatformat:"0" }}</strong><span class="moneda">CLP</span></span></div>
+                        <div class="total-fila"><span>Subtotal del pedido</span><span><strong class="total-importe" data-pesos="{{ total_carrito|floatformat:'0u' }}">${{ total_carrito|floatformat:"0g" }}</strong><span class="moneda">CLP</span></span></div>
                         <form method="post" action="{% url 'pedidos:webpay_cliente' codigo=mesa.codigo %}" id="enviar-pedido" hx-boost="false" @submit="iniciarPago($event)">
                             {% csrf_token %}
                             {% if requiere_mayoria_edad %}

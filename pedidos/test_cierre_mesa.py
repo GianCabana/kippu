@@ -85,6 +85,11 @@ class CierreMesaTests(TestCase):
         with self.assertRaises(ErrorPago):cerrar_cuenta(self.cuenta.pk)
         self.cuenta.refresh_from_db();self.assertEqual(self.cuenta.estado,'abierta')
 
+    def test_caja_muestra_montos_con_punto_de_miles(self):
+        r=self.client.get(reverse('pedidos:caja'))
+        self.assertContains(r,'Pagado: $3.500 CLP')
+        self.assertNotContains(r,'$3500')
+
     def test_legacy_no_se_cierra_por_suposicion(self):
         Pago.objects.filter(pk=self.pago.pk).update(pedido=None)
         with self.assertRaises(ErrorPago):cerrar_cuenta(self.cuenta.pk)
