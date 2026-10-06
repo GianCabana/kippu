@@ -7,15 +7,15 @@ from django.template.loader import render_to_string
 from django.test import SimpleTestCase
 
 ARCHIVOS_ESTATICOS = [
-    "kippu/css/kippu.css",
-    "kippu/muestrario.html",
-    "kippu/fuentes/fraunces-600.woff2",
-    "kippu/fuentes/work-sans-400.woff2",
-    "kippu/fuentes/work-sans-500.woff2",
-    "kippu/fuentes/work-sans-600.woff2",
-    "kippu/fuentes/ibm-plex-mono-400.woff2",
-    "kippu/fuentes/ibm-plex-mono-500.woff2",
-    "kippu/fuentes/noto-serif-jp-200-ken.woff2",
+    "css/kippu.css",
+    "muestrario.html",
+    "fuentes/fraunces-600.woff2",
+    "fuentes/work-sans-400.woff2",
+    "fuentes/work-sans-500.woff2",
+    "fuentes/work-sans-600.woff2",
+    "fuentes/ibm-plex-mono-400.woff2",
+    "fuentes/ibm-plex-mono-500.woff2",
+    "fuentes/noto-serif-jp-200-ken.woff2",
 ]
 
 # Valores de sistema-de-diseno-kippu.md, §2.1 y §2.3.
@@ -40,10 +40,10 @@ PALETA = {
 
 class PlantillaBaseTests(SimpleTestCase):
     def test_incluye_idioma_hoja_de_estilos_y_logo(self):
-        html = render_to_string("kippu/base.html")
+        html = render_to_string("base.html")
 
         self.assertIn('<html lang="es-CL">', html)
-        self.assertIn('href="/static/kippu/css/kippu.css"', html)
+        self.assertIn('href="/static/css/kippu.css"', html)
         self.assertIn('<span class="logo" aria-hidden="true">券</span>', html)
 
     def test_muestra_mensajes_con_su_nivel(self):
@@ -52,13 +52,13 @@ class PlantillaBaseTests(SimpleTestCase):
             Message(constants.WARNING, "Puedes agregar hasta 20 unidades."),
         ]
 
-        html = render_to_string("kippu/base.html", {"messages": mensajes})
+        html = render_to_string("base.html", {"messages": mensajes})
 
         self.assertIn('class="mensaje mensaje--success">Agregaste Ceviche clásico.', html)
         self.assertIn('class="mensaje mensaje--warning">Puedes agregar hasta 20 unidades.', html)
 
     def test_sin_mensajes_no_dibuja_la_lista(self):
-        html = render_to_string("kippu/base.html")
+        html = render_to_string("base.html")
 
         self.assertNotIn('class="mensajes"', html)
 
@@ -70,7 +70,7 @@ class ArchivosDelSistemaDeDisenoTests(SimpleTestCase):
                 self.assertIsNotNone(finders.find(ruta))
 
     def test_paleta_coincide_con_el_sistema_de_diseno(self):
-        with open(finders.find("kippu/css/kippu.css"), encoding="utf-8") as archivo:
+        with open(finders.find("css/kippu.css"), encoding="utf-8") as archivo:
             css = archivo.read()
 
         for variable, valor in PALETA.items():
@@ -80,7 +80,7 @@ class ArchivosDelSistemaDeDisenoTests(SimpleTestCase):
                 self.assertEqual(declarado.group(1).lower(), valor)
 
     def test_el_kanji_del_logo_usa_peso_200(self):
-        with open(finders.find("kippu/css/kippu.css"), encoding="utf-8") as archivo:
+        with open(finders.find("css/kippu.css"), encoding="utf-8") as archivo:
             css = archivo.read()
 
         regla_logo = re.search(r"\.logo \{(.*?)\}", css, re.DOTALL).group(1)
