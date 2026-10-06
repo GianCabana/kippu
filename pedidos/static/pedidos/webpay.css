@@ -25,3 +25,11 @@
 .wp-medio__icono { display: grid; flex: none; place-items: center; width: 44px; height: 31px; border: 1px solid var(--aji); border-radius: 6px; color: var(--aji); font-size: 9px; }
 .wp-medio strong { color: var(--tinta); font-size: 15px; }
 .wp-medio p { margin: 3px 0 0; color: var(--texto-2); font-size: 13px; line-height: 1.45; }
+
+/* ---------- Redirección a Transbank ---------- */
+
+.wp-abriendo { padding: 28px 0 8px; text-align: center; }
+.wp-abriendo .wp-titulo { margin-bottom: 6px; }
+.wp-abriendo .wp-nota { margin-top: 0; }
+.wp-abriendo__carga { display: inline-block; width: 34px; height: 34px; margin-bottom: 14px; border: 3px solid var(--linea); border-top-color: var(--aji); border-radius: 50%; animation: wp-girar .9s linear infinite; }
+@keyframes wp-girar { to { transform: rotate(360deg); } }
