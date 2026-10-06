@@ -4,7 +4,11 @@ from django.contrib.messages import constants
 from django.contrib.messages.storage.base import Message
 from django.contrib.staticfiles import finders
 from django.template.loader import render_to_string
-from django.test import SimpleTestCase
+from django.test import SimpleTestCase, TestCase
+from django.urls import reverse
+
+from carta.models import Categoria, Producto
+from mesas.models import Local, Mesa
 
 ARCHIVOS_ESTATICOS = [
     "css/kippu.css",
@@ -85,3 +89,30 @@ class ArchivosDelSistemaDeDisenoTests(SimpleTestCase):
 
         regla_logo = re.search(r"\.logo \{(.*?)\}", css, re.DOTALL).group(1)
         self.assertIn("font-weight: 200;", regla_logo)
+
+
+class CartaConDisenoKippuTests(TestCase):
+    def setUp(self):
+        local = Local.objects.create(nombre="La Casa de Prueba", slug="la-casa-de-prueba")
+        self.mesa = Mesa.objects.create(local=local, numero=4)
+        categoria = Categoria.objects.create(nombre="Barra", local=local)
+        Producto.objects.create(
+            nombre="Pisco sour", categoria=categoria, precio=6500, requiere_mayoria_edad=True
+        )
+
+    def test_carta_css_usa_solo_las_variables_de_kippu(self):
+        with open(finders.find("carta/carta.css"), encoding="utf-8") as archivo:
+            css = re.sub(r"/\*.*?\*/", "", archivo.read(), flags=re.DOTALL)
+
+        self.assertFalse(":root" in css, "carta.css redefine :root")
+        self.assertIsNone(re.search(r"--[\w-]+\s*:", css), "carta.css define variables propias")
+        self.assertIsNone(re.search(r"#[0-9a-fA-F]{3,8}\b", css), "carta.css tiene colores escritos a mano")
+
+    def test_carta_muestra_el_local_sin_estilos_en_linea(self):
+        respuesta = self.client.get(reverse("carta:por_mesa", args=[self.mesa.codigo]))
+        html = re.sub(r"<noscript>.*?</noscript>", "", respuesta.content.decode(), flags=re.DOTALL)
+
+        self.assertContains(respuesta, '<h1 id="titulo-carta">La Casa de Prueba</h1>')
+        self.assertContains(respuesta, 'class="insignia-18"')
+        self.assertNotIn("badge-18", html)
+        self.assertEqual(html.count("<style"), 1, "solo debe quedar el [x-cloak] de base.html")
