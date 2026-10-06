@@ -395,7 +395,7 @@ def resolver_intento(intento_id, confirmar=False, cancelar=False):
                         'En integración, verifica nuevamente al cumplirse 20 minutos desde su creación. '
                         'En producción se requiere revisión del proveedor.')
                 else:
-                    intento.observacion = 'El pago no está completado. Puedes cancelar o reintentar con un token nuevo.'
+                    intento.observacion = 'El pago no está completado. Puedes cancelar o reintentar el pago.'
         elif status == 'FAILED':
             intento.estado = IntentoWebpay.Estado.RECHAZADO
             intento.observacion = 'Pago rechazado. Tu carrito se conserva y el pedido no pasó a cocina.'

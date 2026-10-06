@@ -32,7 +32,7 @@ class ReintentoTokenTests(TestCase):
         i=self.iniciado();r=self.abortar(i)
         i.refresh_from_db();self.assertEqual(i.estado,'anulado')
         self.assertTrue(i.cancelacion_solicitada)
-        self.assertContains(self.client.get(r.url),'Reintentar pago con un token nuevo')
+        self.assertContains(self.client.get(r.url),'>Reintentar pago</button>')
         r=self.accion(i,'webpay_reintentar')
         self.assertEqual(r.status_code,200)
         nuevo=r.context['intento']
