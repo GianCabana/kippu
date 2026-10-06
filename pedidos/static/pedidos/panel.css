@@ -40,6 +40,13 @@
 .limpiar { position: absolute; top: 0; right: 0; display: grid; place-items: center; width: 44px; height: 44px; border: 0; background: transparent; color: var(--texto-2); cursor: pointer; }
 .orden { margin: 0 0 16px; color: var(--texto-2); font-family: var(--mono); font-size: 12px; letter-spacing: .03em; }
 
+/* ---------- Resumen de entregas (cuenta, no filtra) ---------- */
+
+.resumen { display: flex; flex-wrap: wrap; gap: 8px; margin: 0; }
+.resumen div { display: flex; align-items: baseline; gap: 9px; min-height: 44px; padding: 10px 16px; border: 1px solid var(--linea); border-radius: 999px; }
+.resumen dt { color: var(--texto-2); font-size: 14px; }
+.resumen dd { margin: 0; color: var(--tinta); font-family: var(--mono); font-size: 14px; font-weight: 500; }
+
 /* ---------- Comandas ---------- */
 
 .pedidos { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 14px; align-items: start; }
@@ -52,6 +59,9 @@
 .nombre-producto { min-width: 0; overflow-wrap: anywhere; }
 .opciones-pedido { display: block; color: var(--texto-2); font-size: 12.5px; }
 .aviso-edad { display: block; margin-top: 2px; color: var(--aji); font-size: 12.5px; font-weight: 600; }
+/* En entregas, el +18 pide identificación: aviso destacado y borde ají en toda la comanda. */
+#lista-entregas .aviso-edad { display: flex; align-items: center; gap: 7px; margin-top: 6px; padding: 7px 10px; border-left: 3px solid var(--aji); border-radius: 6px; background: var(--aji-suave); font-size: 13px; }
+#lista-entregas .comanda:has(.aviso-edad) { border-right-color: var(--aji); border-bottom-color: var(--aji); border-left-color: var(--aji); }
 .comanda .unidades { margin: 0; padding: 0 15px 10px; color: var(--texto-2); font-family: var(--mono); font-size: 12px; }
 .panel .comanda__pie { flex-wrap: wrap; }
 .panel .comanda__pie form { margin-left: auto; }

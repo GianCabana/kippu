@@ -178,7 +178,7 @@ class PanelConDisenoKippuTests(TestCase):
         self.client.force_login(personal)
 
     def test_cocina_y_entregas_usan_la_barra_y_la_hoja_del_panel(self):
-        for nombre, lista in (("cocina", "kippu-cocina"),):
+        for nombre, lista in (("cocina", "kippu-cocina"), ("entregas", "kippu-entregas")):
             with self.subTest(pantalla=nombre):
                 respuesta = self.client.get(reverse(f"pedidos:{nombre}"))
                 html = re.sub(r"<noscript>.*?</noscript>", "", respuesta.content.decode(), flags=re.DOTALL)
