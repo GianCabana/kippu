@@ -21,6 +21,11 @@
     document.addEventListener('htmx:afterRequest', event => {
         if (esCarrito(event)) emitir('kippu-fin');
     });
+    // El servidor responde 200 también cuando no agrega (opciones o límite): solo se cierra si confirmó.
+    document.addEventListener('htmx:afterRequest', event => {
+        const panel = event.detail.elt?.closest('details.producto__opciones');
+        if (panel && event.detail.successful && event.detail.xhr?.responseText.includes('mensaje--success')) panel.open = false;
+    });
     for (const nombre of ['htmx:responseError', 'htmx:sendError', 'htmx:timeout', 'htmx:swapError']) {
         document.addEventListener(nombre, event => {
             if (!esCarrito(event)) return;
