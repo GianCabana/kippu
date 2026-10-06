@@ -1,0 +1,27 @@
+/* Pantallas de pago con Webpay (salida, redirección y resultado).
+   Solo usa las variables y componentes de kippu.css. */
+
+.wp-barra { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding-block: 16px; }
+.wp-barra__mesa { color: var(--texto-2); font-family: var(--mono); font-size: 12px; letter-spacing: .06em; text-align: right; }
+.wp-pagina { padding-bottom: 32px; }
+.wp-titulo { margin: 6px 0 18px; }
+.wp-subtitulo { margin: 22px 0 10px; color: var(--texto-2); font-size: 11.5px; }
+.wp-nota { margin: 12px 0 0; color: var(--texto-2); font-size: 13px; line-height: 1.5; }
+.wp-hint { margin: 10px 0 0; color: var(--texto-2); font-size: 12.5px; text-align: center; }
+.wp-enlace { margin: 18px 0 0; text-align: center; font-size: 14px; }
+.wp-enlace a { display: inline-flex; align-items: center; min-height: 44px; }
+.wp-demo { margin: 22px 0 0; padding: 12px; border: 1px dashed var(--linea); border-radius: 10px; color: var(--texto-2); font-size: 12px; text-align: center; }
+.wp-pagina form { margin: 0; }
+.wp-pagina .boton--bloque { margin-top: 12px; }
+.wp-pagina .mensaje { margin: 16px 0 0; }
+
+/* ---------- Salida: resumen antes de ir a Webpay (pantalla 5) ---------- */
+
+.wp-total { display: flex; align-items: center; justify-content: space-between; gap: 16px; margin-bottom: 14px; }
+.wp-total .etiqueta { margin: 0; color: var(--texto-2); font-size: 11.5px; }
+.wp-total__detalle { margin: 4px 0 0; color: var(--texto-2); font-size: 13px; }
+.wp-total__monto { margin: 0; color: var(--tinta); font-size: 25px; white-space: nowrap; }
+.wp-medio { display: flex; align-items: flex-start; gap: 14px; }
+.wp-medio__icono { display: grid; flex: none; place-items: center; width: 44px; height: 31px; border: 1px solid var(--aji); border-radius: 6px; color: var(--aji); font-size: 9px; }
+.wp-medio strong { color: var(--tinta); font-size: 15px; }
+.wp-medio p { margin: 3px 0 0; color: var(--texto-2); font-size: 13px; line-height: 1.45; }

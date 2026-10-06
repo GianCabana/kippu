@@ -100,13 +100,14 @@ class CartaConDisenoKippuTests(TestCase):
             nombre="Pisco sour", categoria=categoria, precio=6500, requiere_mayoria_edad=True
         )
 
-    def test_carta_css_usa_solo_las_variables_de_kippu(self):
-        with open(finders.find("carta/carta.css"), encoding="utf-8") as archivo:
-            css = re.sub(r"/\*.*?\*/", "", archivo.read(), flags=re.DOTALL)
+    def test_las_hojas_de_pantalla_usan_solo_las_variables_de_kippu(self):
+        for ruta in ("carta/carta.css", "pedidos/webpay.css"):
+            with self.subTest(hoja=ruta), open(finders.find(ruta), encoding="utf-8") as archivo:
+                css = re.sub(r"/\*.*?\*/", "", archivo.read(), flags=re.DOTALL)
 
-        self.assertFalse(":root" in css, "carta.css redefine :root")
-        self.assertIsNone(re.search(r"--[\w-]+\s*:", css), "carta.css define variables propias")
-        self.assertIsNone(re.search(r"#[0-9a-fA-F]{3,8}\b", css), "carta.css tiene colores escritos a mano")
+                self.assertFalse(":root" in css, f"{ruta} redefine :root")
+                self.assertIsNone(re.search(r"--[\w-]+\s*:", css), f"{ruta} define variables propias")
+                self.assertIsNone(re.search(r"#[0-9a-fA-F]{3,8}\b", css), f"{ruta} tiene colores escritos a mano")
 
     def test_carta_muestra_el_local_sin_estilos_en_linea(self):
         respuesta = self.client.get(reverse("carta:por_mesa", args=[self.mesa.codigo]))
