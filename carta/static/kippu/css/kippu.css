@@ -694,7 +694,7 @@ a {
   font-size: 14px;
 }
 
-@media (max-width: 700px) {
+@media (max-width: 860px) {
   .panel-barra { padding: 12px 16px; }
   .pestanas { order: 3; width: 100%; margin-left: 0; }
   .caja { padding: 20px 16px 28px; }
