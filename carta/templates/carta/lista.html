@@ -1,13 +1,12 @@
 {% extends "base.html" %}
 {% load static %}
-{% block titulo %}Carta · Kippu{% endblock %}
+{% block titulo %}{% if mesa %}{{ mesa.local.nombre }} · {% endif %}Carta · Kippu{% endblock %}
 {% block encabezado %}{% endblock %}
 {% block mensajes %}{% endblock %}
 {% block clase_main %}carta-pagina{% endblock %}
 {% block estilos %}
-<meta name="theme-color" content="#173e34">
+<meta name="theme-color" content="#fbf7f0">
 <link rel="stylesheet" href="{% static 'carta/carta.css' %}">
-<style>.badge-18{display:inline-flex;align-items:center;margin-left:7px;padding:3px 7px;border-radius:999px;background:#7b2d26;color:#fff;font:700 10px/1.2 Arial,sans-serif;letter-spacing:.5px;vertical-align:middle}.aviso-18{margin:9px 0;color:#7b2d26;font-size:12px;font-weight:600;line-height:1.5}.grupo-opcion{margin:14px 0 0;padding:12px;border:1px solid #dfe4d9;border-radius:10px}.grupo-opcion legend{padding:0 5px;font-size:12px;font-weight:650}.grupo-opcion small{color:#657168}.opcion-producto{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-top:8px;font-size:12px;cursor:pointer}.opcion-producto>span:first-of-type{flex:1}.opcion-producto input{width:18px;height:18px;accent-color:#173e34}.recargo{white-space:nowrap;color:#315d49;font-weight:600}</style>
 {% endblock %}
 {% block scripts_cabeza %}<script defer src="{% static 'carta/carta.js' %}"></script>{% endblock %}
 {% block contenido %}
@@ -28,50 +27,40 @@
         <symbol id="i-info" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 11v6M12 7v.5"/></symbol>
     </svg>
 
-    <header class="barra-superior">
-        <div class="contenedor barra-interior">
-            <div class="marca" aria-label="Kippu, carta digital">
-                <span class="monograma" aria-hidden="true">k</span>
-                <div><span class="marca-nombre">kippu</span><span class="marca-detalle">Carta digital</span></div>
+    <header class="carta-cabecera">
+        <div class="contenedor">
+            <div class="carta-cabecera__barra">
+                <span class="logo logo--chico" aria-hidden="true">券</span>
+                {% if mesa %}
+                    <a class="carta-enlace" href="{% url 'pedidos:mis_pedidos' codigo=mesa.codigo %}">
+                        <svg class="icono" aria-hidden="true"><use href="#i-pedidos"/></svg> Mis pedidos
+                    </a>
+                {% endif %}
             </div>
             {% if mesa %}
-                <a class="enlace-pedidos" href="{% url 'pedidos:mis_pedidos' codigo=mesa.codigo %}">
-                    <svg class="icono" aria-hidden="true"><use href="#i-pedidos"/></svg> Mis pedidos
-                </a>
+                <p class="etiqueta">Bienvenido a</p>
+                <h1 id="titulo-carta">{{ mesa.local.nombre }}</h1>
+                <span class="carta-mesa">Mesa {{ mesa.numero }}</span>
+            {% else %}
+                <h1 id="titulo-carta">Kippu</h1>
+                <p class="carta-cabecera__texto">Escanea el QR de tu mesa para empezar tu pedido.</p>
             {% endif %}
         </div>
     </header>
 
-    <div class="contenedor">
-        <div class="mensaje error" x-show="error" x-cloak role="alert"><span x-text="error"></span> <a href="">Actualizar la carta</a></div>
-        <section class="hero" aria-labelledby="titulo-carta">
-            <div class="hero-contenido">
-                <p class="etiqueta">Bienvenido a Kippu</p>
-                <h1 id="titulo-carta">A tu gusto.<br>A tu mesa.</h1>
-                <p class="hero-texto">Explora nuestra carta y encuentra tu próximo favorito.</p>
-                {% if mesa %}
-                    <span class="mesa">Mesa {{ mesa.numero }}</span>
-                {% else %}
-                    <p class="hero-texto">Escanea el QR de tu mesa para empezar tu pedido.</p>
-                {% endif %}
-            </div>
-        </section>
-    </div>
-
-    <div class="contenedor contenido">
+    <div class="contenedor carta-cuerpo">
+        <div class="mensaje mensaje--error" x-show="error" x-cloak role="alert"><span x-text="error"></span> <a href="">Actualizar la carta</a></div>
         {% if messages %}
             <div class="mensajes" aria-live="polite">
-                {% for mensaje in messages %}<p class="mensaje {{ mensaje.tags }}" role="status">{{ mensaje }}</p>{% endfor %}
+                {% for mensaje in messages %}<p class="mensaje mensaje--{{ mensaje.level_tag }}" role="status">{{ mensaje }}</p>{% endfor %}
             </div>
         {% endif %}
         {% regroup productos by categoria as grupos %}
-        <div class="herramientas">
-            <h2 class="titulo-carta">Nuestra carta</h2>
-            <div class="buscador" x-cloak>
-                <svg class="icono" aria-hidden="true"><use href="#i-buscar"/></svg>
-                <input id="buscar" x-ref="buscar" x-model="busqueda" @input="filtrar()" type="search" placeholder="¿Qué se te antoja?" aria-label="Buscar productos" autocomplete="off">
-                <button class="limpiar" id="limpiar" type="button" aria-label="Borrar búsqueda" x-show="busqueda.length > 0" @click="limpiar()"><svg class="icono" aria-hidden="true"><use href="#i-cerrar"/></svg></button>
-            </div>
+        <h2 class="titulo-carta">Carta</h2>
+        <div class="buscador" x-cloak>
+            <svg class="icono" aria-hidden="true"><use href="#i-buscar"/></svg>
+            <input id="buscar" x-ref="buscar" x-model="busqueda" @input="filtrar()" type="search" placeholder="¿Qué se te antoja?" aria-label="Buscar productos" autocomplete="off">
+            <button class="limpiar" id="limpiar" type="button" aria-label="Borrar búsqueda" x-show="busqueda.length > 0" @click="limpiar()"><svg class="icono" aria-hidden="true"><use href="#i-cerrar"/></svg></button>
         </div>
         {% if grupos %}
             <nav class="categorias" aria-label="Filtrar por categoría" x-cloak>
@@ -86,34 +75,43 @@
                 <div class="productos">
                     {% for producto in grupo.list %}
                         <article class="producto" data-busqueda="{{ producto.nombre }} {{ producto.descripcion|default:'' }} {{ grupo.grouper.nombre }} {% if producto.requiere_mayoria_edad %}+18 alcohol mayor edad{% endif %}">
-                            <p class="producto-categoria">{{ grupo.grouper.nombre }}{% if producto.requiere_mayoria_edad %}<span class="badge-18" aria-label="Producto para mayores de 18 años">+18</span>{% endif %}</p>
-                            <h3>{{ producto.nombre }}</h3>
-                            {% if producto.descripcion %}<p class="descripcion">{{ producto.descripcion }}</p>{% endif %}
-                            {% if producto.requiere_mayoria_edad %}<p class="aviso-18">Venta exclusiva para mayores de 18 años.</p>{% endif %}
-                            {% if mesa %}
-                                {% for grupo_opcion in producto.grupos_opciones.all %}
-                                    <fieldset class="grupo-opcion" form="form-producto-{{ producto.pk }}">
-                                        <legend>{{ grupo_opcion.nombre }}{% if grupo_opcion.requerido %} · Obligatorio{% else %} · Opcional{% endif %}</legend>
-                                        {% if grupo_opcion.seleccion_multiple %}<small>Elige hasta {{ grupo_opcion.max_selecciones }}.</small>{% endif %}
-                                        {% for opcion in grupo_opcion.opciones.all %}
-                                            <label class="opcion-producto">
-                                                <input type="{% if grupo_opcion.seleccion_multiple %}checkbox{% else %}radio{% endif %}" name="opcion_grupo_{{ grupo_opcion.pk }}" value="{{ opcion.pk }}" form="form-producto-{{ producto.pk }}"{% if grupo_opcion.requerido and not grupo_opcion.seleccion_multiple %} required{% endif %}>
-                                                <span>{{ opcion.nombre }}</span>
-                                                {% if opcion.precio_extra %}<span class="recargo">+ ${{ opcion.precio_extra|floatformat:"0g" }}</span>{% endif %}
-                                            </label>
-                                        {% empty %}<small>No hay opciones disponibles.</small>{% endfor %}
-                                    </fieldset>
-                                {% endfor %}
-                            {% endif %}
-                            <div class="producto-pie">
-                                <p class="precio"><span data-pesos="{{ producto.precio|floatformat:'0u' }}">${{ producto.precio|floatformat:"0g" }}</span><span class="moneda">CLP</span></p>
-                                {% if mesa %}
-                                    <form id="form-producto-{{ producto.pk }}" method="post" action="{% url 'pedidos:agregar' codigo=mesa.codigo producto_id=producto.pk %}" data-carrito-form hx-post="{% url 'pedidos:agregar' codigo=mesa.codigo producto_id=producto.pk %}" hx-target="#carrito-datos" hx-swap="innerHTML" hx-sync="#carta-app:drop">
+                            <div class="producto__info">
+                                <h3 class="producto__nombre">{{ producto.nombre }}{% if producto.requiere_mayoria_edad %} <span class="insignia-18" aria-label="Producto para mayores de 18 años">+18</span>{% endif %}</h3>
+                                {% if producto.descripcion %}<p class="producto__descripcion">{{ producto.descripcion }}</p>{% endif %}
+                                {% if producto.requiere_mayoria_edad %}<p class="aviso-18">Venta exclusiva para mayores de 18 años.</p>{% endif %}
+                                <p class="precio producto__precio"><span data-pesos="{{ producto.precio|floatformat:'0u' }}" data-precio-base="{{ producto.precio|floatformat:'0u' }}">${{ producto.precio|floatformat:"0g" }}</span></p>
+                            </div>
+                            {% if mesa %}{% with grupos_producto=producto.grupos_opciones.all %}
+                                {% if grupos_producto %}
+                                    <details class="producto__opciones">
+                                        <summary class="boton-agregar" aria-label="Elegir opciones de {{ producto.nombre }}"><svg class="icono" aria-hidden="true"><use href="#i-mas"/></svg></summary>
+                                        <div class="producto__panel">
+                                            {% for grupo_opcion in grupos_producto %}
+                                                <fieldset class="grupo-opcion" form="form-producto-{{ producto.pk }}">
+                                                    <legend>{{ grupo_opcion.nombre }}{% if grupo_opcion.requerido %} · Obligatorio{% else %} · Opcional{% endif %}</legend>
+                                                    {% if grupo_opcion.seleccion_multiple %}<small>Elige hasta {{ grupo_opcion.max_selecciones }}.</small>{% endif %}
+                                                    {% for opcion in grupo_opcion.opciones.all %}
+                                                        <label class="opcion-producto">
+                                                            <input type="{% if grupo_opcion.seleccion_multiple %}checkbox{% else %}radio{% endif %}" name="opcion_grupo_{{ grupo_opcion.pk }}" value="{{ opcion.pk }}" data-precio-extra="{{ opcion.precio_extra|floatformat:'0u' }}" form="form-producto-{{ producto.pk }}"{% if grupo_opcion.requerido and not grupo_opcion.seleccion_multiple %} required{% endif %}>
+                                                            <span>{{ opcion.nombre }}</span>
+                                                            {% if opcion.precio_extra %}<span class="recargo">+ ${{ opcion.precio_extra|floatformat:"0g" }}</span>{% endif %}
+                                                        </label>
+                                                    {% empty %}<small>No hay opciones disponibles.</small>{% endfor %}
+                                                </fieldset>
+                                            {% endfor %}
+                                            <form id="form-producto-{{ producto.pk }}" method="post" action="{% url 'pedidos:agregar' codigo=mesa.codigo producto_id=producto.pk %}" data-carrito-form hx-post="{% url 'pedidos:agregar' codigo=mesa.codigo producto_id=producto.pk %}" hx-target="#carrito-datos" hx-swap="innerHTML" hx-sync="#carta-app:drop">
+                                                {% csrf_token %}
+                                                <button class="boton boton--bloque" :disabled="ocupado || pagando || !!error" id="agregar-{{ producto.pk }}" type="submit" aria-label="Agregar {{ producto.nombre }} al carrito">Agregar <span class="cifra" data-pesos="{{ producto.precio|floatformat:'0u' }}" data-precio-base="{{ producto.precio|floatformat:'0u' }}">${{ producto.precio|floatformat:"0g" }}</span></button>
+                                            </form>
+                                        </div>
+                                    </details>
+                                {% else %}
+                                    <form class="producto__accion" id="form-producto-{{ producto.pk }}" method="post" action="{% url 'pedidos:agregar' codigo=mesa.codigo producto_id=producto.pk %}" data-carrito-form hx-post="{% url 'pedidos:agregar' codigo=mesa.codigo producto_id=producto.pk %}" hx-target="#carrito-datos" hx-swap="innerHTML" hx-sync="#carta-app:drop">
                                         {% csrf_token %}
-                                        <button class="agregar" :disabled="ocupado || pagando || !!error" id="agregar-{{ producto.pk }}" type="submit" aria-label="Agregar {{ producto.nombre }} al carrito"><svg class="icono" aria-hidden="true"><use href="#i-mas"/></svg> Agregar</button>
+                                        <button class="boton-agregar" :disabled="ocupado || pagando || !!error" id="agregar-{{ producto.pk }}" type="submit" aria-label="Agregar {{ producto.nombre }} al carrito"><svg class="icono" aria-hidden="true"><use href="#i-mas"/></svg></button>
                                     </form>
                                 {% endif %}
-                            </div>
+                            {% endwith %}{% endif %}
                         </article>
                     {% endfor %}
                 </div>
@@ -124,7 +122,7 @@
 
         <div class="vacio" id="sin-resultados" role="status" hidden>
             <p>No encontramos productos con esos filtros.</p>
-            <button class="agregar" type="button" id="restablecer" @click="categoria = 'todas'; limpiar()">Ver toda la carta</button>
+            <button class="boton boton--fantasma" type="button" id="restablecer" @click="categoria = 'todas'; limpiar()">Ver toda la carta</button>
         </div>
         <p class="nota-carta"><svg class="icono" aria-hidden="true"><use href="#i-info"/></svg> Todos los precios están expresados en pesos chilenos.</p>
     </div>

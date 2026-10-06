@@ -4,7 +4,11 @@ from django.contrib.messages import constants
 from django.contrib.messages.storage.base import Message
 from django.contrib.staticfiles import finders
 from django.template.loader import render_to_string
-from django.test import SimpleTestCase
+from django.test import SimpleTestCase, TestCase
+from django.urls import reverse
+
+from carta.models import Categoria, GrupoOpcion, OpcionProducto, Producto
+from mesas.models import Local, Mesa
 
 ARCHIVOS_ESTATICOS = [
     "css/kippu.css",
@@ -85,3 +89,67 @@ class ArchivosDelSistemaDeDisenoTests(SimpleTestCase):
 
         regla_logo = re.search(r"\.logo \{(.*?)\}", css, re.DOTALL).group(1)
         self.assertIn("font-weight: 200;", regla_logo)
+
+
+class CartaConDisenoKippuTests(TestCase):
+    def setUp(self):
+        local = Local.objects.create(nombre="La Casa de Prueba", slug="la-casa-de-prueba")
+        self.mesa = Mesa.objects.create(local=local, numero=4)
+        categoria = Categoria.objects.create(nombre="Barra", local=local)
+        self.producto = Producto.objects.create(
+            nombre="Pisco sour", categoria=categoria, precio=6500, requiere_mayoria_edad=True
+        )
+
+    def test_carta_css_usa_solo_las_variables_de_kippu(self):
+        with open(finders.find("carta/carta.css"), encoding="utf-8") as archivo:
+            css = re.sub(r"/\*.*?\*/", "", archivo.read(), flags=re.DOTALL)
+
+        self.assertFalse(":root" in css, "carta.css redefine :root")
+        self.assertIsNone(re.search(r"--[\w-]+\s*:", css), "carta.css define variables propias")
+        self.assertIsNone(re.search(r"#[0-9a-fA-F]{3,8}\b", css), "carta.css tiene colores escritos a mano")
+
+    def test_carta_muestra_el_local_sin_estilos_en_linea(self):
+        respuesta = self.client.get(reverse("carta:por_mesa", args=[self.mesa.codigo]))
+        html = re.sub(r"<noscript>.*?</noscript>", "", respuesta.content.decode(), flags=re.DOTALL)
+
+        self.assertContains(respuesta, '<h1 id="titulo-carta">La Casa de Prueba</h1>')
+        self.assertContains(respuesta, 'class="insignia-18"')
+        self.assertNotIn("badge-18", html)
+        self.assertEqual(html.count("<style"), 1, "solo debe quedar el [x-cloak] de base.html")
+
+    def test_fragmento_del_carrito_sin_estilos_en_linea(self):
+        agregar = reverse(
+            "pedidos:agregar", kwargs={"codigo": self.mesa.codigo, "producto_id": self.producto.pk}
+        )
+
+        respuesta = self.client.post(agregar, HTTP_HX_REQUEST="true")
+
+        self.assertContains(respuesta, 'data-cantidad="1"')
+        self.assertContains(respuesta, 'name="confirma_mayoria_edad"')
+        self.assertNotContains(respuesta, "<style")
+        self.assertNotContains(respuesta, "badge-18")
+
+    def test_las_opciones_se_despliegan_al_tocar_agregar(self):
+        chicha = Producto.objects.create(nombre="Chicha morada", categoria=self.producto.categoria, precio=3200)
+        tamano = GrupoOpcion.objects.create(producto=chicha, nombre="Tamaño")
+        OpcionProducto.objects.create(grupo=tamano, nombre="Jarra", precio_extra=4500)
+
+        html = self.client.get(reverse("carta:por_mesa", args=[self.mesa.codigo])).content.decode()
+        panel = re.search(r'<details class="producto__opciones">(.*?)</details>', html, re.DOTALL)
+
+        self.assertIsNotNone(panel, "las opciones deben ir dentro de un <details> cerrado")
+        self.assertIn('name="opcion_grupo_', panel.group(1))
+        self.assertIn(f'id="agregar-{chicha.pk}"', panel.group(1))
+        self.assertIn(f'<form class="producto__accion" id="form-producto-{self.producto.pk}"', html)
+
+    def test_la_carta_entrega_los_precios_para_mostrar_el_precio_con_opciones(self):
+        chicha = Producto.objects.create(nombre="Chicha morada", categoria=self.producto.categoria, precio=3200)
+        tamano = GrupoOpcion.objects.create(producto=chicha, nombre="Tamaño")
+        jarra = OpcionProducto.objects.create(grupo=tamano, nombre="Jarra", precio_extra=4500)
+        vaso = OpcionProducto.objects.create(grupo=tamano, nombre="Vaso")
+
+        html = self.client.get(reverse("carta:por_mesa", args=[self.mesa.codigo])).content.decode()
+
+        self.assertEqual(html.count('data-precio-base="3200"'), 2, "precio de la tarjeta y del botón Agregar")
+        self.assertIn(f'value="{jarra.pk}" data-precio-extra="4500"', html)
+        self.assertIn(f'value="{vaso.pk}" data-precio-extra="0"', html)

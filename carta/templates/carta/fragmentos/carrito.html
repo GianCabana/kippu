@@ -1,24 +1,24 @@
             <div class="carrito-panel" data-cantidad="{{ cantidad_carrito }}" data-total="{{ total_carrito|floatformat:'0u' }}">
                 <span class="asa" aria-hidden="true"></span>
                 <div class="carrito-cabecera">
-                    <div><p class="etiqueta" id="carrito-descripcion">Mesa {{ mesa.numero }} · {{ cantidad_carrito }} unidad{{ cantidad_carrito|pluralize:"es" }}</p><h2 id="carrito-titulo">Tu selección</h2></div>
+                    <div><p class="etiqueta" id="carrito-descripcion">Mesa {{ mesa.numero }} · {{ cantidad_carrito }} unidad{{ cantidad_carrito|pluralize:"es" }}</p><h2 id="carrito-titulo">Tu pedido</h2></div>
                     <button class="cerrar" type="button" @click="cerrarCarrito()" aria-label="Cerrar carrito" autofocus><svg class="icono" aria-hidden="true"><use href="#i-cerrar"/></svg></button>
                 </div>
                 <p class="estado-peticion" x-show="ocupado" x-cloak role="status">Actualizando carrito…</p>
-                <div class="mensaje error error-carrito" x-show="error" x-cloak role="alert"><span x-text="error"></span> <a href="{% url 'carta:por_mesa' codigo=mesa.codigo %}">Actualizar la carta</a></div>
+                <div class="mensaje mensaje--error error-carrito" x-show="error" x-cloak role="alert"><span x-text="error"></span> <a href="{% url 'carta:por_mesa' codigo=mesa.codigo %}">Actualizar la carta</a></div>
                 <div class="carrito-contenido" id="carrito-contenido">
                     {% if messages %}
                         <div class="mensajes" aria-live="polite">
-                            {% for mensaje in messages %}<p class="mensaje {{ mensaje.tags }}" role="status">{{ mensaje }}</p>{% endfor %}
+                            {% for mensaje in messages %}<p class="mensaje mensaje--{{ mensaje.level_tag }}" role="status">{{ mensaje }}</p>{% endfor %}
                         </div>
                     {% endif %}
                     {% if detalle_carrito %}
                         {% for item in detalle_carrito %}
                             <article class="carrito-item">
-                                <h3>{{ item.producto.nombre }}{% if item.producto.requiere_mayoria_edad %} <span class="badge-18" aria-label="Producto para mayores de 18 años">+18</span>{% endif %}</h3>
-                                {% if item.opciones %}<ul class="opciones-elegidas">{% for opcion in item.opciones %}<li>{{ opcion.grupo.nombre }}: <strong>{{ opcion.nombre }}</strong>{% if opcion.precio_extra %} (+${{ opcion.precio_extra|floatformat:"0g" }}){% endif %}</li>{% endfor %}</ul>{% endif %}
-                                <p class="precio-unitario"><span data-pesos="{{ item.precio_unitario|floatformat:'0u' }}">${{ item.precio_unitario|floatformat:"0g" }}</span> por unidad</p>
-                                <div class="item-pie">
+                                <div class="carrito-item__info">
+                                    <h3>{{ item.producto.nombre }}{% if item.producto.requiere_mayoria_edad %} <span class="insignia-18" aria-label="Producto para mayores de 18 años">+18</span>{% endif %}</h3>
+                                    {% if item.opciones %}<ul class="opciones-elegidas">{% for opcion in item.opciones %}<li>{{ opcion.grupo.nombre }}: <strong>{{ opcion.nombre }}</strong>{% if opcion.precio_extra %} (+${{ opcion.precio_extra|floatformat:"0g" }}){% endif %}</li>{% endfor %}</ul>{% endif %}
+                                    <p class="precio-unitario"><span class="cifra" data-pesos="{{ item.precio_unitario|floatformat:'0u' }}">${{ item.precio_unitario|floatformat:"0g" }}</span> por unidad</p>
                                     <div class="control-cantidad" role="group" aria-label="Cantidad de {{ item.producto.nombre }}">
                                         <form method="post" action="{% url 'pedidos:quitar' codigo=mesa.codigo producto_id=item.producto.pk %}" data-carrito-form hx-post="{% url 'pedidos:quitar' codigo=mesa.codigo producto_id=item.producto.pk %}" hx-target="#carrito-datos" hx-swap="innerHTML" hx-sync="#carta-app:drop">
                                             {% csrf_token %}
@@ -31,8 +31,8 @@
                                             <button :disabled="ocupado || pagando || !!error" id="sumar-{{ item.producto.pk }}" type="submit" aria-label="Agregar una unidad de {{ item.producto.nombre }}">+</button>
                                         </form>
                                     </div>
-                                    <p class="subtotal" data-pesos="{{ item.subtotal|floatformat:'0u' }}">${{ item.subtotal|floatformat:"0g" }}</p>
                                 </div>
+                                <p class="subtotal" data-pesos="{{ item.subtotal|floatformat:'0u' }}">${{ item.subtotal|floatformat:"0g" }}</p>
                             </article>
                         {% endfor %}
                     {% else %}
@@ -40,38 +40,37 @@
                             <span class="vacio-icono"><svg class="icono" aria-hidden="true"><use href="#i-bolsa"/></svg></span>
                             <h3>Algo rico te espera.</h3>
                             <p>Tu carrito está vacío. Explora la carta y agrega lo que más te guste.</p>
-                            <button class="agregar" type="button" @click="cerrarCarrito()">Explorar la carta <svg class="icono" aria-hidden="true"><use href="#i-flecha"/></svg></button>
+                            <button class="boton boton--fantasma" type="button" @click="cerrarCarrito()">Explorar la carta <svg class="icono" aria-hidden="true"><use href="#i-flecha"/></svg></button>
                         </div>
                     {% endif %}
                 </div>
                 {% if detalle_carrito %}
-                    <style>
-                        .badge-18{display:inline-flex;align-items:center;padding:3px 7px;border-radius:999px;background:#7b2d26;color:#fff;font:700 10px/1.2 Arial,sans-serif;letter-spacing:.5px;vertical-align:middle}.opciones-elegidas{margin:8px 0;padding:0;list-style:none;color:#657168;font-size:11px}.opciones-elegidas li{margin-top:3px}.propina-opciones,.mayoria-opciones{margin:16px 0;padding:0;border:0}.propina-opciones legend,.mayoria-opciones legend{margin-bottom:9px;font-size:12px;font-weight:650}.propina-eleccion,.mayoria-eleccion{display:flex;align-items:flex-start;gap:10px;margin-top:8px;padding:12px;border:1px solid #dfe4d9;border-radius:10px;background:#fff;cursor:pointer;font-size:13px}.propina-eleccion:has(input:checked){border-color:#315d49;background:#eef3e9}.mayoria-eleccion{border-color:#dab7ae;background:#fff8f5}.propina-eleccion input,.mayoria-eleccion input{width:18px;height:18px;flex:0 0 auto;accent-color:#173e34}.propina-nota,.mayoria-nota{margin:9px 0 0;color:#657168;font-size:11px;line-height:1.5}
-                    </style>
                     <div class="carrito-resumen">
-                        <div class="total-fila"><span>Subtotal del pedido</span><span><strong class="total-importe" data-pesos="{{ total_carrito|floatformat:'0u' }}">${{ total_carrito|floatformat:"0g" }}</strong><span class="moneda">CLP</span></span></div>
+                        <div class="total"><span>Subtotal</span><span class="total__valor" data-pesos="{{ total_carrito|floatformat:'0u' }}">${{ total_carrito|floatformat:"0g" }}</span></div>
                         <form method="post" action="{% url 'pedidos:webpay_cliente' codigo=mesa.codigo %}" id="enviar-pedido" hx-boost="false" @submit="iniciarPago($event)">
                             {% csrf_token %}
                             {% if requiere_mayoria_edad %}
                                 <fieldset class="mayoria-opciones">
                                     <legend>Confirmación obligatoria +18</legend>
-                                    <label class="mayoria-eleccion"><input type="checkbox" name="confirma_mayoria_edad" value="si" required><span><strong>Confirmo que tengo 18 años o más.</strong><br>El personal podrá solicitar identificación al entregar el pedido.</span></label>
+                                    <label class="mayoria-eleccion"><input type="checkbox" name="confirma_mayoria_edad" value="si" required><span><strong>Confirmo que tengo 18 años o más.</strong> El personal podrá solicitar identificación al entregar el pedido.</span></label>
                                     <p class="mayoria-nota">Los productos marcados +18 no se entregarán a menores de edad.</p>
                                 </fieldset>
                             {% endif %}
                             <fieldset class="propina-opciones" x-data="{ propina: '' }">
                                 <legend>¿Deseas agregar propina?</legend>
-                                <label class="propina-eleccion"><input type="radio" name="propina" value="0" x-model="propina" required><span><strong>Sin propina</strong><br>Pagas solo el valor del pedido</span></label>
-                                <label class="propina-eleccion"><input type="radio" name="propina" value="10" x-model="propina" required><span><strong>Agregar 10 %</strong><br><span data-pesos="{{ propina_10|floatformat:'0u' }}">${{ propina_10|floatformat:"0g" }}</span>, redondeado hacia arriba al peso</span></label>
-                                <div class="total-fila"><span>Total a pagar</span><span>
-                                    <span x-show="propina === ''">Elige una opción</span>
-                                    <strong class="total-importe" x-show="propina === '0'" x-cloak data-pesos="{{ total_carrito|floatformat:'0u' }}">${{ total_carrito|floatformat:"0g" }}</strong>
-                                    <strong class="total-importe" x-show="propina === '10'" x-cloak data-pesos="{{ total_con_propina|floatformat:'0u' }}">${{ total_con_propina|floatformat:"0g" }}</strong>
+                                <div class="propina-grilla">
+                                    <label class="propina-eleccion"><input type="radio" name="propina" value="0" x-model="propina" required><span><strong>Sin propina</strong>Pagas solo el valor del pedido</span></label>
+                                    <label class="propina-eleccion"><input type="radio" name="propina" value="10" x-model="propina" required><span><strong>Agregar 10 %</strong><span class="cifra" data-pesos="{{ propina_10|floatformat:'0u' }}">${{ propina_10|floatformat:"0g" }}</span>, redondeado hacia arriba al peso</span></label>
+                                </div>
+                                <div class="total total--final"><span class="total__etiqueta">Total a pagar</span><span>
+                                    <span class="total__pendiente" x-show="propina === ''">Elige una opción</span>
+                                    <strong class="total__valor" x-show="propina === '0'" x-cloak data-pesos="{{ total_carrito|floatformat:'0u' }}">${{ total_carrito|floatformat:"0g" }}</strong>
+                                    <strong class="total__valor" x-show="propina === '10'" x-cloak data-pesos="{{ total_con_propina|floatformat:'0u' }}">${{ total_con_propina|floatformat:"0g" }}</strong>
                                 </span></div>
                                 <p class="propina-nota">La propina es opcional y la calcula el servidor. Podrás revisar el total antes de entrar a Webpay.</p>
                             </fieldset>
-                            <p class="nota-pedido">Tu pedido llegará a cocina cuando Webpay confirme el pago.</p>
-                            <button class="enviar" :disabled="ocupado || pagando || !!error" type="submit"><span x-text="pagando ? 'Preparando pago…' : 'Pagar con Webpay'">Pagar con Webpay</span><svg class="icono" aria-hidden="true"><use href="#i-flecha"/></svg></button>
+                            <button class="boton boton--bloque enviar" :disabled="ocupado || pagando || !!error" type="submit"><span x-text="pagando ? 'Preparando pago…' : 'Pagar con Webpay'">Pagar con Webpay</span><svg class="icono" aria-hidden="true"><use href="#i-flecha"/></svg></button>
+                            <p class="nota-pedido">Tu pedido llega a cocina cuando Webpay confirme el pago.</p>
                         </form>
                         <button class="seguir" type="button" @click="cerrarCarrito()">Seguir explorando</button>
                     </div>

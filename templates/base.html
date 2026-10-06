@@ -9,6 +9,8 @@
     <link rel="preload" href="{% static 'fuentes/fraunces-600.woff2' %}" as="font" type="font/woff2" crossorigin>
     <link rel="preload" href="{% static 'fuentes/noto-serif-jp-200-ken.woff2' %}" as="font" type="font/woff2" crossorigin>
     <link rel="stylesheet" href="{% static 'css/kippu.css' %}">
+    {# Tema de cada local (decisión 30): se cargaría aquí, después de kippu.css. #}
+    {% block tema %}{% endblock %}
     {% block estilos %}{% endblock %}
     <style>[x-cloak] { display: none !important; }</style>
     <script defer src="{% static 'js/vendor/htmx-2.0.11.min.js' %}"></script>
