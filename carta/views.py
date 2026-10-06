@@ -4,7 +4,7 @@ from django.db.models import Prefetch
 
 from mesas.models import Mesa
 from pedidos.carrito import Carrito
-from pedidos.pagos import sincronizar_carrito
+from pedidos.pagos import calcular_propina, sincronizar_carrito
 
 from .models import GrupoOpcion, OpcionProducto, Producto
 
@@ -56,6 +56,7 @@ def lista_carta(request, codigo=None):
             .order_by("categoria__nombre", "categoria_id", "nombre")
         )
 
+    propina_10 = calcular_propina(total_carrito, "10")
     return render(request, "carta/lista.html", {
         "productos": productos,
         "mesa": mesa,
@@ -63,5 +64,7 @@ def lista_carta(request, codigo=None):
         "detalle_carrito": detalle_carrito,
         "cantidad_carrito": cantidad_carrito,
         "total_carrito": total_carrito,
+        "propina_10": propina_10,
+        "total_con_propina": total_carrito + propina_10,
         "requiere_mayoria_edad": requiere_mayoria_edad,
     })

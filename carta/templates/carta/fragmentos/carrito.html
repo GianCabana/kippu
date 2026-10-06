@@ -59,11 +59,16 @@
                                     <p class="mayoria-nota">Los productos marcados +18 no se entregarán a menores de edad.</p>
                                 </fieldset>
                             {% endif %}
-                            <fieldset class="propina-opciones">
+                            <fieldset class="propina-opciones" x-data="{ propina: '' }">
                                 <legend>¿Deseas agregar propina?</legend>
-                                <label class="propina-eleccion"><input type="radio" name="propina" value="10" checked><span><strong>Sí, agregar 10%</strong><br>Propina sugerida</span></label>
-                                <label class="propina-eleccion"><input type="radio" name="propina" value="0"><span><strong>Sin propina</strong><br>Continuar solo con el subtotal</span></label>
-                                <p class="propina-nota">La propina es opcional. El monto se calcula en pesos enteros, redondeando hacia arriba, y podrás revisarlo antes de entrar a Webpay.</p>
+                                <label class="propina-eleccion"><input type="radio" name="propina" value="0" x-model="propina" required><span><strong>Sin propina</strong><br>Pagas solo el valor del pedido</span></label>
+                                <label class="propina-eleccion"><input type="radio" name="propina" value="10" x-model="propina" required><span><strong>Agregar 10 %</strong><br><span data-pesos="{{ propina_10|floatformat:'0u' }}">${{ propina_10|floatformat:"0g" }}</span>, redondeado hacia arriba al peso</span></label>
+                                <div class="total-fila"><span>Total a pagar</span><span>
+                                    <span x-show="propina === ''">Elige una opción</span>
+                                    <strong class="total-importe" x-show="propina === '0'" x-cloak data-pesos="{{ total_carrito|floatformat:'0u' }}">${{ total_carrito|floatformat:"0g" }}</strong>
+                                    <strong class="total-importe" x-show="propina === '10'" x-cloak data-pesos="{{ total_con_propina|floatformat:'0u' }}">${{ total_con_propina|floatformat:"0g" }}</strong>
+                                </span></div>
+                                <p class="propina-nota">La propina es opcional y la calcula el servidor. Podrás revisar el total antes de entrar a Webpay.</p>
                             </fieldset>
                             <p class="nota-pedido">Tu pedido llegará a cocina cuando Webpay confirme el pago.</p>
                             <button class="enviar" :disabled="ocupado || pagando || !!error" type="submit"><span x-text="pagando ? 'Preparando pago…' : 'Pagar con Webpay'">Pagar con Webpay</span><svg class="icono" aria-hidden="true"><use href="#i-flecha"/></svg></button>

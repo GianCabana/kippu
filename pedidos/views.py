@@ -15,7 +15,7 @@ from django.shortcuts import render
 
 from .carrito import Carrito, ErrorOpciones
 from .cierre import revisar_cierre, cerrar_cuenta
-from .pagos import ErrorPago
+from .pagos import ErrorPago, calcular_propina
 from django.http import HttpResponse
 from django.utils.cache import patch_cache_control, patch_vary_headers
 
@@ -47,9 +47,11 @@ def _respuesta_carrito(request, mesa, carrito):
         item['producto'].requiere_mayoria_edad
         for item in detalle
     )
+    propina_10 = calcular_propina(total, '10')
     respuesta = render(request, 'carta/fragmentos/carrito.html', {
         'mesa': mesa, 'detalle_carrito': detalle,
         'cantidad_carrito': carrito.cantidad_total(), 'total_carrito': total,
+        'propina_10': propina_10, 'total_con_propina': total + propina_10,
         'requiere_mayoria_edad': requiere_mayoria_edad,
     })
     patch_cache_control(respuesta, no_store=True, private=True)
