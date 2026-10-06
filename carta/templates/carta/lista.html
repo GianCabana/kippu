@@ -133,7 +133,7 @@
             <button class="abrir-carrito" type="button" id="abrir-carrito" x-ref="abrir" @click="abrirCarrito()" :aria-label="'Ver carrito, ' + cantidad + ' unidades'" aria-haspopup="dialog" aria-controls="carrito-modal" aria-label="Ver carrito, {{ cantidad_carrito }} unidades">
                 <span class="contador" x-text="cantidad">{{ cantidad_carrito }}</span>
                 <span class="barra-texto">Ver mi carrito</span>
-                <span x-text="pesos(total)" class="barra-total" data-pesos="{{ total_carrito|floatformat:'0u' }}">${{ total_carrito|floatformat:"0g" }}</span>
+                <span x-text="pesos(total)" class="barra-total">${{ total_carrito|floatformat:"0g" }}</span>
                 <svg class="icono" aria-hidden="true"><use href="#i-flecha"/></svg>
             </button>
         </div>

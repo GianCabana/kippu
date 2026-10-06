@@ -90,6 +90,13 @@ class ArchivosDelSistemaDeDisenoTests(SimpleTestCase):
         regla_logo = re.search(r"\.logo \{(.*?)\}", css, re.DOTALL).group(1)
         self.assertIn("font-weight: 200;", regla_logo)
 
+    def test_la_etiqueta_usa_texto_2_por_contraste(self):
+        with open(finders.find("css/kippu.css"), encoding="utf-8") as archivo:
+            css = archivo.read()
+
+        regla_etiqueta = re.search(r"^\.etiqueta \{(.*?)\}", css, re.DOTALL | re.MULTILINE).group(1)
+        self.assertIn("color: var(--texto-2);", regla_etiqueta, "--texto-3 queda bajo AA en texto chico")
+
 
 class CartaConDisenoKippuTests(TestCase):
     def setUp(self):
@@ -117,6 +124,14 @@ class CartaConDisenoKippuTests(TestCase):
         self.assertContains(respuesta, 'class="insignia-18"')
         self.assertNotIn("badge-18", html)
         self.assertEqual(html.count("<style"), 1, "solo debe quedar el [x-cloak] de base.html")
+
+    def test_ningun_monto_reactivo_queda_fijo_con_data_pesos(self):
+        html = self.client.get(reverse("carta:por_mesa", args=[self.mesa.codigo])).content.decode()
+
+        # formatear() reescribe los data-pesos con el valor de la carga y pisaría el x-text.
+        for etiqueta in re.findall(r"<[^>]*\bx-text=[^>]*>", html):
+            with self.subTest(etiqueta=etiqueta):
+                self.assertNotIn("data-pesos", etiqueta)
 
     def test_fragmento_del_carrito_sin_estilos_en_linea(self):
         agregar = reverse(

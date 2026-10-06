@@ -207,7 +207,7 @@ a {
 /* ---------- Texto y cifras ---------- */
 
 .etiqueta {
-  color: var(--texto-3);
+  color: var(--texto-2);
   font-family: var(--mono);
   font-size: 12px;
   letter-spacing: 0.16em;
