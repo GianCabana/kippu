@@ -33,3 +33,27 @@
 .wp-abriendo .wp-nota { margin-top: 0; }
 .wp-abriendo__carga { display: inline-block; width: 34px; height: 34px; margin-bottom: 14px; border: 3px solid var(--linea); border-top-color: var(--aji); border-radius: 50%; animation: wp-girar .9s linear infinite; }
 @keyframes wp-girar { to { transform: rotate(360deg); } }
+
+/* ---------- Resultado: comprobante como ticket (pantalla 6) o pago no completado ---------- */
+
+.wp-acciones { margin-top: 16px; }
+.wp-acciones .boton--bloque { margin-top: 0; }
+.wp-ref { margin: 14px 0 0; color: var(--texto-2); font-family: var(--mono); font-size: 12px; letter-spacing: .06em; text-transform: uppercase; }
+.wp-estado { margin: 12px 0 0; padding: 10px 12px; border-radius: 8px; background: var(--superficie); color: var(--texto); font-size: 13px; line-height: 1.45; }
+.wp-datos__titulo { margin: 0 0 6px; color: var(--texto-2); font-size: 11px; }
+.wp-datos { margin: 0; }
+.wp-datos div { display: flex; justify-content: space-between; gap: 14px; padding: 6px 0; border-bottom: 1px solid var(--linea-suave); font-size: 12.5px; }
+.wp-datos dt { flex: none; color: var(--texto-2); }
+.wp-datos dd { min-width: 0; margin: 0; color: var(--tinta); font-family: var(--mono); text-align: right; overflow-wrap: anywhere; }
+.wp-comprobante .tk .mensaje { margin: 12px 0 0; }
+.wp-comprobante .tk__pie { margin-top: 12px; }
+.wp-comprobante .wp-acciones { padding-bottom: 24px; }
+.wp-enlace-mis-pedidos { display: flex; align-items: center; justify-content: center; min-height: 44px; }
+
+@media print {
+    body.wp-comprobante { background: none; color: var(--tinta); }
+    .wp-comprobante .tk-barra, .wp-comprobante .mensajes, .wp-comprobante .tk-perforado, .wp-acciones { display: none !important; }
+    .wp-comprobante .tk-cuerpo { max-width: none; padding: 0; }
+    .wp-comprobante .tk { padding: 0; }
+    .wp-datos div, .tk__linea { break-inside: avoid; }
+}
