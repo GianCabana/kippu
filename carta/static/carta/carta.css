@@ -21,7 +21,7 @@ p { margin-top: 0; }
 .carta-enlace { display: inline-flex; align-items: center; gap: 8px; min-height: 44px; color: var(--tinta); font-size: 14px; font-weight: 500; text-decoration: none; }
 .carta-enlace .icono { width: 19px; height: 19px; }
 .carta-enlace:hover { color: var(--aji); }
-.carta-cabecera .etiqueta { margin: 16px 0 6px; color: var(--texto-2); font-size: 11.5px; }
+.carta-cabecera .etiqueta { margin: 16px 0 6px; font-size: 11.5px; }
 .carta-cabecera h1 { overflow-wrap: anywhere; }
 .carta-mesa { display: inline-flex; align-items: center; min-height: 30px; margin-top: 14px; padding: 4px 12px; border: 1px solid var(--linea); border-radius: 999px; color: var(--texto-2); font-family: var(--mono); font-size: 12px; letter-spacing: .08em; text-transform: uppercase; }
 .carta-cabecera__texto { margin: 10px 0 0; color: var(--texto-2); }
@@ -101,7 +101,7 @@ dialog { color: var(--texto); }
 .carrito-panel .carrito-panel { display: flex; flex-direction: column; min-height: 100%; }
 .asa { display: none; }
 .carrito-cabecera { position: sticky; z-index: 1; top: 0; display: flex; flex-shrink: 0; background: var(--papel); align-items: flex-start; justify-content: space-between; gap: 20px; padding: 26px 24px 20px; border-bottom: 1px solid var(--linea); }
-.carrito-cabecera .etiqueta { margin: 0 0 6px; color: var(--texto-2); font-size: 11.5px; }
+.carrito-cabecera .etiqueta { margin: 0 0 6px; font-size: 11.5px; }
 .cerrar { display: grid; flex-shrink: 0; place-items: center; width: 44px; height: 44px; border: 1px solid var(--linea); border-radius: 50%; background: transparent; color: var(--tinta); }
 .cerrar:hover { background: var(--superficie); }
 .estado-peticion { margin: 0; padding: 8px 24px; color: var(--texto-2); font-size: 12.5px; }

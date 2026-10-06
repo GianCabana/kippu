@@ -90,6 +90,13 @@ class ArchivosDelSistemaDeDisenoTests(SimpleTestCase):
         regla_logo = re.search(r"\.logo \{(.*?)\}", css, re.DOTALL).group(1)
         self.assertIn("font-weight: 200;", regla_logo)
 
+    def test_la_etiqueta_usa_texto_2_por_contraste(self):
+        with open(finders.find("css/kippu.css"), encoding="utf-8") as archivo:
+            css = archivo.read()
+
+        regla_etiqueta = re.search(r"^\.etiqueta \{(.*?)\}", css, re.DOTALL | re.MULTILINE).group(1)
+        self.assertIn("color: var(--texto-2);", regla_etiqueta, "--texto-3 queda bajo AA en texto chico")
+
 
 class CartaConDisenoKippuTests(TestCase):
     def setUp(self):

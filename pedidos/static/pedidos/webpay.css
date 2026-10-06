@@ -5,7 +5,7 @@
 .wp-barra__mesa { color: var(--texto-2); font-family: var(--mono); font-size: 12px; letter-spacing: .06em; text-align: right; }
 .wp-pagina { padding-bottom: 32px; }
 .wp-titulo { margin: 6px 0 18px; }
-.wp-subtitulo { margin: 22px 0 10px; color: var(--texto-2); font-size: 11.5px; }
+.wp-subtitulo { margin: 22px 0 10px; font-size: 11.5px; }
 .wp-nota { margin: 12px 0 0; color: var(--texto-2); font-size: 13px; line-height: 1.5; }
 .wp-hint { margin: 10px 0 0; color: var(--texto-2); font-size: 12.5px; text-align: center; }
 .wp-enlace { margin: 18px 0 0; text-align: center; font-size: 14px; }
@@ -18,7 +18,7 @@
 /* ---------- Salida: resumen antes de ir a Webpay (pantalla 5) ---------- */
 
 .wp-total { display: flex; align-items: center; justify-content: space-between; gap: 16px; margin-bottom: 14px; }
-.wp-total .etiqueta { margin: 0; color: var(--texto-2); font-size: 11.5px; }
+.wp-total .etiqueta { margin: 0; font-size: 11.5px; }
 .wp-total__detalle { margin: 4px 0 0; color: var(--texto-2); font-size: 13px; }
 .wp-total__monto { margin: 0; color: var(--tinta); font-size: 25px; white-space: nowrap; }
 .wp-medio { display: flex; align-items: flex-start; gap: 14px; }
@@ -40,7 +40,7 @@
 .wp-acciones .boton--bloque { margin-top: 0; }
 .wp-ref { margin: 14px 0 0; color: var(--texto-2); font-family: var(--mono); font-size: 12px; letter-spacing: .06em; text-transform: uppercase; }
 .wp-estado { margin: 12px 0 0; padding: 10px 12px; border-radius: 8px; background: var(--superficie); color: var(--texto); font-size: 13px; line-height: 1.45; }
-.wp-datos__titulo { margin: 0 0 6px; color: var(--texto-2); font-size: 11px; }
+.wp-datos__titulo { margin: 0 0 6px; font-size: 11px; }
 .wp-datos { margin: 0; }
 .wp-datos div { display: flex; justify-content: space-between; gap: 14px; padding: 6px 0; border-bottom: 1px solid var(--linea-suave); font-size: 12.5px; }
 .wp-datos dt { flex: none; color: var(--texto-2); }
