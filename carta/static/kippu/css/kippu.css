@@ -707,6 +707,72 @@ a {
   .caja-lista__fila a { grid-column: 2; }
 }
 
+.login {
+  display: grid;
+  place-items: center;
+  min-height: 100vh;
+  padding: 40px 20px;
+}
+.login__caja {
+  width: 100%;
+  max-width: 380px;
+}
+.login__marca {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 28px;
+}
+.login__marca .marca { font-size: 26px; }
+.login h1 {
+  margin: 6px 0 8px;
+  font-size: 34px;
+}
+.login__bajada {
+  margin: 0 0 22px;
+  color: var(--texto-2);
+}
+.login .mensaje { margin-bottom: 18px; }
+.campo {
+  display: block;
+  margin-bottom: 16px;
+}
+.campo span {
+  display: block;
+  margin-bottom: 6px;
+  color: var(--tinta);
+  font-size: 14px;
+  font-weight: 500;
+}
+.campo input {
+  width: 100%;
+  min-height: 48px;
+  padding: 12px 14px;
+  border: 1px solid var(--linea);
+  border-radius: var(--radio);
+  background: #fff;
+  color: var(--tinta);
+  font: inherit;
+  font-size: 16px;
+}
+.campo input:focus {
+  border-color: transparent;
+  outline: 2px solid var(--aji);
+  outline-offset: 1px;
+}
+.campo__error {
+  margin: -10px 0 14px;
+  color: var(--aji);
+  font-size: 13px;
+}
+.login__pie {
+  margin: 22px 0 0;
+  padding-top: 16px;
+  border-top: 1px solid var(--linea-suave);
+  color: var(--texto-2);
+  font-size: 13px;
+}
+
 /* ---------- Mis pedidos · ticket ---------- */
 /* Pantalla oscura con el ticket en papel y la línea de tiempo debajo. */
 

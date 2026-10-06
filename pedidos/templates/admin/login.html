@@ -1,0 +1,33 @@
+{% extends "kippu/base.html" %}
+
+{% block titulo %}{% if form.errors %}Error · {% endif %}Entrar · Kippu{% endblock %}
+{% block encabezado %}{% endblock %}
+{% block clase_main %}login{% endblock %}
+{% block mensajes %}{% endblock %}
+
+{% block contenido %}
+<div class="login__caja">
+    <div class="login__marca"><span class="logo" aria-hidden="true">券</span><span class="marca">Kippu</span></div>
+    <p class="etiqueta">Panel del personal</p>
+    <h1>Entrar</h1>
+    <p class="login__bajada">Cocina, entregas y caja del local.</p>
+
+    {% if user.is_authenticated %}
+    <p class="mensaje mensaje--error">Iniciaste sesión como {{ username }}, pero esa cuenta no tiene permiso para el panel. Entra con otra cuenta.</p>
+    {% endif %}
+    {% for error in form.non_field_errors %}
+    <p class="mensaje mensaje--error">{{ error }}</p>
+    {% endfor %}
+
+    <form action="{{ app_path }}" method="post">
+        {% csrf_token %}
+        <label class="campo"><span>Usuario</span>{{ form.username }}</label>
+        {% for error in form.username.errors %}<p class="campo__error">{{ error }}</p>{% endfor %}
+        <label class="campo"><span>Contraseña</span>{{ form.password }}</label>
+        {% for error in form.password.errors %}<p class="campo__error">{{ error }}</p>{% endfor %}
+        <input type="hidden" name="next" value="{{ next }}">
+        <button class="boton boton--bloque" type="submit">Entrar</button>
+    </form>
+    <p class="login__pie">¿Vienes a pedir? Escanea el código QR de tu mesa.</p>
+</div>
+{% endblock %}
