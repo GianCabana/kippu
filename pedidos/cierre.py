@@ -35,7 +35,7 @@ def revisar_cierre(cuenta):
                 except ErrorPago:
                     motivo = 'El detalle de un pedido requiere revisión.'
                     break
-                if not lineas or monto != pago.monto:
+                if not lineas or monto + pedido.propina != pago.monto:
                     motivo = 'El monto de un pago no coincide con su pedido.'
                     break
                 if pago.intento_webpay_id and (
