@@ -1,0 +1,1 @@
+{% if pedido.estado == 'sin_pagar' %}<span class="tk-sello tk-sello--aji">Pago pendiente</span>{% elif pedido.estado == 'cancelado' %}<span class="tk-sello tk-sello--gris">Cancelado</span>{% elif pedido.estado == 'entregado' %}<span class="tk-sello tk-sello--ok">Entregado</span>{% else %}<span class="tk-sello tk-sello--ok">Pagado</span>{% endif %}

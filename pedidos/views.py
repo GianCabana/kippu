@@ -273,6 +273,7 @@ def mis_pedidos(request, codigo):
 
     pedidos = (
         Pedido.objects.filter(Q(pk__in=pedidos_sesion) | Q(cliente_clave=cliente_clave(request)), mesa=mesa)
+        .select_related("pago")
         .prefetch_related("detalles", "intentos_webpay")
         .order_by("-creado", "-pk")
     )
