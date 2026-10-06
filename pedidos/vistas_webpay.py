@@ -17,7 +17,7 @@ from django.views.decorators.http import require_GET, require_POST, require_http
 
 from .models import Cuenta, IntentoWebpay, Pago, Pedido
 from mesas.models import Mesa
-from .pagos import ErrorPago, ESTADOS_ACTIVOS, crear_intento_cliente, resolver_intento, sincronizar_carrito, reintentar_pago, consumir_formulario
+from .pagos import ErrorPago, ESTADOS_ACTIVOS, cliente_clave, crear_intento_cliente, resolver_intento, sincronizar_carrito, reintentar_pago, consumir_formulario
 
 SALT = "kippu-comprobante-demo-v1"
 
@@ -84,6 +84,21 @@ def iniciar_cliente(request, codigo):
     return _privado(redirect(_url_resultado(intento.pk)))
 
 
+def _retorno_sin_datos(request):
+    # "Intentar nuevamente" de Webpay vuelve sin datos: se busca el intento por la sesión y no se
+    # resuelve nada; su estado lo confirma después "Verificar con Transbank".
+    mesa = None
+    if request.session.session_key:
+        clave = cliente_clave(request)
+        intentos = IntentoWebpay.objects.filter(pedido__cliente_clave=clave).order_by("-creado", "-pk")
+        intento = intentos.filter(estado__in=ESTADOS_ACTIVOS).first() or intentos.first()
+        if intento:
+            return _privado(redirect(_url_resultado(intento.pk)))
+        pedido = Pedido.objects.filter(cliente_clave=clave).select_related("mesa__local").order_by("-creado", "-pk").first()
+        mesa = pedido.mesa if pedido else None
+    return _privado(render(request, "pedidos/webpay_retorno_sin_datos.html", {"mesa": mesa}))
+
+
 @never_cache
 @csrf_exempt
 @require_http_methods(["GET", "POST"])
@@ -94,6 +109,8 @@ def retorno(request):
     if normal and abortado and normal != abortado:
         return HttpResponseBadRequest("Retorno no válido.")
     token = normal or abortado
+    if not (token or datos.get("TBK_ORDEN_COMPRA") or datos.get("TBK_ID_SESION")):
+        return _retorno_sin_datos(request)
     if token:
         if len(token) != 64:
             raise Http404

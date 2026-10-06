@@ -1,0 +1,26 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block meta %}<meta name="referrer" content="same-origin">{% endblock %}
+{% block titulo %}Regreso desde Webpay · Kippu{% endblock %}
+{% block estilos %}<link rel="stylesheet" href="{% static 'pedidos/webpay.css' %}">{% endblock %}
+{% block encabezado %}
+<header class="contenedor wp-barra">
+    <span class="logo logo--chico" aria-hidden="true">券</span>
+    {% if mesa %}<span class="wp-barra__mesa">{{ mesa.local.nombre }} · Mesa {{ mesa.numero }}</span>{% endif %}
+</header>
+{% endblock %}
+{% block clase_main %}contenedor wp-pagina{% endblock %}
+
+{% block contenido %}
+<h1 class="wp-titulo">No pudimos completar el regreso desde Webpay</h1>
+<p class="mensaje mensaje--warning">Tu navegador volvió sin los datos del pago, así que no sabemos cómo terminó.</p>
+<p class="wp-nota">Ningún pedido se marca como pagado sin la confirmación de Transbank. Si tienes dudas, consulta al personal.</p>
+{% if mesa %}
+<div class="wp-acciones"><a class="boton boton--bloque" href="{% url 'pedidos:mis_pedidos' codigo=mesa.codigo %}">Ver mis pedidos</a></div>
+<p class="wp-enlace"><a href="{% url 'carta:por_mesa' codigo=mesa.codigo %}">Volver a la carta</a></p>
+{% else %}
+<p class="wp-nota">Para volver a pedir, escanea el código QR de tu mesa.</p>
+<p class="wp-enlace"><a href="{% url 'carta:lista' %}">Ir a la carta</a></p>
+{% endif %}
+{% endblock %}
