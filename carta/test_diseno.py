@@ -96,7 +96,7 @@ class CartaConDisenoKippuTests(TestCase):
         local = Local.objects.create(nombre="La Casa de Prueba", slug="la-casa-de-prueba")
         self.mesa = Mesa.objects.create(local=local, numero=4)
         categoria = Categoria.objects.create(nombre="Barra", local=local)
-        Producto.objects.create(
+        self.producto = Producto.objects.create(
             nombre="Pisco sour", categoria=categoria, precio=6500, requiere_mayoria_edad=True
         )
 
@@ -116,3 +116,15 @@ class CartaConDisenoKippuTests(TestCase):
         self.assertContains(respuesta, 'class="insignia-18"')
         self.assertNotIn("badge-18", html)
         self.assertEqual(html.count("<style"), 1, "solo debe quedar el [x-cloak] de base.html")
+
+    def test_fragmento_del_carrito_sin_estilos_en_linea(self):
+        agregar = reverse(
+            "pedidos:agregar", kwargs={"codigo": self.mesa.codigo, "producto_id": self.producto.pk}
+        )
+
+        respuesta = self.client.post(agregar, HTTP_HX_REQUEST="true")
+
+        self.assertContains(respuesta, 'data-cantidad="1"')
+        self.assertContains(respuesta, 'name="confirma_mayoria_edad"')
+        self.assertNotContains(respuesta, "<style")
+        self.assertNotContains(respuesta, "badge-18")
