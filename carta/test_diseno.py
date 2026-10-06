@@ -7,7 +7,7 @@ from django.template.loader import render_to_string
 from django.test import SimpleTestCase, TestCase
 from django.urls import reverse
 
-from carta.models import Categoria, Producto
+from carta.models import Categoria, GrupoOpcion, OpcionProducto, Producto
 from mesas.models import Local, Mesa
 
 ARCHIVOS_ESTATICOS = [
@@ -128,3 +128,16 @@ class CartaConDisenoKippuTests(TestCase):
         self.assertContains(respuesta, 'name="confirma_mayoria_edad"')
         self.assertNotContains(respuesta, "<style")
         self.assertNotContains(respuesta, "badge-18")
+
+    def test_las_opciones_se_despliegan_al_tocar_agregar(self):
+        chicha = Producto.objects.create(nombre="Chicha morada", categoria=self.producto.categoria, precio=3200)
+        tamano = GrupoOpcion.objects.create(producto=chicha, nombre="Tamaño")
+        OpcionProducto.objects.create(grupo=tamano, nombre="Jarra", precio_extra=4500)
+
+        html = self.client.get(reverse("carta:por_mesa", args=[self.mesa.codigo])).content.decode()
+        panel = re.search(r'<details class="producto__opciones">(.*?)</details>', html, re.DOTALL)
+
+        self.assertIsNotNone(panel, "las opciones deben ir dentro de un <details> cerrado")
+        self.assertIn('name="opcion_grupo_', panel.group(1))
+        self.assertIn(f'id="agregar-{chicha.pk}"', panel.group(1))
+        self.assertIn(f'<form class="producto__accion" id="form-producto-{self.producto.pk}"', html)
