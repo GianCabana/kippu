@@ -1,0 +1,80 @@
+/* Cocina y entregas (pantalla 7). Solo usa las variables y componentes de kippu.css.
+   Las clases .pedido, .producto, .badge, .tiempo, .accion y .unidades las usa el JS: no renombrar. */
+
+.panel { width: 100%; max-width: 1320px; margin: 0 auto; padding: 22px 24px 32px; }
+.panel [hidden] { display: none !important; }
+.panel .sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+.panel .icono { width: 18px; height: 18px; fill: none; stroke: currentColor; stroke-width: 1.7; stroke-linecap: round; stroke-linejoin: round; flex: none; }
+.panel .iconos { position: absolute; width: 0; height: 0; overflow: hidden; }
+.panel form { margin: 0; }
+.panel .mensajes { margin: 0 0 16px; padding: 0; list-style: none; }
+
+/* ---------- Título y estado de la conexión ---------- */
+
+.panel-cabecera { display: flex; align-items: center; justify-content: space-between; gap: 20px; margin-bottom: 18px; }
+.panel-cabecera h1 { font-size: 32px; }
+.conexion { display: flex; align-items: center; gap: 12px; padding: 6px 6px 6px 14px; border: 1px solid var(--linea); border-radius: var(--radio); }
+.conexion .punto { width: 8px; height: 8px; flex: none; border-radius: 50%; background: var(--semaforo-verde); }
+.conexion.error { border-color: var(--semaforo-ambar); background: var(--semaforo-ambar-fondo); }
+.conexion.error .punto { background: var(--semaforo-ambar); }
+.conexion-texto { max-width: 300px; color: var(--tinta); font-size: 13px; font-weight: 500; line-height: 1.4; }
+.conexion .ultima { display: block; color: var(--texto-2); font-family: var(--mono); font-size: 11.5px; font-weight: 400; }
+.actualizar { display: grid; place-items: center; width: 44px; height: 44px; flex: none; border: 1px solid var(--linea); border-radius: 50%; background: var(--papel); color: var(--tinta); cursor: pointer; }
+.actualizar:disabled { cursor: wait; opacity: .6; }
+.actualizar:disabled .icono { animation: panel-girar 1s linear infinite; }
+@keyframes panel-girar { to { transform: rotate(360deg); } }
+
+/* ---------- Pestañas de filtro, búsqueda y orden ---------- */
+
+.panel-herramientas { display: flex; align-items: center; justify-content: space-between; gap: 16px; margin-bottom: 8px; }
+.filtros { display: flex; flex-wrap: wrap; gap: 8px; }
+.filtro { display: inline-flex; align-items: center; gap: 9px; min-height: 44px; padding: 8px 16px; border: 1px solid var(--linea); border-radius: 999px; background: transparent; color: var(--texto-2); font: inherit; font-size: 14px; cursor: pointer; }
+.filtro strong { color: var(--tinta); font-family: var(--mono); font-size: 13px; font-weight: 500; }
+.filtro[aria-pressed="true"] { border-color: var(--tinta); background: var(--tinta); color: var(--papel); font-weight: 500; }
+.filtro[aria-pressed="true"] strong { color: var(--papel); }
+.buscador { position: relative; width: 320px; }
+.buscador > .icono { position: absolute; top: 13px; left: 14px; color: var(--texto-2); pointer-events: none; }
+.buscador input { width: 100%; min-height: 44px; padding: 10px 46px 10px 42px; border: 1px solid var(--linea); border-radius: var(--radio); background: var(--papel); color: var(--tinta); font: inherit; font-size: 15px; }
+.buscador input::placeholder { color: var(--texto-2); }
+.buscador input::-webkit-search-cancel-button { display: none; }
+.limpiar { position: absolute; top: 0; right: 0; display: grid; place-items: center; width: 44px; height: 44px; border: 0; background: transparent; color: var(--texto-2); cursor: pointer; }
+.orden { margin: 0 0 16px; color: var(--texto-2); font-family: var(--mono); font-size: 12px; letter-spacing: .03em; }
+
+/* ---------- Comandas ---------- */
+
+.pedidos { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 14px; align-items: start; }
+.panel .comanda__mesa { margin: 0; font-size: 22px; line-height: 1.2; }
+.comanda__meta { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 8px; margin: 0; padding: 0 15px 10px; color: var(--texto-2); font-family: var(--mono); font-size: 12px; letter-spacing: .03em; }
+.comanda__meta .insignia-18 { vertical-align: 0; }
+.comanda .productos { margin: 0; padding: 11px 15px 4px; border-top: 1px solid var(--linea-suave); list-style: none; }
+.comanda .producto { gap: 9px; padding: 0 0 8px; border: 0; color: var(--tinta); font-size: 15px; line-height: 1.4; }
+.comanda .producto .comanda__cantidad { min-width: 26px; }
+.nombre-producto { min-width: 0; overflow-wrap: anywhere; }
+.opciones-pedido { display: block; color: var(--texto-2); font-size: 12.5px; }
+.aviso-edad { display: block; margin-top: 2px; color: var(--aji); font-size: 12.5px; font-weight: 600; }
+.comanda .unidades { margin: 0; padding: 0 15px 10px; color: var(--texto-2); font-family: var(--mono); font-size: 12px; }
+.panel .comanda__pie { flex-wrap: wrap; }
+.panel .comanda__pie form { margin-left: auto; }
+.panel .comanda__pie .boton { min-height: 44px; padding: 10px 16px; font-size: 14px; }
+.panel .comanda__pie .boton .icono { width: 17px; height: 17px; }
+.comanda.actualizado { animation: panel-aparecer .25s ease-out; }
+@keyframes panel-aparecer { from { opacity: .5; transform: translateY(4px); } to { opacity: 1; transform: none; } }
+
+/* ---------- Vacío, sin resultados y nota ---------- */
+
+.panel-vacio { grid-column: 1 / -1; padding: 48px 24px; border: 1px dashed var(--linea); border-radius: var(--radio-tarjeta); text-align: center; }
+.panel-vacio h2 { margin-bottom: 8px; font-size: 24px; }
+.panel-vacio p { max-width: 380px; margin: 0 auto; color: var(--texto-2); font-size: 14px; }
+.panel-vacio .boton { margin-top: 16px; }
+.panel-nota { margin: 24px 0 0; color: var(--texto-2); font-size: 13px; text-align: center; }
+
+@media (max-width: 1050px) { .pedidos { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+@media (max-width: 700px) {
+  .panel { padding: 18px 16px 28px; }
+  .panel-cabecera, .panel-herramientas { flex-direction: column; align-items: stretch; }
+  .buscador { width: 100%; }
+  .pedidos { grid-template-columns: minmax(0, 1fr); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .comanda.actualizado, .actualizar:disabled .icono { animation: none; }
+}
