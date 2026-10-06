@@ -1,4 +1,5 @@
 from decimal import Decimal
+import re
 
 from django.test import TestCase
 from django.urls import reverse
@@ -6,6 +7,8 @@ from django.urls import reverse
 from . import test_webpay_demo as base
 from .models import IntentoWebpay, Pago
 from .pagos import resolver_intento
+from carta.models import Categoria, Producto
+from mesas.models import Mesa
 
 
 class PropinaTests(TestCase):
@@ -71,3 +74,32 @@ class PropinaTests(TestCase):
         self.assertEqual(nuevo.subtotal, intento.subtotal)
         self.assertEqual(nuevo.propina, intento.propina)
         self.assertEqual(nuevo.monto, intento.monto)
+
+
+class PropinaCarritoTests(TestCase):
+    def setUp(self):
+        self.mesa = Mesa.objects.create(numero=993)
+        categoria = Categoria.objects.create(nombre='Propina carrito')
+        self.producto = Producto.objects.create(nombre='Plato', categoria=categoria, precio=3333)
+        self.agregar = reverse('pedidos:agregar', kwargs={'codigo': self.mesa.codigo, 'producto_id': self.producto.pk})
+        self.carta = reverse('carta:por_mesa', kwargs={'codigo': self.mesa.codigo})
+
+    def opciones_propina(self, html):
+        return re.findall(r'<input[^>]*name="propina"[^>]*>', html)
+
+    def revisar(self, respuesta):
+        html = respuesta.content.decode()
+        opciones = self.opciones_propina(html)
+        self.assertEqual(len(opciones), 2)
+        for opcion in opciones:
+            self.assertNotIn('checked', opcion)
+            self.assertIn('required', opcion)
+        self.assertContains(respuesta, '$334')
+        self.assertContains(respuesta, '$3.667')
+
+    def test_fragmento_muestra_propina_y_total_sin_preseleccion(self):
+        self.revisar(self.client.post(self.agregar, HTTP_HX_REQUEST='true'))
+
+    def test_carta_muestra_propina_y_total_sin_preseleccion(self):
+        self.client.post(self.agregar, HTTP_HX_REQUEST='true')
+        self.revisar(self.client.get(self.carta))
