@@ -1,0 +1,4 @@
+{% for pedido in pedidos %}
+<span id="sello-{{ pedido.pk }}" hx-swap-oob="innerHTML">{% include "pedidos/fragmentos/sello_pedido.html" %}</span>
+{% if forloop.first %}{% include "pedidos/fragmentos/linea_tiempo.html" with oob=True %}{% endif %}
+{% endfor %}

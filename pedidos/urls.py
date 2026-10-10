@@ -47,6 +47,11 @@ urlpatterns = [
         views.mis_pedidos,
         name="mis_pedidos",
     ),
+    path(
+        "mesa/<uuid:codigo>/mis-pedidos/estado/",
+        views.estado_mis_pedidos,
+        name="mis_pedidos_estado",
+    ),
         path(
         "caja/",
         views.caja,
