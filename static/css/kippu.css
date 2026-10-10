@@ -612,6 +612,8 @@ a {
   gap: 8px;
 }
 .caja-mesa__numero { font-size: 30px; }
+.caja-servicio .caja-mesa__cabeza { flex-wrap: wrap; }
+.caja-servicio .caja-mesa__numero { font-size: 22px; line-height: 1.2; }
 .caja-mesa__local {
   margin: 4px 0 0;
   color: var(--texto-2);

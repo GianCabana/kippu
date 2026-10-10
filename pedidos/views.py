@@ -9,13 +9,13 @@ from .pagos import ESTADOS_ACTIVOS, intento_activo, sincronizar_carrito, renovar
 from django.db.models import Q
 
 from carta.models import Producto
-from mesas.models import Mesa
+from mesas.models import Local, Mesa
 from django.contrib.admin.views.decorators import staff_member_required
 from django.shortcuts import render
 
 from .carrito import Carrito, ErrorOpciones
 from .cierre import revisar_cierre, cerrar_cuenta
-from .pagos import ErrorPago, calcular_propina, nombre_recordado
+from .pagos import ErrorPago, calcular_propina, exigir_pedidos_abiertos, nombre_recordado
 from django.http import HttpResponse
 from django.utils.cache import patch_cache_control, patch_vary_headers
 
@@ -86,6 +86,12 @@ def agregar_al_carrito(request, codigo, producto_id):
     sincronizar_carrito(request, mesa)
 
     carrito = Carrito(request, mesa)
+
+    try:
+        exigir_pedidos_abiertos(mesa)
+    except ErrorPago as exc:
+        messages.warning(request, str(exc))
+        return _respuesta_carrito(request, mesa, carrito)
 
     try:
         opciones = Carrito.validar_opciones(
@@ -327,8 +333,28 @@ def caja(request):
     for cuenta in cuentas:
         cuenta.revision = revisar_cierre(cuenta)
     cerradas = Cuenta.objects.filter(estado=Cuenta.Estado.CERRADA).select_related('mesa', 'mesa__local').order_by('-cerrada')[:10]
+    locales = Local.objects.filter(activo=True).order_by('nombre')
     return render(request, 'pedidos/caja.html', {'pagos': pagos, 'pendientes': pendientes,
-        'cuentas': cuentas, 'cerradas': cerradas})
+        'cuentas': cuentas, 'cerradas': cerradas, 'locales': locales})
+
+
+@staff_member_required
+@require_POST
+def cambiar_servicio(request, local_id):
+    # Se pide el estado final (no "alternar"): un doble envío no lo da vuelta.
+    # Pendiente D-3: el local llega por la URL hasta ligar usuario y local.
+    local = get_object_or_404(Local, pk=local_id, activo=True)
+    acciones = {'cerrar': False, 'abrir': True}
+    accion = request.POST.get('accion')
+    if accion not in acciones:
+        messages.error(request, 'La acción solicitada no es válida.')
+        return redirect('pedidos:caja')
+    Local.objects.filter(pk=local.pk).update(recibe_pedidos=acciones[accion])
+    if acciones[accion]:
+        messages.success(request, f'{local.nombre}: pedidos por QR abiertos.')
+    else:
+        messages.success(request, f'{local.nombre}: pedidos por QR cerrados. Lo ya pagado sigue en cocina.')
+    return redirect('pedidos:caja')
 
 
 @staff_member_required

@@ -21,10 +21,17 @@ from .models import Cuenta, Pedido, DetallePedido, Pago, IntentoWebpay
 from .webpay import obtener_webpay
 
 ESTADOS_ACTIVOS = ('creado', 'iniciado', 'por_verificar')
+PEDIDOS_CERRADOS = 'Pedidos cerrados por ahora. Puedes ver la carta; para pedir, consulta al personal.'
 
 
 class ErrorPago(ValueError):
     pass
+
+
+def exigir_pedidos_abiertos(mesa):
+    """D-42: con el servicio cerrado no se agrega ni se empieza un pago; lo ya iniciado sigue."""
+    if not mesa.local.recibe_pedidos:
+        raise ErrorPago(PEDIDOS_CERRADOS)
 
 
 def cliente_clave(request):
@@ -183,6 +190,7 @@ def crear_intento_cliente(request, codigo, return_url):
             renovar_carrito(request, mesa)
             clave = clave_checkout(request, mesa, carrito.snapshot())
             pedido = None
+        exigir_pedidos_abiertos(mesa)
         if not carrito.productos:
             raise ErrorPago('Tu carrito está vacío.')
         productos = list(Producto.objects.filter(pk__in=carrito.productos,
@@ -471,6 +479,7 @@ def reintentar_pago(intento_id, usuario, return_url):
         activo = pedido.intentos_webpay.filter(estado__in=ESTADOS_ACTIVOS).first()
         if activo:
             return activo, False
+        exigir_pedidos_abiertos(pedido.mesa)
         detalles = list(pedido.detalles.select_related('producto__categoria').order_by('producto_id'))
         if not detalles or any(not d.producto.disponible or not d.producto.categoria.activa
                 or not opciones_detalle_vigentes(d) or d.cantidad < 1

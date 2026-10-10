@@ -3,13 +3,10 @@ from django.db import models
 
 
 def local_principal_pk():
-    from mesas.models import Local
+    # La migración carta/0002 usa este nombre; la lógica vive en mesas.
+    from mesas.models import local_principal_pk as principal
 
-    local, _ = Local.objects.get_or_create(
-        slug="kippu-principal",
-        defaults={"nombre": "Kippu Principal", "activo": True},
-    )
-    return local.pk
+    return principal()
 
 
 class Categoria(models.Model):

@@ -15,6 +15,38 @@
 </ul>
 {% endif %}
 
+<h2>Pedidos por QR</h2>
+<div class="caja-grilla">
+    {% for local in locales %}
+    <article class="caja-mesa caja-servicio" x-data="{ confirmando: false }" :class="confirmando && 'caja-mesa--confirmando'">
+        <div class="caja-mesa__cabeza">
+            <h3 class="caja-mesa__numero">{{ local.nombre }}</h3>
+            {% if local.recibe_pedidos %}<span class="chip chip--verde">Recibiendo pedidos</span>{% else %}<span class="chip chip--gris">Pedidos cerrados</span>{% endif %}
+        </div>
+        {% if local.recibe_pedidos %}
+        <button class="boton boton--bloque boton--fantasma" type="button" x-show="!confirmando" @click="confirmando = true">Cerrar pedidos</button>
+        {% else %}
+        <p class="caja-sub">Los clientes ven la carta, pero no pueden agregar ni pagar.</p>
+        <button class="boton boton--bloque" type="button" x-show="!confirmando" @click="confirmando = true">Abrir pedidos</button>
+        {% endif %}
+        <form class="caja-mesa__confirmar" method="post" action="{% url 'pedidos:cambiar_servicio' local_id=local.pk %}" x-show="confirmando" x-cloak>
+            {% csrf_token %}
+            {% if local.recibe_pedidos %}
+            <input type="hidden" name="accion" value="cerrar">
+            <p>¿Cerrar los pedidos por QR de {{ local.nombre }}? Los clientes verán la carta, pero no podrán agregar ni pagar. Los pedidos ya pagados siguen en cocina.</p>
+            {% else %}
+            <input type="hidden" name="accion" value="abrir">
+            <p>¿Abrir los pedidos por QR de {{ local.nombre }}? Los clientes podrán volver a pedir y pagar.</p>
+            {% endif %}
+            <div class="acciones">
+                <button class="boton boton--fantasma" type="button" @click="confirmando = false">Cancelar</button>
+                <button class="boton" type="submit">{% if local.recibe_pedidos %}Sí, cerrar{% else %}Sí, abrir{% endif %}</button>
+            </div>
+        </form>
+    </article>
+    {% endfor %}
+</div>
+
 <h2>Mesas con cuenta abierta</h2>
 <div class="caja-grilla">
     {% for cuenta in cuentas %}
