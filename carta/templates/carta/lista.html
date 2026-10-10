@@ -25,6 +25,7 @@
         <symbol id="i-flecha" viewBox="0 0 24 24"><path d="M4 12h15m-6-6 6 6-6 6"/></symbol>
         <symbol id="i-pedidos" viewBox="0 0 24 24"><path d="M6 3h12v18l-3-2-3 2-3-2-3 2V3Z"/><path d="M9 8h6M9 12h6"/></symbol>
         <symbol id="i-info" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 11v6M12 7v.5"/></symbol>
+        <symbol id="i-telefono-qr" viewBox="0 0 24 24"><rect x="6" y="2" width="12" height="20" rx="2"/><path d="M11 19h2"/><rect x="8.5" y="6" width="3" height="3"/><rect x="12.5" y="6" width="3" height="3"/><rect x="8.5" y="10" width="3" height="3"/><path d="M12.5 10h3v3M12.5 13h1"/></symbol>
     </svg>
 
     <header class="carta-cabecera">
@@ -43,7 +44,16 @@
                 <span class="carta-mesa">Mesa {{ mesa.numero }}</span>
             {% else %}
                 <h1 id="titulo-carta">Kippu</h1>
-                <p class="carta-cabecera__texto">Escanea el QR de tu mesa para empezar tu pedido.</p>
+                <section class="sin-qr" aria-labelledby="sin-qr-titulo">
+                    <span class="sin-qr__icono"><svg class="icono" aria-hidden="true"><use href="#i-telefono-qr"/></svg></span>
+                    <h2 class="sin-qr__titulo" id="sin-qr-titulo">Para pedir, escanea el QR de tu mesa</h2>
+                    <ol class="sin-qr__pasos">
+                        <li>Abre la cámara de tu teléfono.</li>
+                        <li>Apunta al código QR que está en tu mesa.</li>
+                        <li>Toca el enlace que aparece y verás la carta de tu mesa.</li>
+                    </ol>
+                    <p class="sin-qr__nota">Si la cámara no lo reconoce, pídele ayuda al personal.</p>
+                </section>
             {% endif %}
         </div>
     </header>
@@ -55,6 +65,7 @@
                 {% for mensaje in messages %}<p class="mensaje mensaje--{{ mensaje.level_tag }}" role="status">{{ mensaje }}</p>{% endfor %}
             </div>
         {% endif %}
+        {% if mesa %}
         {% regroup productos by categoria as grupos %}
         <h2 class="titulo-carta">Carta</h2>
         <div class="buscador" x-cloak>
@@ -119,12 +130,13 @@
         {% empty %}
             <div class="vacio"><p>En este momento no hay productos disponibles.</p></div>
         {% endfor %}
+        {% endif %}
 
         <div class="vacio" id="sin-resultados" role="status" hidden>
             <p>No encontramos productos con esos filtros.</p>
             <button class="boton boton--fantasma" type="button" id="restablecer" @click="categoria = 'todas'; limpiar()">Ver toda la carta</button>
         </div>
-        <p class="nota-carta"><svg class="icono" aria-hidden="true"><use href="#i-info"/></svg> Todos los precios están expresados en pesos chilenos.</p>
+        {% if mesa %}<p class="nota-carta"><svg class="icono" aria-hidden="true"><use href="#i-info"/></svg> Todos los precios están expresados en pesos chilenos.</p>{% endif %}
     </div>
 
     {% if mesa %}
