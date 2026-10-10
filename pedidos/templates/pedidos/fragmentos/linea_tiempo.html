@@ -1,0 +1,23 @@
+<div id="vivo-{{ pedido.pk }}"{% if oob %} hx-swap-oob="innerHTML"{% endif %}>
+{% if pedido.estado != 'cancelado' and pedido.estado != 'sin_pagar' %}
+<ol class="tk-pasos">
+    <li class="hecho"><span class="punto" aria-hidden="true">✓</span><div><b>Pagado</b>{% if pedido.pago %}<small>{{ pedido.pago.creado|date:"H:i" }}</small>{% endif %}</div></li>
+    {% if pedido.estado == 'pendiente' %}
+    <li class="ahora"><span class="punto" aria-hidden="true">•</span><div><b>En cocina · en cola</b><small>Tu pedido llegó a cocina</small></div></li>
+    {% elif pedido.estado == 'en_preparacion' %}
+    <li class="ahora"><span class="punto" aria-hidden="true">•</span><div><b>En cocina · preparando</b><small>La cocina ya lo está haciendo</small></div></li>
+    {% else %}
+    <li class="hecho"><span class="punto" aria-hidden="true">✓</span><div><b>En cocina</b></div></li>
+    {% endif %}
+    {% if pedido.estado == 'listo' %}
+    <li class="ahora"><span class="punto" aria-hidden="true">•</span><div><b>Listo</b><small>Te lo llevamos a la mesa</small></div></li>
+    {% elif pedido.estado == 'entregado' %}
+    <li class="hecho"><span class="punto" aria-hidden="true">✓</span><div><b>Listo</b></div></li>
+    {% else %}
+    <li><span class="punto" aria-hidden="true"></span><div><b>Listo</b><small>Te lo llevamos a la mesa</small></div></li>
+    {% endif %}
+    <li{% if pedido.estado == 'entregado' %} class="hecho"{% endif %}><span class="punto" aria-hidden="true">{% if pedido.estado == 'entregado' %}✓{% endif %}</span><div><b>Entregado</b>{% if pedido.estado == 'entregado' %}<small>¡Que lo disfrutes!</small>{% endif %}</div></li>
+</ol>
+{% if pedido.mayoria_edad_confirmada %}<p class="tk-aviso18">Declaraste ser mayor de 18. Te pueden pedir identificación al entregar.</p>{% endif %}
+{% endif %}
+</div>

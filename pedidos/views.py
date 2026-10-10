@@ -258,25 +258,34 @@ def marcar_entregado(request, pedido_id):
         )
 
     return redirect("pedidos:entregas")
-@never_cache
-def mis_pedidos(request, codigo):
-    mesa = get_object_or_404(
-        Mesa,
-        codigo=codigo,
-        activa=True,
-        local__activo=True,
-    )
+ESTADOS_FINALES = {Pedido.Estado.ENTREGADO, Pedido.Estado.CANCELADO}
+# Respuesta que HTMX entiende como "deja de consultar".
+DETENER_CONSULTA = 286
 
-    sincronizar_carrito(request, mesa)
-    clave_pedidos = f"pedidos_{mesa.codigo}"
-    pedidos_sesion = request.session.get(clave_pedidos, [])
 
-    pedidos = (
+def _mesa_del_cliente(codigo):
+    return get_object_or_404(Mesa, codigo=codigo, activa=True, local__activo=True)
+
+
+def _pedidos_del_navegador(request, mesa):
+    """Solo los pedidos de este navegador: nunca los de otra persona de la mesa."""
+    pedidos_sesion = request.session.get(f"pedidos_{mesa.codigo}", [])
+    return (
         Pedido.objects.filter(Q(pk__in=pedidos_sesion) | Q(cliente_clave=cliente_clave(request)), mesa=mesa)
         .select_related("pago")
-        .prefetch_related("detalles", "intentos_webpay")
         .order_by("-creado", "-pk")
     )
+
+
+def _hay_pedidos_activos(pedidos):
+    return any(pedido.estado not in ESTADOS_FINALES for pedido in pedidos)
+
+
+@never_cache
+def mis_pedidos(request, codigo):
+    mesa = _mesa_del_cliente(codigo)
+    sincronizar_carrito(request, mesa)
+    pedidos = _pedidos_del_navegador(request, mesa).prefetch_related("detalles", "intentos_webpay")
 
     from .vistas_webpay import _url_resultado
     for pedido in pedidos:
@@ -290,8 +299,25 @@ def mis_pedidos(request, codigo):
         {
             "mesa": mesa,
             "pedidos": pedidos,
+            "consultar_estado": _hay_pedidos_activos(pedidos),
         },
     )
+
+
+@never_cache
+def estado_mis_pedidos(request, codigo):
+    # Solo lectura: no sincroniza el carrito, para que la consulta automática no cuente como actividad.
+    mesa = _mesa_del_cliente(codigo)
+    pedidos = list(_pedidos_del_navegador(request, mesa))
+    estado = 200 if _hay_pedidos_activos(pedidos) else DETENER_CONSULTA
+    return render(
+        request,
+        "pedidos/mis_pedidos_estado.html",
+        {"mesa": mesa, "pedidos": pedidos},
+        status=estado,
+    )
+
+
 @staff_member_required
 def caja(request):
     pagos = Pago.objects.select_related('cuenta__mesa', 'cuenta__mesa__local', 'pedido', 'intento_webpay').order_by('-creado')[:100]

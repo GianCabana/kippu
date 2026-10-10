@@ -1,6 +1,5 @@
 {% extends "base.html" %}
 
-{% block meta %}<meta http-equiv="refresh" content="15">{% endblock %}
 {% block titulo %}Mis pedidos · Kippu{% endblock %}
 {% block clase_body %}tk-pantalla{% endblock %}
 {% block encabezado %}
@@ -17,7 +16,7 @@
 <article class="tk" aria-labelledby="pedido-{{ pedido.pk }}">
     <div class="tk__cabeza">
         <span class="tk__local" id="pedido-{{ pedido.pk }}">{{ mesa.local.nombre }}</span>
-        {% include "pedidos/fragmentos/sello_pedido.html" %}
+        <span id="sello-{{ pedido.pk }}">{% include "pedidos/fragmentos/sello_pedido.html" %}</span>
     </div>
     <p class="tk__ref">PEDIDO #{{ pedido.pk }} · MESA {{ mesa.numero }} · {{ pedido.creado|date:"d/m H:i" }}</p>
     <div class="tk__corte"></div>
@@ -38,32 +37,12 @@
 </article>
 <div class="tk-perforado" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div>
 
-{% if pedido.estado != 'cancelado' and pedido.estado != 'sin_pagar' %}
-<ol class="tk-pasos">
-    <li class="hecho"><span class="punto" aria-hidden="true">✓</span><div><b>Pagado</b>{% if pedido.pago %}<small>{{ pedido.pago.creado|date:"H:i" }}</small>{% endif %}</div></li>
-    {% if pedido.estado == 'pendiente' %}
-    <li class="ahora"><span class="punto" aria-hidden="true">•</span><div><b>En cocina · en cola</b><small>Tu pedido llegó a cocina</small></div></li>
-    {% elif pedido.estado == 'en_preparacion' %}
-    <li class="ahora"><span class="punto" aria-hidden="true">•</span><div><b>En cocina · preparando</b><small>La cocina ya lo está haciendo</small></div></li>
-    {% else %}
-    <li class="hecho"><span class="punto" aria-hidden="true">✓</span><div><b>En cocina</b></div></li>
-    {% endif %}
-    {% if pedido.estado == 'listo' %}
-    <li class="ahora"><span class="punto" aria-hidden="true">•</span><div><b>Listo</b><small>Te lo llevamos a la mesa</small></div></li>
-    {% elif pedido.estado == 'entregado' %}
-    <li class="hecho"><span class="punto" aria-hidden="true">✓</span><div><b>Listo</b></div></li>
-    {% else %}
-    <li><span class="punto" aria-hidden="true"></span><div><b>Listo</b><small>Te lo llevamos a la mesa</small></div></li>
-    {% endif %}
-    <li{% if pedido.estado == 'entregado' %} class="hecho"{% endif %}><span class="punto" aria-hidden="true">{% if pedido.estado == 'entregado' %}✓{% endif %}</span><div><b>Entregado</b>{% if pedido.estado == 'entregado' %}<small>¡Que lo disfrutes!</small>{% endif %}</div></li>
-</ol>
-{% if pedido.mayoria_edad_confirmada %}<p class="tk-aviso18">Declaraste ser mayor de 18. Te pueden pedir identificación al entregar.</p>{% endif %}
-{% endif %}
+{% include "pedidos/fragmentos/linea_tiempo.html" %}
 
 {% else %}
 {% if forloop.counter == 2 %}<p class="tk-subtitulo">Pedidos anteriores</p>{% endif %}
 <article class="tk tk--corto">
-    <div class="tk__cabeza"><span class="cifra">#{{ pedido.pk }} · {{ pedido.creado|date:"H:i" }}</span>{% include "pedidos/fragmentos/sello_pedido.html" %}</div>
+    <div class="tk__cabeza"><span class="cifra">#{{ pedido.pk }} · {{ pedido.creado|date:"H:i" }}</span><span id="sello-{{ pedido.pk }}">{% include "pedidos/fragmentos/sello_pedido.html" %}</span></div>
     {% for detalle in pedido.detalles.all %}
     <div class="tk__linea"><span>{{ detalle.cantidad }} × {{ detalle.nombre_producto }}</span><span class="cifra">${{ detalle.subtotal|floatformat:"0g" }}</span></div>
     {% endfor %}
@@ -79,4 +58,15 @@
     <a class="boton boton--bloque tk-boton" href="{% url 'carta:por_mesa' codigo=mesa.codigo %}">Pedir algo más</a>
     {% with ultimo=pedidos.0 %}{% if ultimo.resultado_url and ultimo.estado != 'sin_pagar' %}<a class="tk-enlace" href="{{ ultimo.resultado_url }}">Ver pago / comprobante del pedido #{{ ultimo.pk }}</a>{% endif %}{% endwith %}
 </footer>
+{% if consultar_estado %}<div hidden hx-get="{% url 'pedidos:mis_pedidos_estado' codigo=mesa.codigo %}" hx-trigger="every 5s [!document.hidden], kippu:volver from:document" hx-swap="none"></div>{% endif %}
+{% endblock %}
+
+{% block scripts %}
+{% if consultar_estado %}
+<script>
+    document.addEventListener('visibilitychange', () => {
+        if (!document.hidden) htmx.trigger(document, 'kippu:volver');
+    });
+</script>
+{% endif %}
 {% endblock %}
