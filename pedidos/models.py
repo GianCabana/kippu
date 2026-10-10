@@ -19,6 +19,7 @@ class Pedido(models.Model):
     checkout_clave = models.CharField(max_length=64, unique=True, null=True, blank=True)
     propina = models.DecimalField(max_digits=12, decimal_places=2, default=0)
     mayoria_edad_confirmada = models.BooleanField(default=False)
+    nombre = models.CharField(max_length=30, blank=True, default='')
     creado = models.DateTimeField(auto_now_add=True)
 
     class Meta:

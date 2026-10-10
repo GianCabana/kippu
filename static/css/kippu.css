@@ -843,6 +843,16 @@ a {
   font-size: 11.5px;
   letter-spacing: 0.06em;
 }
+p.tk__nombre {
+  margin: 6px 0 0;
+  color: var(--texto-2);
+  font-size: 14px;
+  overflow-wrap: anywhere;
+}
+.tk__nombre strong {
+  color: var(--tinta);
+  font-weight: 600;
+}
 .tk__corte {
   margin: 14px 0;
   border-top: 1px dashed var(--linea);

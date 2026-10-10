@@ -53,6 +53,8 @@
 .panel .comanda__mesa { margin: 0; font-size: 22px; line-height: 1.2; }
 .comanda__meta { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 8px; margin: 0; padding: 0 15px 10px; color: var(--texto-2); font-family: var(--mono); font-size: 12px; letter-spacing: .03em; }
 .comanda__meta .insignia-18 { vertical-align: 0; }
+.comanda__nombre { margin: 0; padding: 0 15px 6px; color: var(--texto-2); font-size: 15px; overflow-wrap: anywhere; }
+.comanda__nombre strong { color: var(--tinta); font-weight: 600; }
 .comanda .productos { margin: 0; padding: 11px 15px 4px; border-top: 1px solid var(--linea-suave); list-style: none; }
 .comanda .producto { gap: 9px; padding: 0 0 8px; border: 0; color: var(--tinta); font-size: 15px; line-height: 1.4; }
 .comanda .producto .comanda__cantidad { min-width: 26px; }

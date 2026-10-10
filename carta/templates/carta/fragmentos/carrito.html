@@ -56,6 +56,8 @@
                                     <p class="mayoria-nota">Los productos marcados +18 no se entregarán a menores de edad.</p>
                                 </fieldset>
                             {% endif %}
+                            <label class="campo nombre-pedido"><span>¿Para quién es? <small>(opcional)</small></span><input type="text" name="nombre" maxlength="30" autocomplete="off" value="{{ nombre_pedido }}" pattern="[\p{L}\p{M} .'’\-]*" title="Solo letras, espacios, guion, apóstrofe y punto." aria-describedby="nombre-nota"></label>
+                            <p class="nombre-nota" id="nombre-nota">Así cocina sabe a quién entregarlo. Solo letras, sin números ni emojis.</p>
                             <fieldset class="propina-opciones" x-data="{ propina: '' }">
                                 <legend>¿Deseas agregar propina?</legend>
                                 <div class="propina-grilla">

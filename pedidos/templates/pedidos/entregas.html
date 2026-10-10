@@ -31,11 +31,12 @@
         <p class="sr-only" id="anuncio" role="status" aria-live="polite" aria-atomic="true"></p>
         <div class="pedidos" id="lista-entregas" data-panel="kippu-entregas">
             {% for pedido in pedidos %}
-                <article class="pedido comanda" id="pedido-{{ pedido.pk }}" data-estado="{{ pedido.estado }}" data-numero="{{ pedido.pk }}" data-mesa="{{ pedido.mesa.numero }}" data-local="{{ pedido.mesa.local.nombre }}" data-creado="{{ pedido.creado|date:'c' }}" aria-labelledby="mesa-{{ pedido.pk }}">
+                <article class="pedido comanda" id="pedido-{{ pedido.pk }}" data-estado="{{ pedido.estado }}" data-numero="{{ pedido.pk }}" data-mesa="{{ pedido.mesa.numero }}" data-local="{{ pedido.mesa.local.nombre }}" data-nombre="{{ pedido.nombre }}" data-creado="{{ pedido.creado|date:'c' }}" aria-labelledby="mesa-{{ pedido.pk }}">
                     <div class="comanda__cabecera">
                         <h2 class="comanda__mesa" id="mesa-{{ pedido.pk }}">Mesa {{ pedido.mesa.numero }}</h2><span class="comanda__codigo">#{{ pedido.pk }}</span>
                         <span class="tiempo comanda__espera" hidden><span data-tiempo></span></span>
                     </div>
+                    {% if pedido.nombre %}<p class="comanda__nombre">Para <strong>{{ pedido.nombre }}</strong></p>{% endif %}
                     <p class="comanda__meta"><time datetime="{{ pedido.creado|date:'c' }}">{{ pedido.creado|date:"H:i" }}</time><span>· {{ pedido.mesa.local.nombre }}</span>{% for detalle in pedido.detalles.all %}{% if detalle.requiere_mayoria_edad %}{% ifchanged detalle.requiere_mayoria_edad %}<span class="insignia-18" aria-label="Pedido con productos para mayores de 18 años">+18</span>{% endifchanged %}{% endif %}{% endfor %}</p>
                     <ul class="productos">
                         {% for detalle in pedido.detalles.all %}<li class="producto" data-cantidad="{{ detalle.cantidad }}"><span class="comanda__cantidad" aria-label="{{ detalle.cantidad }} unidades">{{ detalle.cantidad }}×</span><span class="nombre-producto">{{ detalle.nombre_producto }}{% if detalle.requiere_mayoria_edad %} <span class="insignia-18" aria-label="Producto para mayores de 18 años">+18</span><small class="aviso-edad"><svg class="icono" aria-hidden="true"><use href="#i-id"/></svg>Solicitar identificación antes de entregar</small>{% endif %}{% if detalle.opciones %}<small class="opciones-pedido">{% for opcion in detalle.opciones %}{{ opcion.grupo }}: {{ opcion.nombre }}{% if not forloop.last %} · {% endif %}{% endfor %}</small>{% endif %}</span></li>{% endfor %}
@@ -98,7 +99,7 @@
                 const consulta = normalizar(buscar.value);
                 let visibles = 0;
                 todas.forEach(tarjeta => {
-                    const texto = normalizar('local ' + tarjeta.dataset.local + ' mesa ' + tarjeta.dataset.mesa + ' pedido #' + tarjeta.dataset.numero + ' ' + tarjeta.querySelector('.productos').textContent);
+                    const texto = normalizar('local ' + tarjeta.dataset.local + ' mesa ' + tarjeta.dataset.mesa + ' pedido #' + tarjeta.dataset.numero + ' ' + tarjeta.dataset.nombre + ' ' + tarjeta.querySelector('.productos').textContent);
                     const coincide = texto.includes(consulta);
                     tarjeta.hidden = !coincide;
                     if (coincide) visibles++;

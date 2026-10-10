@@ -19,6 +19,7 @@
         <span id="sello-{{ pedido.pk }}">{% include "pedidos/fragmentos/sello_pedido.html" %}</span>
     </div>
     <p class="tk__ref">PEDIDO #{{ pedido.pk }} · MESA {{ mesa.numero }} · {{ pedido.creado|date:"d/m H:i" }}</p>
+    {% if pedido.nombre %}<p class="tk__nombre">Para <strong>{{ pedido.nombre }}</strong></p>{% endif %}
     <div class="tk__corte"></div>
     {% for detalle in pedido.detalles.all %}
     <div class="tk__linea">
@@ -42,7 +43,7 @@
 {% else %}
 {% if forloop.counter == 2 %}<p class="tk-subtitulo">Pedidos anteriores</p>{% endif %}
 <article class="tk tk--corto">
-    <div class="tk__cabeza"><span class="cifra">#{{ pedido.pk }} · {{ pedido.creado|date:"H:i" }}</span><span id="sello-{{ pedido.pk }}">{% include "pedidos/fragmentos/sello_pedido.html" %}</span></div>
+    <div class="tk__cabeza"><span class="cifra">#{{ pedido.pk }} · {{ pedido.creado|date:"H:i" }}{% if pedido.nombre %} · <span class="tk__nombre">{{ pedido.nombre }}</span>{% endif %}</span><span id="sello-{{ pedido.pk }}">{% include "pedidos/fragmentos/sello_pedido.html" %}</span></div>
     {% for detalle in pedido.detalles.all %}
     <div class="tk__linea"><span>{{ detalle.cantidad }} × {{ detalle.nombre_producto }}</span><span class="cifra">${{ detalle.subtotal|floatformat:"0g" }}</span></div>
     {% endfor %}

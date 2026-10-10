@@ -5,6 +5,7 @@ para que dos retornos no confirmen ni registren el mismo pago simultáneamente.
 """
 import hashlib
 import json
+import unicodedata
 import uuid
 from datetime import timedelta
 from transbank.common.integration_type import IntegrationType
@@ -126,6 +127,34 @@ def calcular_propina(subtotal, opcion):
     )
 
 
+SIGNOS_NOMBRE = " -.'’"
+
+
+def _caracter_de_nombre(caracter):
+    if caracter.isspace():
+        return ' '
+    # Controles e invisibles (ancho cero, cambio de dirección) se quitan sin dejar hueco.
+    if unicodedata.category(caracter).startswith('C'):
+        return ''
+    return caracter if caracter.isalpha() or caracter in SIGNOS_NOMBRE else ' '
+
+
+def limpiar_nombre(valor):
+    """Nombre opcional del pedido: solo letras (con tildes) y - . ' ; nunca bloquea el pago."""
+    largo = Pedido._meta.get_field('nombre').max_length
+    texto = unicodedata.normalize('NFC', valor or '')
+    texto = ' '.join(''.join(map(_caracter_de_nombre, texto)).split())[:largo].strip()
+    return texto if any(caracter.isalpha() for caracter in texto) else ''
+
+
+def recordar_nombre(request):
+    request.session['nombre_pedido'] = limpiar_nombre(request.POST.get('nombre'))
+
+
+def nombre_recordado(request):
+    return request.session.get('nombre_pedido', '')
+
+
 def _bloquear_cuenta(cuenta_id):
     mesa_id = Cuenta.objects.values_list('mesa_id', flat=True).get(pk=cuenta_id)
     Mesa.objects.select_for_update().get(pk=mesa_id)
@@ -198,6 +227,7 @@ def crear_intento_cliente(request, codigo, return_url):
         if subtotal <= 0 or subtotal != subtotal.to_integral_value():
             raise ErrorPago('El total debe ser positivo y estar expresado en pesos enteros.')
         propina = calcular_propina(subtotal, request.POST.get('propina'))
+        nombre = limpiar_nombre(request.POST.get('nombre'))
         total = subtotal + propina
         cuenta, _ = Cuenta.objects.get_or_create(mesa=mesa, estado=Cuenta.Estado.ABIERTA)
         if cuenta.intentos_webpay.filter(pedido__isnull=True, estado__in=ESTADOS_ACTIVOS).exists():
@@ -209,7 +239,7 @@ def crear_intento_cliente(request, codigo, return_url):
                 estado=Pedido.Estado.SIN_PAGAR, pago__isnull=True).update(estado=Pedido.Estado.CANCELADO)
             pedido = Pedido.objects.create(mesa=mesa, cuenta=cuenta,
                 cliente_clave=cliente_clave(request), checkout_clave=clave,
-                propina=propina,
+                propina=propina, nombre=nombre,
                 mayoria_edad_confirmada=(
                     requiere_mayoria_edad and mayoria_edad_confirmada
                 ))
@@ -242,7 +272,8 @@ def crear_intento_cliente(request, codigo, return_url):
             confirmacion = requiere_mayoria_edad and mayoria_edad_confirmada
             if pedido.mayoria_edad_confirmada != confirmacion:
                 pedido.mayoria_edad_confirmada = confirmacion
-            pedido.save(update_fields=['propina', 'mayoria_edad_confirmada'])
+            pedido.nombre = nombre
+            pedido.save(update_fields=['propina', 'mayoria_edad_confirmada', 'nombre'])
         lineas, subtotal_guardado = detalle_pedido(pedido)
         if subtotal_guardado != subtotal:
             raise ErrorPago('El subtotal del pedido cambió. Actualiza el carrito antes de pagar.')

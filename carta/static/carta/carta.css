@@ -132,7 +132,9 @@ dialog { color: var(--texto); }
 .mayoria-opciones legend, .propina-opciones legend { margin-bottom: 8px; padding: 0; color: var(--texto-2); font-family: var(--mono); font-size: 11.5px; letter-spacing: .12em; text-transform: uppercase; }
 .mayoria-eleccion { display: flex; align-items: flex-start; gap: 10px; min-height: 44px; padding: 11px 13px; border: 1px solid var(--aji); border-radius: 10px; background: var(--aji-suave); color: var(--texto); font-size: 13px; line-height: 1.4; cursor: pointer; }
 .mayoria-eleccion strong { color: var(--tinta); }
-.mayoria-nota, .propina-nota { margin: 8px 0 0; color: var(--texto-2); font-size: 12px; line-height: 1.45; }
+.nombre-pedido { margin: 14px 0 0; }
+.nombre-pedido small { color: var(--texto-2); font-size: 12.5px; font-weight: 400; }
+.mayoria-nota, .propina-nota, .nombre-nota { margin: 8px 0 0; color: var(--texto-2); font-size: 12px; line-height: 1.45; }
 .propina-grilla { display: grid; grid-template-columns: 1fr 1fr; gap: 9px; }
 .propina-eleccion { display: flex; align-items: flex-start; gap: 9px; min-height: 44px; padding: 11px 12px; border: 1px solid var(--linea); border-radius: 10px; color: var(--texto-2); font-size: 12.5px; line-height: 1.35; cursor: pointer; }
 .propina-eleccion strong { display: block; margin-bottom: 2px; color: var(--tinta); font-size: 14px; font-weight: 600; }
