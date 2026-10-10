@@ -24,7 +24,13 @@ p { margin-top: 0; }
 .carta-cabecera .etiqueta { margin: 16px 0 6px; font-size: 11.5px; }
 .carta-cabecera h1 { overflow-wrap: anywhere; }
 .carta-mesa { display: inline-flex; align-items: center; min-height: 30px; margin-top: 14px; padding: 4px 12px; border: 1px solid var(--linea); border-radius: 999px; color: var(--texto-2); font-family: var(--mono); font-size: 12px; letter-spacing: .08em; text-transform: uppercase; }
-.carta-cabecera__texto { margin: 10px 0 0; color: var(--texto-2); }
+.sin-qr { margin-top: 18px; padding: 22px 20px; border-radius: var(--radio-tarjeta); background: var(--superficie); }
+.sin-qr__icono { display: grid; place-items: center; width: 64px; height: 64px; margin-bottom: 16px; border: 1px solid var(--linea); border-radius: 50%; background: var(--papel); color: var(--aji); }
+.sin-qr__icono .icono { width: 30px; height: 30px; }
+.sin-qr__titulo { margin-bottom: 12px; font-size: 21px; }
+.sin-qr__pasos { margin: 0; padding-left: 20px; color: var(--tinta); line-height: 1.6; }
+.sin-qr__pasos li + li { margin-top: 4px; }
+.sin-qr__nota { margin: 14px 0 0; color: var(--texto-2); font-size: 13.5px; }
 
 /* ---------- Búsqueda y categorías ---------- */
 
