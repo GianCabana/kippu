@@ -9,6 +9,7 @@ class Local(models.Model):
     nombre = models.CharField(max_length=120, unique=True)
     slug = models.SlugField(max_length=120, unique=True)
     activo = models.BooleanField(default=True)
+    recibe_pedidos = models.BooleanField("recibe pedidos por QR", default=True)
     creado = models.DateTimeField(auto_now_add=True)
 
     class Meta:

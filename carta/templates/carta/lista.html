@@ -59,6 +59,15 @@
     </header>
 
     <div class="contenedor carta-cuerpo">
+        {% if mesa and not mesa.local.recibe_pedidos %}
+            <section class="servicio-cerrado" role="status" aria-labelledby="servicio-cerrado-titulo">
+                <svg class="icono" aria-hidden="true"><use href="#i-info"/></svg>
+                <div>
+                    <h2 class="servicio-cerrado__titulo" id="servicio-cerrado-titulo">Pedidos cerrados por ahora</h2>
+                    <p>Puedes mirar la carta. Para pedir, consulta al personal.</p>
+                </div>
+            </section>
+        {% endif %}
         <div class="mensaje mensaje--error" x-show="error" x-cloak role="alert"><span x-text="error"></span> <a href="">Actualizar la carta</a></div>
         {% if messages %}
             <div class="mensajes" aria-live="polite">
@@ -92,7 +101,7 @@
                                 {% if producto.requiere_mayoria_edad %}<p class="aviso-18">Venta exclusiva para mayores de 18 años.</p>{% endif %}
                                 <p class="precio producto__precio"><span data-pesos="{{ producto.precio|floatformat:'0u' }}" data-precio-base="{{ producto.precio|floatformat:'0u' }}">${{ producto.precio|floatformat:"0g" }}</span></p>
                             </div>
-                            {% if mesa %}{% with grupos_producto=producto.grupos_opciones.all %}
+                            {% if mesa.local.recibe_pedidos %}{% with grupos_producto=producto.grupos_opciones.all %}
                                 {% if grupos_producto %}
                                     <details class="producto__opciones">
                                         <summary class="boton-agregar" aria-label="Elegir opciones de {{ producto.nombre }}"><svg class="icono" aria-hidden="true"><use href="#i-mas"/></svg></summary>

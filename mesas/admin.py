@@ -13,8 +13,8 @@ from .models import Local, Mesa
 
 @admin.register(Local)
 class LocalAdmin(admin.ModelAdmin):
-    list_display = ("nombre", "slug", "activo", "cantidad_mesas")
-    list_filter = ("activo",)
+    list_display = ("nombre", "slug", "activo", "recibe_pedidos", "cantidad_mesas")
+    list_filter = ("activo", "recibe_pedidos")
     search_fields = ("nombre", "slug")
     prepopulated_fields = {"slug": ("nombre",)}
 

@@ -25,11 +25,13 @@
                                             <button :disabled="ocupado || pagando || !!error" id="quitar-{{ item.producto.pk }}" type="submit" aria-label="Quitar una unidad de {{ item.producto.nombre }}">−</button>
                                         </form>
                                         <span>{{ item.cantidad }}</span>
+                                        {% if mesa.local.recibe_pedidos %}
                                         <form method="post" action="{% url 'pedidos:agregar' codigo=mesa.codigo producto_id=item.producto.pk %}" data-carrito-form hx-post="{% url 'pedidos:agregar' codigo=mesa.codigo producto_id=item.producto.pk %}" hx-target="#carrito-datos" hx-swap="innerHTML" hx-sync="#carta-app:drop">
                                             {% csrf_token %}
                                             {% for opcion_id in item.opcion_ids %}<input type="hidden" name="opcion" value="{{ opcion_id }}">{% endfor %}
                                             <button :disabled="ocupado || pagando || !!error" id="sumar-{{ item.producto.pk }}" type="submit" aria-label="Agregar una unidad de {{ item.producto.nombre }}">+</button>
                                         </form>
+                                        {% endif %}
                                     </div>
                                 </div>
                                 <p class="subtotal" data-pesos="{{ item.subtotal|floatformat:'0u' }}">${{ item.subtotal|floatformat:"0g" }}</p>
@@ -47,6 +49,7 @@
                 {% if detalle_carrito %}
                     <div class="carrito-resumen">
                         <div class="total"><span>Subtotal</span><span class="total__valor" data-pesos="{{ total_carrito|floatformat:'0u' }}">${{ total_carrito|floatformat:"0g" }}</span></div>
+                        {% if mesa.local.recibe_pedidos %}
                         <form method="post" action="{% url 'pedidos:webpay_cliente' codigo=mesa.codigo %}" id="enviar-pedido" hx-boost="false" @submit="iniciarPago($event)">
                             {% csrf_token %}
                             {% if requiere_mayoria_edad %}
@@ -74,6 +77,9 @@
                             <button class="boton boton--bloque enviar" :disabled="ocupado || pagando || !!error" type="submit"><span x-text="pagando ? 'Preparando pago…' : 'Pagar con Webpay'">Pagar con Webpay</span><svg class="icono" aria-hidden="true"><use href="#i-flecha"/></svg></button>
                             <p class="nota-pedido">Tu pedido llega a cocina cuando Webpay confirme el pago.</p>
                         </form>
+                        {% else %}
+                        <p class="servicio-cerrado servicio-cerrado--carrito" role="status"><strong class="servicio-cerrado__titulo">Pedidos cerrados por ahora</strong> Tu carrito se guarda, pero no se puede pagar. Para pedir, consulta al personal.</p>
+                        {% endif %}
                         <button class="seguir" type="button" @click="cerrarCarrito()">Seguir explorando</button>
                     </div>
                 {% endif %}
