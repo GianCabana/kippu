@@ -5,7 +5,7 @@ from django.db.models import Prefetch
 from mesas.models import Mesa
 from pedidos.carrito import Carrito
 from pedidos.cierre import cerrar_si_inactiva
-from pedidos.pagos import calcular_propina, sincronizar_carrito
+from pedidos.pagos import calcular_propina, nombre_recordado, sincronizar_carrito
 
 from .models import GrupoOpcion, OpcionProducto, Producto
 
@@ -69,4 +69,5 @@ def lista_carta(request, codigo=None):
         "propina_10": propina_10,
         "total_con_propina": total_carrito + propina_10,
         "requiere_mayoria_edad": requiere_mayoria_edad,
+        "nombre_pedido": nombre_recordado(request),
     })

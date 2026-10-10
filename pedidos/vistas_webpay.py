@@ -17,7 +17,7 @@ from django.views.decorators.http import require_GET, require_POST, require_http
 
 from .models import Cuenta, IntentoWebpay, Pago, Pedido
 from mesas.models import Mesa
-from .pagos import ErrorPago, ESTADOS_ACTIVOS, cliente_clave, crear_intento_cliente, resolver_intento, sincronizar_carrito, reintentar_pago, consumir_formulario
+from .pagos import ErrorPago, ESTADOS_ACTIVOS, cliente_clave, crear_intento_cliente, resolver_intento, sincronizar_carrito, reintentar_pago, consumir_formulario, recordar_nombre
 
 SALT = "kippu-comprobante-demo-v1"
 
@@ -73,6 +73,8 @@ def iniciar_cliente(request, codigo):
     parsed = urlsplit(return_url)
     if parsed.scheme not in ('http', 'https') or not parsed.hostname or parsed.username or parsed.password:
         return HttpResponseBadRequest('Configura una URL de retorno válida.')
+    # Se recuerda antes de validar el pago, para no perderlo si falta algo (+18, propina).
+    recordar_nombre(request)
     try:
         intento, nuevo = crear_intento_cliente(request, codigo, return_url)
     except ErrorPago as exc:
