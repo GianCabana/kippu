@@ -21,11 +21,13 @@ class Local(models.Model):
 
 
 def local_principal_pk():
-    local, _ = Local.objects.get_or_create(
-        slug="kippu-principal",
-        defaults={"nombre": "Kippu Principal", "activo": True},
-    )
-    return local.pk
+    # La migración 0002 la llama con columnas de Local que aún no existen: leer solo el pk.
+    pk = Local.objects.filter(slug="kippu-principal").values_list("pk", flat=True).first()
+    if pk is None:
+        pk = Local.objects.create(
+            slug="kippu-principal", nombre="Kippu Principal", activo=True
+        ).pk
+    return pk
 
 
 class Mesa(models.Model):
