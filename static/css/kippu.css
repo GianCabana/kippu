@@ -332,6 +332,47 @@ a {
   cursor: pointer;
 }
 
+/* Foto del producto. Sin imagen, o si no carga (onerror), queda el respaldo con el nombre. */
+.foto-producto {
+  position: relative;
+  margin: 0;
+  overflow: hidden;
+  aspect-ratio: 4 / 3;
+  border-radius: var(--radio);
+  background: var(--superficie-2);
+}
+.foto-producto img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.foto-producto__respaldo {
+  display: none;
+  position: absolute;
+  inset: 0;
+  place-content: center;
+  gap: 4px;
+  padding: 12px;
+  text-align: center;
+}
+.foto-producto__respaldo strong {
+  color: var(--tinta);
+  font-family: var(--serif);
+  font-size: 17px;
+  font-weight: 600;
+  line-height: 1.2;
+  overflow-wrap: anywhere;
+}
+.foto-producto__respaldo span {
+  color: var(--texto-2);
+  font-family: var(--mono);
+  font-size: 12px;
+  letter-spacing: 0.06em;
+}
+.foto-producto--respaldo img { display: none; }
+.foto-producto--respaldo .foto-producto__respaldo { display: grid; }
+
 /* ---------- Totales ---------- */
 
 .total {

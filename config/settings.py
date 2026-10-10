@@ -134,6 +134,10 @@ FORMAT_MODULE_PATH = 'config.formats'
 STATIC_URL = 'static/'
 STATICFILES_DIRS = [BASE_DIR / 'static']
 
+# Imágenes que suben los locales. Nunca van a Git (.gitignore); en producción irán a otro almacenamiento.
+MEDIA_URL = 'media/'
+MEDIA_ROOT = BASE_DIR / 'media'
+
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field
 

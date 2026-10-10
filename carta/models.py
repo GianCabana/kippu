@@ -1,5 +1,18 @@
-from django.core.validators import MaxValueValidator, MinValueValidator
+from django.core.exceptions import ValidationError
+from django.core.validators import FileExtensionValidator, MaxValueValidator, MinValueValidator
 from django.db import models
+
+PESO_MAXIMO_IMAGEN = 2 * 1024 * 1024
+
+
+def ruta_imagen_producto(producto, archivo):
+    # Una carpeta por local. La migración 0005 usa este nombre: no renombrarla.
+    return f"productos/{producto.categoria.local.slug}/{archivo}"
+
+
+def validar_peso_imagen(archivo):
+    if archivo.size > PESO_MAXIMO_IMAGEN:
+        raise ValidationError("La imagen no puede pesar más de 2 MB.")
 
 
 def local_principal_pk():
@@ -53,6 +66,13 @@ class Producto(models.Model):
         "requiere mayoría de edad",
         default=False,
         help_text="Marca esta opción para alcohol u otros productos exclusivos para mayores de 18 años.",
+    )
+    imagen = models.ImageField(
+        "imagen",
+        upload_to=ruta_imagen_producto,
+        blank=True,
+        validators=[FileExtensionValidator(["jpg", "jpeg", "png", "webp"]), validar_peso_imagen],
+        help_text="JPG, PNG o WebP de hasta 2 MB. Ideal: WebP de unos 800 px de ancho.",
     )
 
     class Meta:
