@@ -4,6 +4,7 @@ from django.db.models import Prefetch
 
 from mesas.models import Mesa
 from pedidos.carrito import Carrito
+from pedidos.cierre import cerrar_si_inactiva
 from pedidos.pagos import calcular_propina, sincronizar_carrito
 
 from .models import GrupoOpcion, OpcionProducto, Producto
@@ -25,6 +26,7 @@ def lista_carta(request, codigo=None):
             activa=True,
             local__activo=True,
         )
+        cerrar_si_inactiva(mesa)
         sincronizar_carrito(request, mesa)
         carrito = Carrito(request, mesa)
         detalle_carrito, total_carrito = carrito.obtener_detalle()

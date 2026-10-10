@@ -1,9 +1,14 @@
 """Cierre de una visita. No cobra, reembolsa ni desactiva el QR de la mesa."""
+from datetime import timedelta
 from decimal import Decimal
 from django.db import transaction
+from django.db.models import Max
 from django.utils import timezone
 from .models import Cuenta, Pedido, Pago, IntentoWebpay
 from .pagos import ESTADOS_ACTIVOS, ErrorPago, _bloquear_cuenta, detalle_pedido
+
+# D-09.3: una cuenta sin nada pendiente se cierra sola tras este tiempo sin actividad.
+INACTIVIDAD_PARA_CIERRE = timedelta(hours=1)
 
 
 def revisar_cierre(cuenta):
@@ -69,3 +74,36 @@ def cerrar_cuenta(cuenta_id):
         cuenta.cerrada = timezone.now()
         cuenta.save(update_fields=['estado','cerrada'])
         return cuenta, True
+
+
+def ultima_actividad(cuenta):
+    """Lo más reciente que se sabe de la visita. Sin CambioEstado no se conoce la hora de entrega."""
+    fechas = [
+        cuenta.creada,
+        cuenta.pedidos.aggregate(f=Max('creado'))['f'],
+        cuenta.pagos.aggregate(f=Max('creado'))['f'],
+        cuenta.intentos_webpay.aggregate(f=Max('actualizado'))['f'],
+    ]
+    return max(f for f in fechas if f is not None)
+
+
+def _inactiva(cuenta, ahora):
+    return ahora - ultima_actividad(cuenta) >= INACTIVIDAD_PARA_CIERRE
+
+
+def cerrar_si_inactiva(mesa, ahora=None):
+    """Cierre perezoso al abrir la carta: sin tareas programadas. Devuelve la cuenta si la cerró."""
+    ahora = ahora or timezone.now()
+    cuenta = Cuenta.objects.filter(mesa=mesa, estado=Cuenta.Estado.ABIERTA).first()
+    if cuenta is None or not _inactiva(cuenta, ahora):
+        return None
+    with transaction.atomic():
+        cuenta = _bloquear_cuenta(cuenta.pk)
+        # Se vuelve a mirar con el bloqueo puesto: un pago que empezó recién gana.
+        if cuenta.estado != Cuenta.Estado.ABIERTA or not _inactiva(cuenta, ahora):
+            return None
+        try:
+            cuenta, cerrada = cerrar_cuenta(cuenta.pk)
+        except ErrorPago:
+            return None
+    return cuenta if cerrada else None
