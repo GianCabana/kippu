@@ -8,7 +8,8 @@ Fuente: cuaderno de obra §5-ter (La Casa Causa). Supuestos acordados con Sebast
 
 Idempotente: usa get_or_create y no pisa cambios hechos en el admin. Las imágenes de semilla van en
 carta/semillas/imagenes/<slug-del-local>/<slug-del-producto>.webp (también .jpg, .jpeg o .png) y se
-copian al almacenamiento de media solo si el producto no tiene imagen.
+copian al almacenamiento de media solo si el producto no tiene imagen. Las descripciones se cargan
+solo si el producto no tiene una.
 
 Uso: python manage.py cargar_casa_causa
 """
@@ -82,6 +83,22 @@ CARTA_CASA_CAUSA = [
     ]),
 ]
 
+# Textos de claude/imagenes-carta.md (Cowork, 13 oct), los mismos 12 productos con foto.
+DESCRIPCIONES = {
+    "Causa limeña clásica": "Masa fría de papa amarilla sazonada con ají amarillo y limón, rellena de pollo con mayonesa y palta. Con huevo duro y aceituna de botija.",
+    "Anticuchos de corazón (2 palitos)": "Dos brochetas de corazón de res marinado en ají panca y asado a la parrilla. Con papa dorada, choclo y crema de rocoto.",
+    "Ceviche clásico": "Pescado blanco marinado en limón, con cebolla morada, cilantro y ají limo. Con camote glaseado, choclo y cancha.",
+    "Pulpo al olivo": "Láminas finas de pulpo bañadas en crema de aceituna de botija, con aceite de oliva, aceitunas y tostadas.",
+    "Lomo saltado": "Tiras de lomo salteadas al wok con cebolla morada, tomate, ají amarillo y sillao, con papas fritas.",
+    "Ají de gallina": "Pollo deshilachado en crema de ají amarillo, pan, leche y nueces, sobre papa amarilla. Con huevo duro y aceituna de botija.",
+    "Pescado a lo macho": "Filete de pescado frito bañado en salsa cremosa y picante de mariscos (camarones, calamar, choritos y pulpo) con ají panca y ají amarillo.",
+    "Arroz con mariscos": "Arroz meloso al ají panca y ají amarillo con camarones, calamar, choritos y conchas, con arvejas y pimentón. Con salsa criolla.",
+    "Suspiro limeño": "Manjar blanco cremoso cubierto con merengue al oporto y un toque de canela.",
+    "Picarones (6 u.)": "Seis anillos fritos de masa de zapallo y camote, con miel de chancaca especiada con canela y naranja.",
+    "Pisco sour": "Pisco, jugo de limón, jarabe de goma y clara de huevo, batido y servido con gotas de amargo de angostura.",
+    "Chicha morada": "Bebida de maíz morado hervido con piña, manzana, canela y clavo de olor, con un toque de limón. Sin alcohol.",
+}
+
 CARTA_PRUEBA_2 = [
     ("Prueba", [
         ("Producto de prueba 1", 1000, True, False, []),
@@ -111,6 +128,10 @@ def sembrar_local(nombre, slug, cantidad_mesas, carta):
                     "requiere_mayoria_edad": mayoria_edad,
                 },
             )
+            descripcion = DESCRIPCIONES.get(nombre_producto, "")
+            if descripcion and not producto.descripcion:
+                producto.descripcion = descripcion
+                producto.save(update_fields=["descripcion"])
             for orden_grupo, (nombre_grupo, requerido, multiple, maximo, opciones) in enumerate(grupos):
                 grupo, _ = GrupoOpcion.objects.get_or_create(
                     producto=producto,
@@ -170,7 +191,8 @@ class Command(BaseCommand):
                 f"{OpcionProducto.objects.filter(grupo__producto__in=productos).count()} opciones, "
                 f"{productos.filter(disponible=False).count()} no disponibles, "
                 f"{productos.filter(requiere_mayoria_edad=True).count()} +18, "
-                f"{productos.exclude(imagen='').count()} con imagen"
+                f"{productos.exclude(imagen='').count()} con imagen, "
+                f"{productos.exclude(descripcion='').count()} con descripción"
             )
         self.stdout.write(self.estado_local_principal())
         self.stdout.write(f"Locales en total: {Local.objects.count()}")

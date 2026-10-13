@@ -7,7 +7,8 @@ from pathlib import Path
 from unittest.mock import patch
 
 from django.core.management import call_command
-from django.test import TestCase, override_settings
+from django.test import SimpleTestCase, TestCase, override_settings
+from django.utils.text import slugify
 from PIL import Image
 
 from carta.models import Categoria, Producto
@@ -126,3 +127,42 @@ class CargarCasaCausaTests(TestCase):
         cau_cau = Producto.objects.get(nombre="Cau cau")
         self.assertEqual((cau_cau.precio, cau_cau.disponible), (9990, False))
         self.assertFalse(Categoria.objects.get(nombre="Postres").activa)
+
+    def test_carga_las_descripciones_de_la_siembra(self):
+        self.cargar()
+
+        con_descripcion = Producto.objects.filter(categoria__local__slug="la-casa-causa").exclude(descripcion="")
+        self.assertEqual(con_descripcion.count(), 12)
+        self.assertTrue(
+            Producto.objects.get(nombre="Pisco sour").descripcion.startswith("Pisco, jugo de limón, jarabe de goma")
+        )
+        self.assertEqual(Producto.objects.get(nombre="Cau cau").descripcion, "")
+
+    def test_no_pisa_una_descripcion_escrita_en_el_admin(self):
+        self.cargar()
+        Producto.objects.filter(nombre="Lomo saltado").update(descripcion="La receta de la casa.")
+
+        self.cargar()
+
+        self.assertEqual(Producto.objects.get(nombre="Lomo saltado").descripcion, "La receta de la casa.")
+
+    def test_las_descripciones_no_cambian_al_correrlo_dos_veces(self):
+        self.cargar()
+        primera = dict(Producto.objects.values_list("pk", "descripcion"))
+
+        self.cargar()
+
+        self.assertEqual(dict(Producto.objects.values_list("pk", "descripcion")), primera)
+
+
+class SemillasDelRepoTests(SimpleTestCase):
+    def test_cada_foto_de_semilla_calza_con_un_producto(self):
+        from carta.management.commands import cargar_casa_causa as comando
+
+        nombres = {slugify(nombre) for _, productos in comando.CARTA_CASA_CAUSA for nombre, *_ in productos}
+        fotos = sorted((comando.DIRECTORIO_SEMILLAS / "la-casa-causa").glob("*.webp"))
+
+        self.assertEqual(len(fotos), 12)
+        for foto in fotos:
+            with self.subTest(foto=foto.name):
+                self.assertIn(foto.stem, nombres)
