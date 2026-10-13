@@ -15,6 +15,52 @@
 </ul>
 {% endif %}
 
+<h2>Por cobrar</h2>
+<div class="caja-grilla">
+    {% for pedido in por_cobrar %}
+    <article class="caja-mesa caja-cobro" x-data="{ metodo: '', etiqueta: '', cancelando: false }" :class="(metodo || cancelando) && 'caja-mesa--confirmando'">
+        <div class="caja-mesa__cabeza">
+            <div><h3 class="caja-mesa__numero">Mesa {{ pedido.mesa.numero }}</h3><p class="caja-mesa__local">{{ pedido.mesa.local.nombre }}</p></div>
+            <span class="chip chip--ambar">Por pagar en caja</span>
+        </div>
+        <p class="caja-sub">Pedido #{{ pedido.pk }} · <span class="cifra">{{ pedido.creado|date:"H:i" }}</span>{% if pedido.nombre %} · Para <strong>{{ pedido.nombre }}</strong>{% endif %}{% if pedido.mayoria_edad_confirmada %} <span class="insignia-18" aria-label="Pedido con productos para mayores de 18 años">+18</span>{% endif %}<br>
+        {% for detalle in pedido.detalles.all %}{{ detalle.cantidad }} × {{ detalle.nombre_producto }}{% if detalle.opciones %} ({% for opcion in detalle.opciones %}{{ opcion.nombre }}{% if not forloop.last %}, {% endif %}{% endfor %}){% endif %}{% if not forloop.last %} · {% endif %}{% endfor %}</p>
+        <div class="caja-mesa__datos">
+            <span>{% if pedido.propina %}Incluye propina ${{ pedido.propina|floatformat:"0g" }}{% else %}Sin propina{% endif %}</span>
+            <span class="caja-mesa__monto">${{ pedido.total_con_propina|floatformat:"0g" }}</span>
+        </div>
+        <div class="caja-mesa__confirmar" x-show="!metodo && !cancelando">
+            <p>Cobrado con:</p>
+            <div class="acciones">
+                <button class="boton" type="button" @click="metodo = 'efectivo'; etiqueta = 'en efectivo'">Efectivo</button>
+                <button class="boton" type="button" @click="metodo = 'debito'; etiqueta = 'con débito'">Débito</button>
+                <button class="boton" type="button" @click="metodo = 'credito'; etiqueta = 'con crédito'">Crédito</button>
+            </div>
+        </div>
+        <button class="boton boton--bloque boton--fantasma" type="button" x-show="!metodo && !cancelando" @click="cancelando = true">Cancelar pedido</button>
+        <form class="caja-mesa__confirmar" method="post" action="{% url 'pedidos:cobrar_presencial' pedido_id=pedido.pk %}" x-show="metodo" x-cloak>
+            {% csrf_token %}
+            <input type="hidden" name="metodo" :value="metodo">
+            <p>¿Cobraste <strong>${{ pedido.total_con_propina|floatformat:"0g" }}</strong> <span x-text="etiqueta"></span> del pedido #{{ pedido.pk }}? Pasará a cocina.</p>
+            <div class="acciones">
+                <button class="boton boton--fantasma" type="button" @click="metodo = ''">Volver</button>
+                <button class="boton" type="submit">Sí, cobrado</button>
+            </div>
+        </form>
+        <form class="caja-mesa__confirmar" method="post" action="{% url 'pedidos:cancelar_presencial' pedido_id=pedido.pk %}" x-show="cancelando" x-cloak>
+            {% csrf_token %}
+            <p>¿Cancelar el pedido #{{ pedido.pk }}? No pasará a cocina y el cliente tendrá que pedir de nuevo.</p>
+            <div class="acciones">
+                <button class="boton boton--fantasma" type="button" @click="cancelando = false">Volver</button>
+                <button class="boton" type="submit">Sí, cancelar</button>
+            </div>
+        </form>
+    </article>
+    {% empty %}
+    <p class="caja-vacio">No hay pedidos esperando pago en caja.</p>
+    {% endfor %}
+</div>
+
 <h2>Pedidos por QR</h2>
 <div class="caja-grilla">
     {% for local in locales %}

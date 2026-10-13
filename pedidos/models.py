@@ -7,6 +7,7 @@ class Pedido(models.Model):
 
     class Estado(models.TextChoices):
         SIN_PAGAR = ('sin_pagar', 'Pendiente de pago')
+        POR_COBRAR = ('por_cobrar', 'Por pagar en caja')
         PENDIENTE = ('pendiente', 'Pendiente')
         EN_PREPARACION = ('en_preparacion', 'En preparación')
         LISTO = ('listo', 'Listo')

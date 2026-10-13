@@ -708,6 +708,7 @@ a {
   padding: 10px 12px;
   font-size: 15px;
 }
+.caja-cobro .caja-mesa__confirmar .boton { min-height: 44px; }
 .caja-lista {
   overflow: hidden;
   border: 1px solid var(--linea);
@@ -1022,6 +1023,30 @@ p.tk__nombre {
   color: rgba(251, 247, 240, 0.7);
   font-size: 12px;
 }
+.tk-caja {
+  margin: 20px 0 0;
+  padding: 16px;
+  border: 1px solid var(--aji-claro);
+  border-radius: var(--radio-tarjeta);
+}
+.tk-caja__titulo {
+  margin: 0 0 6px;
+  color: var(--papel);
+  font-size: 16px;
+  font-weight: 600;
+}
+.tk-caja__texto {
+  margin: 0 0 14px;
+  color: rgba(251, 247, 240, 0.8);
+  font-size: 13px;
+  line-height: 1.5;
+}
+.tk-caja .boton { min-height: 44px; }
+.tk-caja__acciones {
+  display: flex;
+  gap: 8px;
+}
+.tk-caja__acciones .boton { flex: 1; }
 .tk-aviso18 {
   margin: 2px 0 0;
   color: #e8a594;

@@ -190,6 +190,7 @@ dialog { color: var(--texto); }
 .propina-opciones .total--final { margin-top: 12px; margin-bottom: 0; }
 .propina-opciones .total__valor { font-weight: 500; }
 .enviar { margin-top: 14px; }
+.enviar--caja { margin-top: 10px; }
 .enviar .icono { width: 18px; height: 18px; }
 .nota-pedido { margin: 10px 0 0; color: var(--texto-2); font-size: 12px; text-align: center; }
 .seguir { display: block; width: 100%; min-height: 44px; margin-top: 2px; border: none; background: transparent; color: var(--texto-2); font-size: 13px; }
