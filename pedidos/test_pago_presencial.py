@@ -408,6 +408,8 @@ class MisPedidosPorCobrarTests(PagoPresencialBase):
 
         self.assertEqual(respuesta.status_code, 200)
         self.assertContains(respuesta, "Por pagar en caja")
+        # Reemplazar el bloque cada 5 s borraría la confirmación de "Cancelar" a medio tocar.
+        self.assertNotContains(respuesta, 'id="vivo-')
 
     def test_fragmento_muestra_en_cola_al_cobrar(self):
         pedido = self.pedido()
