@@ -8,7 +8,8 @@
 <meta name="theme-color" content="#fbf7f0">
 <link rel="stylesheet" href="{% static 'carta/carta.css' %}">
 {% endblock %}
-{% block scripts_cabeza %}<script defer src="{% static 'carta/carta.js' %}"></script>{% endblock %}
+{% block scripts_cabeza %}<script defer src="{% static 'carta/carta.js' %}"></script>
+<script defer src="{% static 'carta/detalle.js' %}"></script>{% endblock %}
 {% block contenido %}
 <div id="carta-app" x-data="cartaKippu"
      @kippu-inicio.window="ocupado = true"
@@ -93,19 +94,40 @@
             <section class="categoria-seccion" id="categoria-{{ forloop.counter }}" aria-labelledby="categoria-titulo-{{ forloop.counter }}">
                 <div class="categoria-cabecera"><h2 id="categoria-titulo-{{ forloop.counter }}">{{ grupo.grouper.nombre }}</h2></div>
                 <div class="productos">
-                    {% for producto in grupo.list %}
-                        <article class="producto" data-busqueda="{{ producto.nombre }} {{ producto.descripcion|default:'' }} {{ grupo.grouper.nombre }} {% if producto.requiere_mayoria_edad %}+18 alcohol mayor edad{% endif %}">
+                    {% for producto in grupo.list %}{% with grupos_producto=producto.grupos_opciones.all recibe=mesa.local.recibe_pedidos %}
+                        <article class="producto" data-producto="{{ producto.pk }}" data-busqueda="{{ producto.nombre }} {{ producto.descripcion|default:'' }} {{ grupo.grouper.nombre }} {% if producto.requiere_mayoria_edad %}+18 alcohol mayor edad{% endif %}">
+                            <div class="producto__mini{% if not producto.imagen %} producto__mini--vacia{% endif %}">
+                                {% if producto.imagen %}<img src="{{ producto.imagen.url }}" alt="" loading="lazy" decoding="async" onerror="this.parentElement.classList.add('producto__mini--vacia')">{% endif %}
+                                <span>Sin foto</span>
+                            </div>
                             <div class="producto__info">
-                                <h3 class="producto__nombre">{{ producto.nombre }}{% if producto.requiere_mayoria_edad %} <span class="insignia-18" aria-label="Producto para mayores de 18 años">+18</span>{% endif %}</h3>
+                                <h3 class="producto__nombre"><button class="producto__abrir" type="button" data-abrir-detalle="detalle-{{ producto.pk }}" aria-haspopup="dialog" aria-label="Ver detalle de {{ producto.nombre }}">{{ producto.nombre }}</button>{% if producto.requiere_mayoria_edad %} <span class="insignia-18" aria-label="Producto para mayores de 18 años">+18</span>{% endif %}</h3>
                                 {% if producto.descripcion %}<p class="producto__descripcion">{{ producto.descripcion }}</p>{% endif %}
                                 {% if producto.requiere_mayoria_edad %}<p class="aviso-18">Venta exclusiva para mayores de 18 años.</p>{% endif %}
-                                <p class="precio producto__precio"><span data-pesos="{{ producto.precio|floatformat:'0u' }}" data-precio-base="{{ producto.precio|floatformat:'0u' }}">${{ producto.precio|floatformat:"0g" }}</span></p>
+                                <p class="precio producto__precio"><span data-pesos="{{ producto.precio|floatformat:'0u' }}" data-precio-base="{{ producto.precio|floatformat:'0u' }}">${{ producto.precio|floatformat:"0g" }}</span>{% if recibe and grupos_producto %}<span class="producto__opciones-pista">Con opciones</span>{% endif %}</p>
                             </div>
-                            {% if mesa.local.recibe_pedidos %}{% with grupos_producto=producto.grupos_opciones.all %}
+                            {% if recibe %}
                                 {% if grupos_producto %}
-                                    <details class="producto__opciones">
-                                        <summary class="boton-agregar" aria-label="Elegir opciones de {{ producto.nombre }}"><svg class="icono" aria-hidden="true"><use href="#i-mas"/></svg></summary>
-                                        <div class="producto__panel">
+                                    <button class="boton-agregar" type="button" data-abrir-detalle="detalle-{{ producto.pk }}" aria-haspopup="dialog" aria-label="Elegir opciones de {{ producto.nombre }}"><svg class="icono" aria-hidden="true"><use href="#i-mas"/></svg></button>
+                                {% else %}
+                                    <form class="producto__accion" id="form-producto-{{ producto.pk }}" method="post" action="{% url 'pedidos:agregar' codigo=mesa.codigo producto_id=producto.pk %}" data-carrito-form hx-post="{% url 'pedidos:agregar' codigo=mesa.codigo producto_id=producto.pk %}" hx-target="#carrito-datos" hx-swap="innerHTML" hx-sync="#carta-app:drop">
+                                        {% csrf_token %}
+                                        <button class="boton-agregar" :disabled="ocupado || pagando || !!error" id="agregar-{{ producto.pk }}" type="submit" aria-label="Agregar {{ producto.nombre }} al carrito"><svg class="icono" aria-hidden="true"><use href="#i-mas"/></svg></button>
+                                    </form>
+                                {% endif %}
+                            {% endif %}
+                            <dialog class="detalle{% if not recibe %} detalle--cerrado{% endif %}" id="detalle-{{ producto.pk }}" aria-labelledby="detalle-titulo-{{ producto.pk }}">
+                                <button class="detalle__asa" type="button" aria-label="Cerrar detalle"></button>
+                                <div class="detalle__desplazable">
+                                    {% include "carta/fragmentos/imagen_producto.html" %}
+                                    <div class="detalle__cuerpo">
+                                        <div class="detalle__cabeza">
+                                            <h2 id="detalle-titulo-{{ producto.pk }}">{{ producto.nombre }}{% if producto.requiere_mayoria_edad %} <span class="insignia-18" aria-label="Producto para mayores de 18 años">+18</span>{% endif %}</h2>
+                                            <span class="precio" data-pesos="{{ producto.precio|floatformat:'0u' }}">${{ producto.precio|floatformat:"0g" }}</span>
+                                        </div>
+                                        {% if producto.descripcion %}<p class="detalle__descripcion">{{ producto.descripcion }}</p>{% endif %}
+                                        {% if producto.requiere_mayoria_edad %}<p class="aviso-18">Venta exclusiva para mayores de 18 años.</p>{% endif %}
+                                        {% if recibe %}
                                             {% for grupo_opcion in grupos_producto %}
                                                 <fieldset class="grupo-opcion" form="form-producto-{{ producto.pk }}">
                                                     <legend>{{ grupo_opcion.nombre }}{% if grupo_opcion.requerido %} · Obligatorio{% else %} · Opcional{% endif %}</legend>
@@ -119,21 +141,32 @@
                                                     {% empty %}<small>No hay opciones disponibles.</small>{% endfor %}
                                                 </fieldset>
                                             {% endfor %}
+                                        {% endif %}
+                                    </div>
+                                </div>
+                                <div class="detalle__talon">
+                                    {% if recibe %}
+                                        {% if grupos_producto %}
                                             <form id="form-producto-{{ producto.pk }}" method="post" action="{% url 'pedidos:agregar' codigo=mesa.codigo producto_id=producto.pk %}" data-carrito-form hx-post="{% url 'pedidos:agregar' codigo=mesa.codigo producto_id=producto.pk %}" hx-target="#carrito-datos" hx-swap="innerHTML" hx-sync="#carta-app:drop">
                                                 {% csrf_token %}
                                                 <button class="boton boton--bloque" :disabled="ocupado || pagando || !!error" id="agregar-{{ producto.pk }}" type="submit" aria-label="Agregar {{ producto.nombre }} al carrito">Agregar <span class="cifra" data-pesos="{{ producto.precio|floatformat:'0u' }}" data-precio-base="{{ producto.precio|floatformat:'0u' }}">${{ producto.precio|floatformat:"0g" }}</span></button>
                                             </form>
+                                        {% else %}
+                                            <form id="form-detalle-{{ producto.pk }}" method="post" action="{% url 'pedidos:agregar' codigo=mesa.codigo producto_id=producto.pk %}" data-carrito-form hx-post="{% url 'pedidos:agregar' codigo=mesa.codigo producto_id=producto.pk %}" hx-target="#carrito-datos" hx-swap="innerHTML" hx-sync="#carta-app:drop">
+                                                {% csrf_token %}
+                                                <button class="boton boton--bloque" :disabled="ocupado || pagando || !!error" id="agregar-detalle-{{ producto.pk }}" type="submit" aria-label="Agregar {{ producto.nombre }} al carrito">Agregar <span class="cifra" data-pesos="{{ producto.precio|floatformat:'0u' }}">${{ producto.precio|floatformat:"0g" }}</span></button>
+                                            </form>
+                                        {% endif %}
+                                    {% else %}
+                                        <div class="aviso-cerrado" role="status">
+                                            <svg class="icono" aria-hidden="true"><use href="#i-info"/></svg>
+                                            <div><strong>Pedidos cerrados por ahora</strong><span>Puedes mirar la carta. Para pedir, consulta al personal.</span></div>
                                         </div>
-                                    </details>
-                                {% else %}
-                                    <form class="producto__accion" id="form-producto-{{ producto.pk }}" method="post" action="{% url 'pedidos:agregar' codigo=mesa.codigo producto_id=producto.pk %}" data-carrito-form hx-post="{% url 'pedidos:agregar' codigo=mesa.codigo producto_id=producto.pk %}" hx-target="#carrito-datos" hx-swap="innerHTML" hx-sync="#carta-app:drop">
-                                        {% csrf_token %}
-                                        <button class="boton-agregar" :disabled="ocupado || pagando || !!error" id="agregar-{{ producto.pk }}" type="submit" aria-label="Agregar {{ producto.nombre }} al carrito"><svg class="icono" aria-hidden="true"><use href="#i-mas"/></svg></button>
-                                    </form>
-                                {% endif %}
-                            {% endwith %}{% endif %}
+                                    {% endif %}
+                                </div>
+                            </dialog>
                         </article>
-                    {% endfor %}
+                    {% endwith %}{% endfor %}
                 </div>
             </section>
         {% empty %}
@@ -149,7 +182,7 @@
     </div>
 
     {% if mesa %}
-        <noscript><style>.carrito-modal:not([open]) { display: block; position: static; width: 100%; height: auto; transform: none; opacity: 1; } .carrito-panel { height: auto; } .cerrar, .seguir, .carrito-vacio button { display: none; }</style></noscript>
+        <noscript><style>.carrito-modal:not([open]) { display: block; position: static; width: 100%; height: auto; transform: none; opacity: 1; } .carrito-panel { height: auto; } .cerrar, .seguir, .carrito-vacio button { display: none; } .detalle:not([open]) { display: block; position: static; flex-basis: 100%; margin: 0; padding: 0; border: 0; background: transparent; } .detalle__asa, .detalle .foto-producto, .detalle__cabeza, .detalle__descripcion, .detalle .aviso-18, .producto__abrir::after, .boton-agregar[data-abrir-detalle], .detalle--cerrado { display: none; }</style></noscript>
         <div class="barra-carrito" x-cloak>
             <button class="abrir-carrito" type="button" id="abrir-carrito" x-ref="abrir" @click="abrirCarrito()" :aria-label="'Ver carrito, ' + cantidad + ' unidades'" aria-haspopup="dialog" aria-controls="carrito-modal" aria-label="Ver carrito, {{ cantidad_carrito }} unidades">
                 <span class="contador" x-text="cantidad">{{ cantidad_carrito }}</span>

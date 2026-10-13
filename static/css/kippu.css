@@ -90,6 +90,15 @@
 
   --radio: 12px;
   --radio-tarjeta: 14px;
+
+  /* Ventana del detalle del producto (decisión 34, mockup v2). */
+  --radio-ventana: 28px;
+  --margen-ventana: 10px;
+  --radio-foto: 20px; /* 28 − 8 de relleno: esquinas concéntricas */
+  --velo: color-mix(in srgb, var(--tinta) 46%, transparent);
+  --alto-talon: 84px;
+  --alto-talon-cerrado: 100px; /* con pedidos cerrados el aviso ocupa el talón */
+  --muesca-talon: 9px;
 }
 
 /* ---------- Base ---------- */
