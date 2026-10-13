@@ -6,6 +6,7 @@ from django.db.models import Max
 from django.utils import timezone
 from .models import Cuenta, Pedido, Pago, IntentoWebpay
 from .pagos import ESTADOS_ACTIVOS, ErrorPago, _bloquear_cuenta, detalle_pedido
+from .presencial import vencer_por_cobrar
 
 # D-09.3: una cuenta sin nada pendiente se cierra sola tras este tiempo sin actividad.
 INACTIVIDAD_PARA_CIERRE = timedelta(hours=1)
@@ -22,6 +23,8 @@ def revisar_cierre(cuenta):
         motivo = 'La cuenta ya está cerrada.'
     elif cuenta.intentos_webpay.filter(estado__in=ESTADOS_ACTIVOS).exists():
         motivo = 'Hay un pago en curso o por verificar.'
+    elif any(p.estado == Pedido.Estado.POR_COBRAR for p in pedidos):
+        motivo = 'Hay un pedido por pagar en caja: cóbralo o cancélalo antes de cerrar.'
     elif cuenta.intentos_webpay.filter(estado=IntentoWebpay.Estado.AUTORIZADO, pago_confirmado__isnull=True).exists():
         motivo = 'Hay una autorización sin pago registrado. Requiere revisión.'
     elif any(p.pedido_id is None for p in pagos):
@@ -64,6 +67,8 @@ def cerrar_cuenta(cuenta_id):
         cuenta = _bloquear_cuenta(cuenta_id)
         if cuenta.estado == Cuenta.Estado.CERRADA:
             return cuenta, False
+        # Un por_cobrar vencido no debe trabar la mesa: se cancela antes de revisar.
+        vencer_por_cobrar(cuenta.mesa)
         revision = revisar_cierre(cuenta)
         if not revision['puede_cerrar']:
             raise ErrorPago(revision['motivo'])

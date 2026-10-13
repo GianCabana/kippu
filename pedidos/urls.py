@@ -1,10 +1,15 @@
 from django.urls import path
 
-from . import views, vistas_webpay
+from . import views, vistas_presencial, vistas_webpay
 
 app_name = "pedidos"
 
 urlpatterns = [
+    path("mesa/<uuid:codigo>/pagar-en-caja/", vistas_presencial.pagar_en_caja, name="pagar_en_caja"),
+    path("mesa/<uuid:codigo>/mis-pedidos/<int:pedido_id>/cancelar/", vistas_presencial.cancelar_del_cliente,
+         name="cancelar_por_cobrar"),
+    path("caja/pedido/<int:pedido_id>/cobrar/", vistas_presencial.cobrar, name="cobrar_presencial"),
+    path("caja/pedido/<int:pedido_id>/cancelar/", vistas_presencial.cancelar_en_caja, name="cancelar_presencial"),
     path("webpay/reintentar/<int:intento_id>/", vistas_webpay.reintentar, name="webpay_reintentar"),
     path("webpay/cancelar/<int:intento_id>/", vistas_webpay.cancelar, name="webpay_cancelar"),
     path("webpay/abrir/<int:intento_id>/", vistas_webpay.abrir, name="webpay_abrir"),

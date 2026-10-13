@@ -50,7 +50,7 @@
                     <div class="carrito-resumen">
                         <div class="total"><span>Subtotal</span><span class="total__valor" data-pesos="{{ total_carrito|floatformat:'0u' }}">${{ total_carrito|floatformat:"0g" }}</span></div>
                         {% if mesa.local.recibe_pedidos %}
-                        <form method="post" action="{% url 'pedidos:webpay_cliente' codigo=mesa.codigo %}" id="enviar-pedido" hx-boost="false" @submit="iniciarPago($event)">
+                        <form method="post" action="{% url 'pedidos:webpay_cliente' codigo=mesa.codigo %}" id="enviar-pedido" hx-boost="false" x-data="{ enCaja: false }" @submit="iniciarPago($event)">
                             {% csrf_token %}
                             {% if requiere_mayoria_edad %}
                                 <fieldset class="mayoria-opciones">
@@ -74,8 +74,9 @@
                                 </span></div>
                                 <p class="propina-nota">La propina es opcional y la calcula el servidor. Podrás revisar el total antes de entrar a Webpay.</p>
                             </fieldset>
-                            <button class="boton boton--bloque enviar" :disabled="ocupado || pagando || !!error" type="submit"><span x-text="pagando ? 'Preparando pago…' : 'Pagar con Webpay'">Pagar con Webpay</span><svg class="icono" aria-hidden="true"><use href="#i-flecha"/></svg></button>
-                            <p class="nota-pedido">Tu pedido llega a cocina cuando Webpay confirme el pago.</p>
+                            <button class="boton boton--bloque enviar" :disabled="ocupado || pagando || !!error" type="submit" @click="enCaja = false; $el.form.action = $el.dataset.accion" data-accion="{% url 'pedidos:webpay_cliente' codigo=mesa.codigo %}"><span x-text="pagando && !enCaja ? 'Preparando pago…' : 'Pagar con Webpay'">Pagar con Webpay</span><svg class="icono" aria-hidden="true"><use href="#i-flecha"/></svg></button>
+                            <button class="boton boton--bloque boton--fantasma enviar enviar--caja" :disabled="ocupado || pagando || !!error" type="submit" @click="enCaja = true; $el.form.action = $el.dataset.accion" data-accion="{% url 'pedidos:pagar_en_caja' codigo=mesa.codigo %}"><span x-text="pagando && enCaja ? 'Enviando a caja…' : 'Pagar en caja'">Pagar en caja</span></button>
+                            <p class="nota-pedido">Tu pedido llega a cocina cuando se confirma el pago: con Webpay al instante; en caja, cuando el personal te cobre (efectivo o tarjeta).</p>
                         </form>
                         {% else %}
                         <p class="servicio-cerrado servicio-cerrado--carrito" role="status"><strong class="servicio-cerrado__titulo">Pedidos cerrados por ahora</strong> Tu carrito se guarda, pero no se puede pagar. Para pedir, consulta al personal.</p>

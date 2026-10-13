@@ -15,6 +15,7 @@ from django.shortcuts import render
 
 from .carrito import Carrito, ErrorOpciones
 from .cierre import revisar_cierre, cerrar_cuenta
+from .presencial import vencer_por_cobrar
 from .pagos import ErrorPago, calcular_propina, exigir_pedidos_abiertos, nombre_recordado
 from django.http import HttpResponse
 from django.utils.cache import patch_cache_control, patch_vary_headers
@@ -291,6 +292,7 @@ def _hay_pedidos_activos(pedidos):
 @never_cache
 def mis_pedidos(request, codigo):
     mesa = _mesa_del_cliente(codigo)
+    vencer_por_cobrar(mesa)
     sincronizar_carrito(request, mesa)
     pedidos = _pedidos_del_navegador(request, mesa).prefetch_related("detalles", "intentos_webpay")
 
@@ -315,6 +317,8 @@ def mis_pedidos(request, codigo):
 def estado_mis_pedidos(request, codigo):
     # Solo lectura: no sincroniza el carrito, para que la consulta automática no cuente como actividad.
     mesa = _mesa_del_cliente(codigo)
+    # Cancelar un por_cobrar vencido no es actividad de la cuenta: solo cambia su estado.
+    vencer_por_cobrar(mesa)
     pedidos = list(_pedidos_del_navegador(request, mesa))
     estado = 200 if _hay_pedidos_activos(pedidos) else DETENER_CONSULTA
     return render(
@@ -327,6 +331,9 @@ def estado_mis_pedidos(request, codigo):
 
 @staff_member_required
 def caja(request):
+    vencer_por_cobrar()
+    por_cobrar = (Pedido.objects.filter(estado=Pedido.Estado.POR_COBRAR, pago__isnull=True)
+        .select_related('mesa', 'mesa__local').prefetch_related('detalles').order_by('creado', 'pk'))
     pagos = Pago.objects.select_related('cuenta__mesa', 'cuenta__mesa__local', 'pedido', 'intento_webpay').order_by('-creado')[:100]
     pendientes = IntentoWebpay.objects.filter(estado__in=ESTADOS_ACTIVOS).select_related('cuenta__mesa', 'cuenta__mesa__local', 'pedido').order_by('creado')
     cuentas = list(Cuenta.objects.filter(estado=Cuenta.Estado.ABIERTA).select_related('mesa', 'mesa__local').order_by('mesa__local__nombre', 'mesa__numero'))
@@ -334,7 +341,7 @@ def caja(request):
         cuenta.revision = revisar_cierre(cuenta)
     cerradas = Cuenta.objects.filter(estado=Cuenta.Estado.CERRADA).select_related('mesa', 'mesa__local').order_by('-cerrada')[:10]
     locales = Local.objects.filter(activo=True).order_by('nombre')
-    return render(request, 'pedidos/caja.html', {'pagos': pagos, 'pendientes': pendientes,
+    return render(request, 'pedidos/caja.html', {'pagos': pagos, 'pendientes': pendientes, 'por_cobrar': por_cobrar,
         'cuentas': cuentas, 'cerradas': cerradas, 'locales': locales})
 
 

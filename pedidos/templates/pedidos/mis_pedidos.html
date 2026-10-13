@@ -30,7 +30,7 @@
     {% if pedido.propina %}<div class="tk__linea tk__linea--suave"><span>Propina</span><span class="cifra">${{ pedido.propina|floatformat:"0g" }}</span></div>{% endif %}
     <div class="tk__corte"></div>
     <div class="tk__total"><span>{% if pedido.pago %}Total pagado{% else %}Total{% endif %}</span><span class="cifra">${{ pedido.total_con_propina|floatformat:"0g" }}</span></div>
-    {% if pedido.pago %}<p class="tk__pie">WEBPAY · {{ pedido.pago.creado|date:"H:i" }}</p>{% endif %}
+    {% if pedido.pago %}<p class="tk__pie">{% if pedido.pago.metodo == 'webpay' %}WEBPAY{% else %}PAGADO EN CAJA{% endif %} · {{ pedido.pago.creado|date:"H:i" }}</p>{% endif %}
     {% if pedido.estado == 'sin_pagar' %}
     <p class="tk__pie">Este pedido aún no pasó a cocina. Revisa el pago antes de reintentar.</p>
     {% if pedido.resultado_url %}<a class="boton" href="{{ pedido.resultado_url }}">Revisar el pago</a>{% endif %}

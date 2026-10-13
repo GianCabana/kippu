@@ -1,5 +1,19 @@
 <div id="vivo-{{ pedido.pk }}"{% if oob %} hx-swap-oob="innerHTML"{% endif %}>
-{% if pedido.estado != 'cancelado' and pedido.estado != 'sin_pagar' %}
+{% if pedido.estado == 'por_cobrar' %}
+<div class="tk-caja" x-data="{ cancelando: false }">
+    <p class="tk-caja__titulo">Acércate a caja a pagar <span class="cifra">${{ pedido.total_con_propina|floatformat:"0g" }}</span></p>
+    <p class="tk-caja__texto">Di que es el <strong>pedido #{{ pedido.pk }}</strong>. Pasa a cocina cuando el personal te cobre, en efectivo o con tarjeta. Si no se paga en 30 minutos, se cancela solo.</p>
+    <button class="boton boton--bloque tk-boton" type="button" x-show="!cancelando" @click="cancelando = true">Cancelar pedido</button>
+    <form method="post" action="{% url 'pedidos:cancelar_por_cobrar' codigo=mesa.codigo pedido_id=pedido.pk %}" x-show="cancelando" x-cloak>
+        {% csrf_token %}
+        <p class="tk-caja__texto">¿Cancelar el pedido #{{ pedido.pk }}? No pasará a cocina.</p>
+        <div class="tk-caja__acciones">
+            <button class="boton tk-boton" type="button" @click="cancelando = false">Volver</button>
+            <button class="boton" type="submit">Sí, cancelar</button>
+        </div>
+    </form>
+</div>
+{% elif pedido.estado != 'cancelado' and pedido.estado != 'sin_pagar' %}
 <ol class="tk-pasos">
     <li class="hecho"><span class="punto" aria-hidden="true">✓</span><div><b>Pagado</b>{% if pedido.pago %}<small>{{ pedido.pago.creado|date:"H:i" }}</small>{% endif %}</div></li>
     {% if pedido.estado == 'pendiente' %}
