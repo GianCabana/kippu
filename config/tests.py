@@ -1,6 +1,32 @@
+from django.conf import settings
 from django.test import SimpleTestCase
 
-from config.settings import leer_hosts
+from config.settings import leer_booleano, leer_hosts
+
+
+class LeerBooleanoTests(SimpleTestCase):
+    def test_sin_variable_queda_apagado(self):
+        self.assertFalse(leer_booleano(None))
+        self.assertFalse(leer_booleano(""))
+
+    def test_valores_que_encienden(self):
+        for valor in ("True", "true", " TRUE ", "1", "si", "Sí", "yes", "on"):
+            with self.subTest(valor=valor):
+                self.assertTrue(leer_booleano(valor))
+
+    def test_cualquier_otro_valor_queda_apagado(self):
+        for valor in ("False", "false", "0", "no", "off", "verdadero", "debug"):
+            with self.subTest(valor=valor):
+                self.assertFalse(leer_booleano(valor))
+
+
+class EstaticosTests(SimpleTestCase):
+    def test_whitenoise_va_justo_despues_de_security(self):
+        posicion = settings.MIDDLEWARE.index("django.middleware.security.SecurityMiddleware")
+        self.assertEqual(settings.MIDDLEWARE[posicion + 1], "whitenoise.middleware.WhiteNoiseMiddleware")
+
+    def test_collectstatic_tiene_destino(self):
+        self.assertEqual(settings.STATIC_ROOT, settings.BASE_DIR / "staticfiles")
 
 
 class LeerHostsTests(SimpleTestCase):

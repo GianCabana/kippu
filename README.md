@@ -44,6 +44,7 @@ Completar `.env`:
 | `DJANGO_SECRET_KEY` | Una clave larga y aleatoria |
 | `PUBLIC_BASE_URL` | Dirección con la que se arma el QR, por ejemplo `http://127.0.0.1:8000` |
 | `DJANGO_ALLOWED_HOSTS` | Hosts aceptados, separados por comas (vacío: `127.0.0.1,localhost`) |
+| `DJANGO_DEBUG` | `True` en el computador de desarrollo (sirve `/media` y muestra los errores); vacío o `False` en la web |
 
 Webpay no necesita credenciales: usa el código de comercio y la clave públicos de integración del SDK.
 
