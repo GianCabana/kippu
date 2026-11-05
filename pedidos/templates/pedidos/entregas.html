@@ -31,13 +31,13 @@
         <p class="sr-only" id="anuncio" role="status" aria-live="polite" aria-atomic="true"></p>
         <div class="pedidos" id="lista-entregas" data-panel="kippu-entregas">
             {% for pedido in pedidos %}
-                <article class="pedido comanda" id="pedido-{{ pedido.pk }}" data-estado="{{ pedido.estado }}" data-numero="{{ pedido.pk }}" data-mesa="{{ pedido.mesa.numero }}" data-local="{{ pedido.mesa.local.nombre }}" data-nombre="{{ pedido.nombre }}" data-creado="{{ pedido.creado|date:'c' }}" aria-labelledby="mesa-{{ pedido.pk }}">
+                <article class="pedido comanda" id="pedido-{{ pedido.pk }}" data-estado="{{ pedido.estado }}" data-numero="{{ pedido.pk }}" data-mesa="{{ pedido.mesa.numero }}" data-local="{{ pedido.mesa.local.nombre }}" data-nombre="{{ pedido.nombre }}" data-pagado="{{ pedido.pago.creado|date:'c' }}" aria-labelledby="mesa-{{ pedido.pk }}">
                     <div class="comanda__cabecera">
                         <h2 class="comanda__mesa" id="mesa-{{ pedido.pk }}">Mesa {{ pedido.mesa.numero }}</h2><span class="comanda__codigo">#{{ pedido.pk }}</span>
                         <span class="tiempo comanda__espera" hidden><span data-tiempo></span></span>
                     </div>
                     {% if pedido.nombre %}<p class="comanda__nombre">Para <strong>{{ pedido.nombre }}</strong></p>{% endif %}
-                    <p class="comanda__meta"><time datetime="{{ pedido.creado|date:'c' }}">{{ pedido.creado|date:"H:i" }}</time><span>· {{ pedido.mesa.local.nombre }}</span>{% for detalle in pedido.detalles.all %}{% if detalle.requiere_mayoria_edad %}{% ifchanged detalle.requiere_mayoria_edad %}<span class="insignia-18" aria-label="Pedido con productos para mayores de 18 años">+18</span>{% endifchanged %}{% endif %}{% endfor %}</p>
+                    <p class="comanda__meta"><time datetime="{{ pedido.pago.creado|date:'c' }}">Pagado {{ pedido.pago.creado|date:"H:i" }}</time><span>· {{ pedido.mesa.local.nombre }}</span>{% for detalle in pedido.detalles.all %}{% if detalle.requiere_mayoria_edad %}{% ifchanged detalle.requiere_mayoria_edad %}<span class="insignia-18" aria-label="Pedido con productos para mayores de 18 años">+18</span>{% endifchanged %}{% endif %}{% endfor %}</p>
                     <ul class="productos">
                         {% for detalle in pedido.detalles.all %}<li class="producto" data-cantidad="{{ detalle.cantidad }}"><span class="comanda__cantidad" aria-label="{{ detalle.cantidad }} unidades">{{ detalle.cantidad }}×</span><span class="nombre-producto">{{ detalle.nombre_producto }}{% if detalle.requiere_mayoria_edad %} <span class="insignia-18" aria-label="Producto para mayores de 18 años">+18</span><small class="aviso-edad"><svg class="icono" aria-hidden="true"><use href="#i-id"/></svg>Solicitar identificación antes de entregar</small>{% endif %}{% if detalle.opciones %}<small class="opciones-pedido">{% for opcion in detalle.opciones %}{{ opcion.grupo }}: {{ opcion.nombre }}{% if not forloop.last %} · {% endif %}{% endfor %}</small>{% endif %}</span></li>{% endfor %}
                     </ul>
@@ -75,9 +75,9 @@
             const firmas = new Map();
             const normalizar = texto => texto.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().trim();
             const tarjetas = () => [...lista.querySelectorAll('.pedido')];
-            const firma = tarjeta => JSON.stringify({ local: tarjeta.dataset.local, mesa: tarjeta.dataset.mesa, creado: tarjeta.dataset.creado, productos: [...tarjeta.querySelectorAll('.producto')].map(el => [el.dataset.cantidad, el.querySelector('.nombre-producto').textContent]) });
+            const firma = tarjeta => JSON.stringify({ local: tarjeta.dataset.local, mesa: tarjeta.dataset.mesa, pagado: tarjeta.dataset.pagado, productos: [...tarjeta.querySelectorAll('.producto')].map(el => [el.dataset.cantidad, el.querySelector('.nombre-producto').textContent]) });
             const actualizarTiempos = () => tarjetas().forEach(tarjeta => {
-                const fecha = Date.parse(tarjeta.dataset.creado);
+                const fecha = Date.parse(tarjeta.dataset.pagado);
                 if (!Number.isFinite(fecha)) return;
                 const minutos = Math.max(0, Math.floor((Date.now() - fecha) / 60000));
                 const texto = minutos < 1 ? 'Ahora' : minutos < 60 ? minutos + ' min' : minutos < 1440 ? Math.floor(minutos / 60) + ' h ' + minutos % 60 + ' min' : Math.floor(minutos / 1440) + ' d ' + Math.floor(minutos % 1440 / 60) + ' h';
