@@ -41,6 +41,25 @@ def leer_hosts(valor):
 ALLOWED_HOSTS = leer_hosts(os.environ.get("DJANGO_ALLOWED_HOSTS"))
 
 
+def ajustes_https(activo):
+    """Lo que pide `check --deploy` cuando la app se publica con HTTPS detrás del proxy del hosting."""
+    if not activo:
+        return {}
+    return {
+        # El hosting (y Cloudflare, si se usa) termina el HTTPS y avisa con este encabezado.
+        "SECURE_PROXY_SSL_HEADER": ("HTTP_X_FORWARDED_PROTO", "https"),
+        "SECURE_SSL_REDIRECT": True,
+        "SESSION_COOKIE_SECURE": True,
+        "CSRF_COOKIE_SECURE": True,
+        # Una hora para partir; se sube cuando el dominio esté estable (un HSTS largo no se deshace fácil).
+        "SECURE_HSTS_SECONDS": 3600,
+    }
+
+
+# Apagado en local (http://127.0.0.1 y la red del local); DJANGO_HTTPS=True solo en la web.
+globals().update(ajustes_https(leer_booleano(os.environ.get("DJANGO_HTTPS"))))
+
+
 # Application definition
 
 INSTALLED_APPS = [

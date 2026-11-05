@@ -1,7 +1,21 @@
 from django.conf import settings
 from django.test import SimpleTestCase
 
-from config.settings import leer_booleano, leer_hosts
+from config.settings import ajustes_https, leer_booleano, leer_hosts
+
+
+class AjustesHttpsTests(SimpleTestCase):
+    def test_apagado_no_cambia_nada(self):
+        self.assertEqual(ajustes_https(False), {})
+
+    def test_encendido_cumple_check_deploy(self):
+        ajustes = ajustes_https(True)
+
+        self.assertTrue(ajustes["SECURE_SSL_REDIRECT"])
+        self.assertTrue(ajustes["SESSION_COOKIE_SECURE"])
+        self.assertTrue(ajustes["CSRF_COOKIE_SECURE"])
+        self.assertGreater(ajustes["SECURE_HSTS_SECONDS"], 0)
+        self.assertEqual(ajustes["SECURE_PROXY_SSL_HEADER"], ("HTTP_X_FORWARDED_PROTO", "https"))
 
 
 class LeerBooleanoTests(SimpleTestCase):
