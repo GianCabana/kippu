@@ -12,6 +12,8 @@ https://docs.djangoproject.com/en/5.2/ref/settings/
 
 import os
 from pathlib import Path
+from urllib.parse import urlsplit
+
 from dotenv import load_dotenv
 
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -39,6 +41,19 @@ def leer_hosts(valor):
 
 
 ALLOWED_HOSTS = leer_hosts(os.environ.get("DJANGO_ALLOWED_HOSTS"))
+
+
+def origen(url):
+    """Esquema y host de una URL (https://kippurestaurant.com/x → https://kippurestaurant.com)."""
+    partes = urlsplit(url)
+    return f"{partes.scheme}://{partes.netloc}"
+
+
+# Los formularios llegan desde la misma dirección pública con la que se arman los QR.
+CSRF_TRUSTED_ORIGINS = [origen(PUBLIC_BASE_URL)]
+
+# En la web /media vive en el volumen del hosting y lo sirve Django (DEBUG apagado no lo sirve solo).
+SERVIR_MEDIA = leer_booleano(os.environ.get("DJANGO_SERVIR_MEDIA"))
 
 
 def ajustes_https(activo):
