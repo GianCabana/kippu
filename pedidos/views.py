@@ -9,13 +9,56 @@ from .pagos import ESTADOS_ACTIVOS, intento_activo, sincronizar_carrito, renovar
 from django.db.models import Q
 
 from carta.models import Producto
-from mesas.models import Mesa
+from mesas.models import Local, Mesa
 from django.contrib.admin.views.decorators import staff_member_required
 from django.shortcuts import render
 
-from .carrito import Carrito
+from .carrito import Carrito, ErrorOpciones
 from .cierre import revisar_cierre, cerrar_cuenta
-from .pagos import ErrorPago
+from .presencial import vencer_por_cobrar
+from .pagos import ErrorPago, calcular_propina, exigir_pedidos_abiertos, nombre_recordado
+from django.http import HttpResponse
+from django.utils.cache import patch_cache_control, patch_vary_headers
+
+
+def _opciones_post(request):
+    valores = request.POST.getlist("opcion")
+    for nombre in request.POST:
+        if nombre.startswith("opcion_grupo_"):
+            valores.extend(request.POST.getlist(nombre))
+    return valores
+
+
+def _redireccion_carrito(request, url):
+    if request.headers.get('HX-Request') == 'true':
+        respuesta = HttpResponse(status=200)
+        respuesta['HX-Redirect'] = url
+    else:
+        respuesta = redirect(url)
+    patch_cache_control(respuesta, no_store=True, private=True)
+    patch_vary_headers(respuesta, ['HX-Request', 'Cookie'])
+    return respuesta
+
+
+def _respuesta_carrito(request, mesa, carrito):
+    if request.headers.get('HX-Request') != 'true':
+        return redirect('carta:por_mesa', codigo=mesa.codigo)
+    detalle, total = carrito.obtener_detalle()
+    requiere_mayoria_edad = any(
+        item['producto'].requiere_mayoria_edad
+        for item in detalle
+    )
+    propina_10 = calcular_propina(total, '10')
+    respuesta = render(request, 'carta/fragmentos/carrito.html', {
+        'mesa': mesa, 'detalle_carrito': detalle,
+        'cantidad_carrito': carrito.cantidad_total(), 'total_carrito': total,
+        'propina_10': propina_10, 'total_con_propina': total + propina_10,
+        'requiere_mayoria_edad': requiere_mayoria_edad,
+        'nombre_pedido': nombre_recordado(request),
+    })
+    patch_cache_control(respuesta, no_store=True, private=True)
+    patch_vary_headers(respuesta, ['HX-Request', 'Cookie'])
+    return respuesta
 
 
 @require_POST
@@ -25,29 +68,52 @@ def agregar_al_carrito(request, codigo, producto_id):
         Mesa.objects.select_for_update(),
         codigo=codigo,
         activa=True,
+        local__activo=True,
     )
-
-    activo = intento_activo(request, mesa)
-    if activo:
-        from .vistas_webpay import _url_resultado
-        messages.info(request, 'Resuelve el pago en curso antes de modificar el carrito.')
-        return redirect(_url_resultado(activo.pk))
-    sincronizar_carrito(request, mesa)
 
     producto = get_object_or_404(
         Producto,
         pk=producto_id,
         disponible=True,
         categoria__activa=True,
+        categoria__local=mesa.local,
     )
+
+    activo = intento_activo(request, mesa)
+    if activo:
+        from .vistas_webpay import _url_resultado
+        messages.info(request, 'Resuelve el pago en curso antes de modificar el carrito.')
+        return _redireccion_carrito(request, _url_resultado(activo.pk))
+    sincronizar_carrito(request, mesa)
 
     carrito = Carrito(request, mesa)
 
-    if carrito.agregar(producto):
+    try:
+        exigir_pedidos_abiertos(mesa)
+    except ErrorPago as exc:
+        messages.warning(request, str(exc))
+        return _respuesta_carrito(request, mesa, carrito)
+
+    try:
+        opciones = Carrito.validar_opciones(
+            producto,
+            _opciones_post(request),
+        )
+    except ErrorOpciones as exc:
+        messages.warning(request, str(exc))
+        return _respuesta_carrito(request, mesa, carrito)
+
+    if carrito.agregar(producto, [opcion.pk for opcion in opciones]):
         renovar_carrito(request, mesa)
         messages.success(
             request,
             f"Agregaste {producto.nombre}.",
+        )
+    elif carrito.ultimo_error == "opciones_distintas":
+        messages.warning(
+            request,
+            "Ese producto ya está en el carrito con otra configuración. "
+            "Quítalo antes de elegir opciones diferentes.",
         )
     else:
         messages.warning(
@@ -55,10 +121,7 @@ def agregar_al_carrito(request, codigo, producto_id):
             "Puedes agregar hasta 20 unidades de cada producto.",
         )
 
-    return redirect(
-        "carta:por_mesa",
-        codigo=mesa.codigo,
-    )
+    return _respuesta_carrito(request, mesa, carrito)
 
 
 @require_POST
@@ -68,19 +131,21 @@ def quitar_del_carrito(request, codigo, producto_id):
         Mesa.objects.select_for_update(),
         codigo=codigo,
         activa=True,
+        local__activo=True,
+    )
+
+    producto = get_object_or_404(
+        Producto,
+        pk=producto_id,
+        categoria__local=mesa.local,
     )
 
     activo = intento_activo(request, mesa)
     if activo:
         from .vistas_webpay import _url_resultado
         messages.info(request, 'Resuelve el pago en curso antes de modificar el carrito.')
-        return redirect(_url_resultado(activo.pk))
+        return _redireccion_carrito(request, _url_resultado(activo.pk))
     sincronizar_carrito(request, mesa)
-
-    producto = get_object_or_404(
-        Producto,
-        pk=producto_id,
-    )
 
     carrito = Carrito(request, mesa)
     carrito.quitar(producto)
@@ -91,10 +156,7 @@ def quitar_del_carrito(request, codigo, producto_id):
         f"Quitaste una unidad de {producto.nombre}.",
     )
 
-    return redirect(
-        "carta:por_mesa",
-        codigo=mesa.codigo,
-    )
+    return _respuesta_carrito(request, mesa, carrito)
 @require_POST
 def enviar_pedido(request, codigo):
     # La URL antigua también debe pasar por Webpay; nunca envía sin pagar.
@@ -111,7 +173,7 @@ def cocina(request):
                 Pedido.Estado.EN_PREPARACION,
             ]
         )
-        .select_related("mesa")
+        .select_related("mesa", "mesa__local")
         .prefetch_related("detalles")
         .order_by("creado", "pk")
     )
@@ -137,7 +199,10 @@ def cambiar_estado(request, pedido_id):
         messages.error(request, "El cambio solicitado no es válido.")
         return redirect("pedidos:cocina")
 
-    pedido = get_object_or_404(Pedido, pk=pedido_id)
+    pedido = get_object_or_404(
+        Pedido.objects.select_related("mesa", "mesa__local"),
+        pk=pedido_id,
+    )
 
     actualizado = Pedido.objects.filter(
         pk=pedido.pk,
@@ -162,7 +227,7 @@ def cambiar_estado(request, pedido_id):
 def entregas(request):
     pedidos = (
         Pedido.objects.filter(estado=Pedido.Estado.LISTO, pago__isnull=False)
-        .select_related("mesa")
+        .select_related("mesa", "mesa__local")
         .prefetch_related("detalles")
         .order_by("creado", "pk")
     )
@@ -177,7 +242,10 @@ def entregas(request):
 @staff_member_required
 @require_POST
 def marcar_entregado(request, pedido_id):
-    pedido = get_object_or_404(Pedido, pk=pedido_id)
+    pedido = get_object_or_404(
+        Pedido.objects.select_related("mesa", "mesa__local"),
+        pk=pedido_id,
+    )
 
     actualizado = Pedido.objects.filter(
         pk=pedido.pk,
@@ -188,7 +256,8 @@ def marcar_entregado(request, pedido_id):
     if actualizado:
         messages.success(
             request,
-            f"Pedido #{pedido.pk} entregado a Mesa {pedido.mesa.numero}.",
+            f"Pedido #{pedido.pk} entregado: {pedido.mesa.local.nombre}, "
+            f"Mesa {pedido.mesa.numero}.",
         )
     else:
         messages.warning(
@@ -197,23 +266,35 @@ def marcar_entregado(request, pedido_id):
         )
 
     return redirect("pedidos:entregas")
-@never_cache
-def mis_pedidos(request, codigo):
-    mesa = get_object_or_404(
-        Mesa,
-        codigo=codigo,
-        activa=True,
-    )
+ESTADOS_FINALES = {Pedido.Estado.ENTREGADO, Pedido.Estado.CANCELADO}
+# Respuesta que HTMX entiende como "deja de consultar".
+DETENER_CONSULTA = 286
 
-    sincronizar_carrito(request, mesa)
-    clave_pedidos = f"pedidos_{mesa.codigo}"
-    pedidos_sesion = request.session.get(clave_pedidos, [])
 
-    pedidos = (
+def _mesa_del_cliente(codigo):
+    return get_object_or_404(Mesa, codigo=codigo, activa=True, local__activo=True)
+
+
+def _pedidos_del_navegador(request, mesa):
+    """Solo los pedidos de este navegador: nunca los de otra persona de la mesa."""
+    pedidos_sesion = request.session.get(f"pedidos_{mesa.codigo}", [])
+    return (
         Pedido.objects.filter(Q(pk__in=pedidos_sesion) | Q(cliente_clave=cliente_clave(request)), mesa=mesa)
-        .prefetch_related("detalles", "intentos_webpay")
+        .select_related("pago")
         .order_by("-creado", "-pk")
     )
+
+
+def _hay_pedidos_activos(pedidos):
+    return any(pedido.estado not in ESTADOS_FINALES for pedido in pedidos)
+
+
+@never_cache
+def mis_pedidos(request, codigo):
+    mesa = _mesa_del_cliente(codigo)
+    vencer_por_cobrar(mesa)
+    sincronizar_carrito(request, mesa)
+    pedidos = _pedidos_del_navegador(request, mesa).prefetch_related("detalles", "intentos_webpay")
 
     from .vistas_webpay import _url_resultado
     for pedido in pedidos:
@@ -227,18 +308,60 @@ def mis_pedidos(request, codigo):
         {
             "mesa": mesa,
             "pedidos": pedidos,
+            "consultar_estado": _hay_pedidos_activos(pedidos),
         },
     )
+
+
+@never_cache
+def estado_mis_pedidos(request, codigo):
+    # Solo lectura: no sincroniza el carrito, para que la consulta automática no cuente como actividad.
+    mesa = _mesa_del_cliente(codigo)
+    # Cancelar un por_cobrar vencido no es actividad de la cuenta: solo cambia su estado.
+    vencer_por_cobrar(mesa)
+    pedidos = list(_pedidos_del_navegador(request, mesa))
+    estado = 200 if _hay_pedidos_activos(pedidos) else DETENER_CONSULTA
+    return render(
+        request,
+        "pedidos/mis_pedidos_estado.html",
+        {"mesa": mesa, "pedidos": pedidos},
+        status=estado,
+    )
+
+
 @staff_member_required
 def caja(request):
-    pagos = Pago.objects.select_related('cuenta__mesa', 'pedido', 'intento_webpay').order_by('-creado')[:100]
-    pendientes = IntentoWebpay.objects.filter(estado__in=ESTADOS_ACTIVOS).select_related('cuenta__mesa', 'pedido').order_by('creado')
-    cuentas = list(Cuenta.objects.filter(estado=Cuenta.Estado.ABIERTA).select_related('mesa').order_by('mesa__numero'))
+    vencer_por_cobrar()
+    por_cobrar = (Pedido.objects.filter(estado=Pedido.Estado.POR_COBRAR, pago__isnull=True)
+        .select_related('mesa', 'mesa__local').prefetch_related('detalles').order_by('creado', 'pk'))
+    pagos = Pago.objects.select_related('cuenta__mesa', 'cuenta__mesa__local', 'pedido', 'intento_webpay').order_by('-creado')[:100]
+    pendientes = IntentoWebpay.objects.filter(estado__in=ESTADOS_ACTIVOS).select_related('cuenta__mesa', 'cuenta__mesa__local', 'pedido').order_by('creado')
+    cuentas = list(Cuenta.objects.filter(estado=Cuenta.Estado.ABIERTA).select_related('mesa', 'mesa__local').order_by('mesa__local__nombre', 'mesa__numero'))
     for cuenta in cuentas:
         cuenta.revision = revisar_cierre(cuenta)
-    cerradas = Cuenta.objects.filter(estado=Cuenta.Estado.CERRADA).select_related('mesa').order_by('-cerrada')[:10]
-    return render(request, 'pedidos/caja.html', {'pagos': pagos, 'pendientes': pendientes,
-        'cuentas': cuentas, 'cerradas': cerradas})
+    cerradas = Cuenta.objects.filter(estado=Cuenta.Estado.CERRADA).select_related('mesa', 'mesa__local').order_by('-cerrada')[:10]
+    locales = Local.objects.filter(activo=True).order_by('nombre')
+    return render(request, 'pedidos/caja.html', {'pagos': pagos, 'pendientes': pendientes, 'por_cobrar': por_cobrar,
+        'cuentas': cuentas, 'cerradas': cerradas, 'locales': locales})
+
+
+@staff_member_required
+@require_POST
+def cambiar_servicio(request, local_id):
+    # Se pide el estado final (no "alternar"): un doble envío no lo da vuelta.
+    # Pendiente D-3: el local llega por la URL hasta ligar usuario y local.
+    local = get_object_or_404(Local, pk=local_id, activo=True)
+    acciones = {'cerrar': False, 'abrir': True}
+    accion = request.POST.get('accion')
+    if accion not in acciones:
+        messages.error(request, 'La acción solicitada no es válida.')
+        return redirect('pedidos:caja')
+    Local.objects.filter(pk=local.pk).update(recibe_pedidos=acciones[accion])
+    if acciones[accion]:
+        messages.success(request, f'{local.nombre}: pedidos por QR abiertos.')
+    else:
+        messages.success(request, f'{local.nombre}: pedidos por QR cerrados. Lo ya pagado sigue en cocina.')
+    return redirect('pedidos:caja')
 
 
 @staff_member_required
@@ -251,7 +374,8 @@ def cerrar_mesa(request, cuenta_id):
         messages.warning(request, str(exc))
     else:
         if cerrada:
-            messages.success(request, f'Mesa {cuenta.mesa.numero}: cuenta #{cuenta.pk} cerrada. Lista para una nueva visita.')
+            messages.success(request, f'{cuenta.mesa.local.nombre}, Mesa {cuenta.mesa.numero}: cuenta '
+                f'#{cuenta.pk} cerrada. Lista para una nueva visita.')
         else:
             messages.info(request, f'La cuenta #{cuenta.pk} ya estaba cerrada.')
     return redirect('pedidos:caja')

@@ -1,0 +1,4 @@
+<figure class="foto-producto{% if not producto.imagen %} foto-producto--respaldo{% endif %}">
+    {% if producto.imagen %}<img src="{{ producto.imagen.url }}" alt="{{ producto.nombre }}" loading="lazy" decoding="async" onerror="this.closest('.foto-producto').classList.add('foto-producto--respaldo')">{% endif %}
+    <figcaption class="foto-producto__respaldo"><strong>{{ producto.nombre }}</strong><span>Imagen no disponible</span></figcaption>
+</figure>

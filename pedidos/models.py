@@ -1,11 +1,13 @@
 from django.db import models
 from django.conf import settings
 import uuid
+from decimal import Decimal
 
 class Pedido(models.Model):
 
     class Estado(models.TextChoices):
         SIN_PAGAR = ('sin_pagar', 'Pendiente de pago')
+        POR_COBRAR = ('por_cobrar', 'Por pagar en caja')
         PENDIENTE = ('pendiente', 'Pendiente')
         EN_PREPARACION = ('en_preparacion', 'En preparación')
         LISTO = ('listo', 'Listo')
@@ -16,10 +18,27 @@ class Pedido(models.Model):
     cuenta = models.ForeignKey('Cuenta', on_delete=models.PROTECT, related_name='pedidos', null=True, blank=True)
     cliente_clave = models.CharField(max_length=64, blank=True, db_index=True)
     checkout_clave = models.CharField(max_length=64, unique=True, null=True, blank=True)
+    propina = models.DecimalField(max_digits=12, decimal_places=2, default=0)
+    mayoria_edad_confirmada = models.BooleanField(default=False)
+    nombre = models.CharField(max_length=30, blank=True, default='')
     creado = models.DateTimeField(auto_now_add=True)
 
     class Meta:
         ordering = ['-creado']
+        constraints = [
+            models.CheckConstraint(
+                condition=models.Q(propina__gte=0),
+                name='pedido_propina_no_negativa',
+            ),
+        ]
+
+    @property
+    def subtotal_productos(self):
+        return sum((detalle.subtotal for detalle in self.detalles.all()), Decimal('0'))
+
+    @property
+    def total_con_propina(self):
+        return self.subtotal_productos + self.propina
 
     def __str__(self):
         return f'Pedido #{self.pk} - Mesa {self.mesa.numero}'
@@ -30,6 +49,8 @@ class DetallePedido(models.Model):
     nombre_producto = models.CharField(max_length=255)
     precio_unitario = models.DecimalField(max_digits=12, decimal_places=2)
     cantidad = models.PositiveIntegerField()
+    requiere_mayoria_edad = models.BooleanField(default=False)
+    opciones = models.JSONField(default=list, blank=True)
 
     @property
     def subtotal(self):
@@ -97,6 +118,8 @@ class IntentoWebpay(models.Model):
     session_id = models.UUIDField(default=uuid.uuid4, editable=False)
     token = models.CharField(max_length=64, unique=True, null=True, blank=True)
     monto = models.DecimalField(max_digits=12, decimal_places=2)
+    subtotal = models.DecimalField(max_digits=12, decimal_places=2, default=0)
+    propina = models.DecimalField(max_digits=12, decimal_places=2, default=0)
     estado = models.CharField(max_length=20, choices=Estado.choices, default=Estado.CREADO)
     iniciado_por = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.PROTECT, related_name='intentos_webpay', null=True, blank=True)
     codigo_autorizacion = models.CharField(max_length=32, blank=True)
@@ -107,7 +130,13 @@ class IntentoWebpay(models.Model):
 
     class Meta:
         ordering = ['-creado']
-        constraints = [models.CheckConstraint(condition=models.Q(monto__gt=0), name='intento_webpay_monto_positivo'), models.UniqueConstraint(fields=['cuenta'], condition=models.Q(pedido__isnull=True, estado__in=['creado', 'iniciado', 'por_verificar']), name='un_intento_webpay_activo_por_cuenta'), models.UniqueConstraint(fields=['pedido'], condition=models.Q(pedido__isnull=False, estado__in=['creado', 'iniciado', 'por_verificar']), name='un_intento_activo_por_pedido')]
+        constraints = [
+            models.CheckConstraint(condition=models.Q(monto__gt=0), name='intento_webpay_monto_positivo'),
+            models.CheckConstraint(condition=models.Q(subtotal__gte=0), name='intento_subtotal_no_negativo'),
+            models.CheckConstraint(condition=models.Q(propina__gte=0), name='intento_propina_no_negativa'),
+            models.UniqueConstraint(fields=['cuenta'], condition=models.Q(pedido__isnull=True, estado__in=['creado', 'iniciado', 'por_verificar']), name='un_intento_webpay_activo_por_cuenta'),
+            models.UniqueConstraint(fields=['pedido'], condition=models.Q(pedido__isnull=False, estado__in=['creado', 'iniciado', 'por_verificar']), name='un_intento_activo_por_pedido'),
+        ]
 
     def __str__(self):
         return f'{self.orden_compra} - {self.get_estado_display()}'

@@ -1,0 +1,44 @@
+{% load static %}<!doctype html>
+<html lang="es-CL">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+    {% block meta %}{% endblock %}
+    <title>{% block titulo %}Kippu{% endblock %}</title>
+    <link rel="preload" href="{% static 'fuentes/work-sans-400.woff2' %}" as="font" type="font/woff2" crossorigin>
+    <link rel="preload" href="{% static 'fuentes/fraunces-600.woff2' %}" as="font" type="font/woff2" crossorigin>
+    <link rel="preload" href="{% static 'fuentes/noto-serif-jp-200-ken.woff2' %}" as="font" type="font/woff2" crossorigin>
+    <link rel="stylesheet" href="{% static 'css/kippu.css' %}">
+    {# Tema de cada local (decisión 30): se cargaría aquí, después de kippu.css. #}
+    {% block tema %}{% endblock %}
+    {% block estilos %}{% endblock %}
+    <style>[x-cloak] { display: none !important; }</style>
+    <script defer src="{% static 'js/vendor/htmx-2.0.11.min.js' %}"></script>
+    {% block scripts_cabeza %}{% endblock %}
+    <script defer src="{% static 'js/vendor/alpine-3.14.9.min.js' %}"></script>
+</head>
+<body class="{% block clase_body %}{% endblock %}">
+    {% block encabezado %}
+    <header class="contenedor encabezado">
+        <span class="logo" aria-hidden="true">券</span>
+        <span class="marca">Kippu</span>
+    </header>
+    {% endblock %}
+
+    <main class="{% block clase_main %}contenedor{% endblock %}">
+        {% block mensajes %}
+        {% if messages %}
+        <ul class="mensajes" aria-live="polite">
+            {% for mensaje in messages %}
+            <li class="mensaje mensaje--{{ mensaje.level_tag }}">{{ mensaje }}</li>
+            {% endfor %}
+        </ul>
+        {% endif %}
+        {% endblock %}
+
+        {% block contenido %}{% endblock %}
+    </main>
+
+    {% block scripts %}{% endblock %}
+</body>
+</html>

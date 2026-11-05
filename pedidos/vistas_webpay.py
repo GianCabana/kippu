@@ -17,7 +17,7 @@ from django.views.decorators.http import require_GET, require_POST, require_http
 
 from .models import Cuenta, IntentoWebpay, Pago, Pedido
 from mesas.models import Mesa
-from .pagos import ErrorPago, ESTADOS_ACTIVOS, crear_intento_cliente, resolver_intento, sincronizar_carrito, reintentar_pago, consumir_formulario
+from .pagos import ErrorPago, ESTADOS_ACTIVOS, cliente_clave, crear_intento_cliente, resolver_intento, sincronizar_carrito, reintentar_pago, consumir_formulario, recordar_nombre
 
 SALT = "kippu-comprobante-demo-v1"
 
@@ -63,11 +63,18 @@ def iniciar(request, cuenta_id):
 @never_cache
 @require_POST
 def iniciar_cliente(request, codigo):
-    mesa = get_object_or_404(Mesa, codigo=codigo, activa=True)
+    mesa = get_object_or_404(
+        Mesa,
+        codigo=codigo,
+        activa=True,
+        local__activo=True,
+    )
     return_url = getattr(settings, 'WEBPAY_RETURN_URL', '') or request.build_absolute_uri(reverse('pedidos:webpay_retorno'))
     parsed = urlsplit(return_url)
     if parsed.scheme not in ('http', 'https') or not parsed.hostname or parsed.username or parsed.password:
         return HttpResponseBadRequest('Configura una URL de retorno válida.')
+    # Se recuerda antes de validar el pago, para no perderlo si falta algo (+18, propina).
+    recordar_nombre(request)
     try:
         intento, nuevo = crear_intento_cliente(request, codigo, return_url)
     except ErrorPago as exc:
@@ -77,6 +84,21 @@ def iniciar_cliente(request, codigo):
         return _privado(render(request, 'pedidos/webpay_salida.html', {
             'intento': intento, 'resultado_url': _url_resultado(intento.pk), 'firma': _firma(intento.pk)}))
     return _privado(redirect(_url_resultado(intento.pk)))
+
+
+def _retorno_sin_datos(request):
+    # "Intentar nuevamente" de Webpay vuelve sin datos: se busca el intento por la sesión y no se
+    # resuelve nada; su estado lo confirma después "Verificar con Transbank".
+    mesa = None
+    if request.session.session_key:
+        clave = cliente_clave(request)
+        intentos = IntentoWebpay.objects.filter(pedido__cliente_clave=clave).order_by("-creado", "-pk")
+        intento = intentos.filter(estado__in=ESTADOS_ACTIVOS).first() or intentos.first()
+        if intento:
+            return _privado(redirect(_url_resultado(intento.pk)))
+        pedido = Pedido.objects.filter(cliente_clave=clave).select_related("mesa__local").order_by("-creado", "-pk").first()
+        mesa = pedido.mesa if pedido else None
+    return _privado(render(request, "pedidos/webpay_retorno_sin_datos.html", {"mesa": mesa}))
 
 
 @never_cache
@@ -89,6 +111,8 @@ def retorno(request):
     if normal and abortado and normal != abortado:
         return HttpResponseBadRequest("Retorno no válido.")
     token = normal or abortado
+    if not (token or datos.get("TBK_ORDEN_COMPRA") or datos.get("TBK_ID_SESION")):
+        return _retorno_sin_datos(request)
     if token:
         if len(token) != 64:
             raise Http404
@@ -115,7 +139,10 @@ def retorno(request):
 @require_GET
 def resultado(request, intento_id):
     _autorizar_resultado(request, intento_id)
-    intento = get_object_or_404(IntentoWebpay.objects.select_related("cuenta__mesa", "pedido"), pk=intento_id)
+    intento = get_object_or_404(
+        IntentoWebpay.objects.select_related("cuenta__mesa__local", "pedido"),
+        pk=intento_id,
+    )
     pago = Pago.objects.filter(intento_webpay=intento).first()
     if pago and intento.pedido_id:
         sincronizar_carrito(request, intento.cuenta.mesa)
