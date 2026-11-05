@@ -25,8 +25,12 @@ PUBLIC_BASE_URL = os.environ["PUBLIC_BASE_URL"].rstrip("/")
 # SECURITY WARNING: keep the secret key used in production secret!
 SECRET_KEY = os.environ["DJANGO_SECRET_KEY"]
 
-# SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+def leer_booleano(valor):
+    return (valor or "").strip().lower() in {"1", "true", "si", "sí", "yes", "on"}
+
+
+# Apagado salvo que el .env diga DJANGO_DEBUG=True: en la web nunca debe quedar encendido.
+DEBUG = leer_booleano(os.environ.get("DJANGO_DEBUG"))
 
 
 def leer_hosts(valor):
@@ -53,6 +57,8 @@ INSTALLED_APPS = [
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
+    # Sirve /static con DEBUG apagado; va justo después de SecurityMiddleware.
+    'whitenoise.middleware.WhiteNoiseMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
@@ -133,6 +139,13 @@ FORMAT_MODULE_PATH = 'config.formats'
 
 STATIC_URL = 'static/'
 STATICFILES_DIRS = [BASE_DIR / 'static']
+# Destino de collectstatic; desde aquí WhiteNoise sirve el CSS y el JS (comprimidos) con DEBUG apagado.
+STATIC_ROOT = BASE_DIR / 'staticfiles'
+
+STORAGES = {
+    "default": {"BACKEND": "django.core.files.storage.FileSystemStorage"},
+    "staticfiles": {"BACKEND": "whitenoise.storage.CompressedStaticFilesStorage"},
+}
 
 # Imágenes que suben los locales. Nunca van a Git (.gitignore); en producción irán a otro almacenamiento.
 MEDIA_URL = 'media/'
