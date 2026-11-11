@@ -3,8 +3,8 @@
                 <div class="carrito-cabecera">
                     <div><p class="etiqueta" id="carrito-descripcion">Mesa {{ mesa.numero }} · {{ cantidad_carrito }} unidad{{ cantidad_carrito|pluralize:"es" }}</p><h2 id="carrito-titulo">Tu pedido</h2></div>
                     <button class="cerrar" type="button" @click="cerrarCarrito()" aria-label="Cerrar carrito" autofocus><svg class="icono" aria-hidden="true"><use href="#i-cerrar"/></svg></button>
+                    <p class="estado-peticion" x-show="ocupado" x-cloak role="status">Actualizando carrito…</p>
                 </div>
-                <p class="estado-peticion" x-show="ocupado" x-cloak role="status">Actualizando carrito…</p>
                 <div class="mensaje mensaje--error error-carrito" x-show="error" x-cloak role="alert"><span x-text="error"></span> <a href="{% url 'carta:por_mesa' codigo=mesa.codigo %}">Actualizar la carta</a></div>
                 <div class="carrito-contenido" id="carrito-contenido">
                     {% if messages %}

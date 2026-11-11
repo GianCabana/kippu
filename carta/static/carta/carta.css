@@ -157,7 +157,7 @@ dialog { color: var(--texto); }
 .carrito-cabecera .etiqueta { margin: 0 0 6px; font-size: 11.5px; }
 .cerrar { display: grid; flex-shrink: 0; place-items: center; width: 44px; height: 44px; border: 1px solid var(--linea); border-radius: 50%; background: transparent; color: var(--tinta); }
 .cerrar:hover { background: var(--superficie); }
-.estado-peticion { margin: 0; padding: 8px 24px; color: var(--texto-2); font-size: 12.5px; }
+.estado-peticion { position: absolute; top: 100%; right: 0; left: 0; margin: 0; padding: 8px 24px; border-bottom: 1px solid var(--linea); background: var(--papel); color: var(--texto-2); font-size: 12.5px; }
 .error-carrito { margin: 12px 20px; }
 .carrito-contenido { flex: 1 0 auto; padding: 4px 24px 16px; }
 .carrito-contenido > .mensajes { margin: 14px 0 0; }
