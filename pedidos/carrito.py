@@ -175,6 +175,8 @@ class Carrito:
                 "opcion_ids": [opcion.pk for opcion in opciones],
                 "precio_unitario": precio_unitario,
                 "subtotal": subtotal,
+                "en_tope": cantidad >= self.MAXIMO_POR_PRODUCTO,
+                "tope": self.MAXIMO_POR_PRODUCTO,
             })
 
         if cambiado:

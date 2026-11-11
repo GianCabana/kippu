@@ -118,7 +118,8 @@ def agregar_al_carrito(request, codigo, producto_id):
     else:
         messages.warning(
             request,
-            "Puedes agregar hasta 20 unidades de cada producto.",
+            f"Puedes agregar hasta {Carrito.MAXIMO_POR_PRODUCTO} "
+            "unidades de cada producto.",
         )
 
     return _respuesta_carrito(request, mesa, carrito)

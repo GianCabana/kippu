@@ -171,6 +171,7 @@ dialog { color: var(--texto); }
 .control-cantidad button { display: grid; place-items: center; width: 44px; height: 44px; border: 1px solid var(--linea); border-radius: 10px; background: transparent; color: var(--texto-2); font-size: 20px; }
 .control-cantidad button:hover { border-color: var(--texto-2); color: var(--tinta); }
 .control-cantidad span { min-width: 22px; color: var(--tinta); font-family: var(--mono); font-size: 16px; text-align: center; }
+.tope-cantidad { margin: 6px 0 0; color: var(--texto-2); font-size: 12.5px; }
 .subtotal { flex: none; margin: 2px 0 0; color: var(--tinta); font-family: var(--mono); font-size: 14.5px; }
 
 .carrito-resumen { padding: 16px 24px max(20px, env(safe-area-inset-bottom)); border-top: 1px dashed var(--linea); }

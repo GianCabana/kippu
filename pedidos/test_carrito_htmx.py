@@ -4,6 +4,7 @@ from django.test import Client, TestCase
 from django.urls import reverse
 from carta.models import Categoria, Producto
 from mesas.models import Mesa
+from pedidos.carrito import Carrito
 
 
 class CarritoHtmxTests(TestCase):
@@ -32,6 +33,44 @@ class CarritoHtmxTests(TestCase):
             self.client.post(self.url, HTTP_HX_REQUEST='true')
         self.assertEqual(self.client.session[f'carrito_{self.mesa.codigo}'][str(self.producto.pk)], 20)
         self.assertRedirects(self.client.post(self.quitar), self.carta)
+
+    def test_tope_oculta_sumar_y_avisa(self):
+        sumar = f'id="sumar-{self.producto.pk}"'
+        aviso = 'Máximo 20 unidades de este producto.'
+        for _ in range(19):
+            respuesta = self.client.post(self.url, HTTP_HX_REQUEST='true')
+        self.assertContains(respuesta, sumar)
+        self.assertNotContains(respuesta, aviso)
+
+        respuesta = self.client.post(self.url, HTTP_HX_REQUEST='true')
+        self.assertNotContains(respuesta, sumar)
+        self.assertContains(respuesta, aviso)
+
+        respuesta = self.client.post(self.url, HTTP_HX_REQUEST='true')
+        self.assertContains(respuesta, 'Puedes agregar hasta 20 unidades de cada producto.')
+        self.assertContains(respuesta, 'data-cantidad="20"')
+
+        respuesta = self.client.post(self.quitar, HTTP_HX_REQUEST='true')
+        self.assertContains(respuesta, sumar)
+        self.assertNotContains(respuesta, aviso)
+
+    def test_tope_es_por_producto(self):
+        otro = Producto.objects.create(nombre='Otro producto', categoria=self.producto.categoria, precio=1000)
+        for _ in range(20):
+            self.client.post(self.url, HTTP_HX_REQUEST='true')
+        url_otro = reverse('pedidos:agregar', kwargs={'codigo': self.mesa.codigo, 'producto_id': otro.pk})
+        respuesta = self.client.post(url_otro, HTTP_HX_REQUEST='true')
+        self.assertContains(respuesta, 'data-cantidad="21"')
+        self.assertContains(respuesta, f'id="sumar-{otro.pk}"')
+        self.assertNotContains(respuesta, f'id="sumar-{self.producto.pk}"')
+
+    def test_tope_sigue_a_la_constante(self):
+        with patch.object(Carrito, 'MAXIMO_POR_PRODUCTO', 3):
+            for _ in range(4):
+                respuesta = self.client.post(self.url, HTTP_HX_REQUEST='true')
+        self.assertContains(respuesta, 'Puedes agregar hasta 3 unidades de cada producto.')
+        self.assertContains(respuesta, 'Máximo 3 unidades de este producto.')
+        self.assertEqual(self.client.session[f'carrito_{self.mesa.codigo}'][str(self.producto.pk)], 3)
 
     def test_csrf_y_get_no_modifican_carrito(self):
         cliente = Client(enforce_csrf_checks=True)

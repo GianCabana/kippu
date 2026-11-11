@@ -25,7 +25,7 @@
                                             <button :disabled="ocupado || pagando || !!error" id="quitar-{{ item.producto.pk }}" type="submit" aria-label="Quitar una unidad de {{ item.producto.nombre }}">−</button>
                                         </form>
                                         <span>{{ item.cantidad }}</span>
-                                        {% if mesa.local.recibe_pedidos %}
+                                        {% if mesa.local.recibe_pedidos and not item.en_tope %}
                                         <form method="post" action="{% url 'pedidos:agregar' codigo=mesa.codigo producto_id=item.producto.pk %}" data-carrito-form hx-post="{% url 'pedidos:agregar' codigo=mesa.codigo producto_id=item.producto.pk %}" hx-target="#carrito-datos" hx-swap="innerHTML" hx-sync="#carta-app:drop">
                                             {% csrf_token %}
                                             {% for opcion_id in item.opcion_ids %}<input type="hidden" name="opcion" value="{{ opcion_id }}">{% endfor %}
@@ -33,6 +33,7 @@
                                         </form>
                                         {% endif %}
                                     </div>
+                                    {% if item.en_tope %}<p class="tope-cantidad">Máximo {{ item.tope }} unidades de este producto.</p>{% endif %}
                                 </div>
                                 <p class="subtotal" data-pesos="{{ item.subtotal|floatformat:'0u' }}">${{ item.subtotal|floatformat:"0g" }}</p>
                             </article>
