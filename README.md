@@ -16,18 +16,18 @@ mesas, carta y códigos QR se administran desde `/admin/`.
 
 | Capa | Tecnología |
 |---|---|
-| Lenguaje | Python 3.14 |
+| Lenguaje | Python 3.13 (la que usa Railway; probado también en 3.14) |
 | Framework | Django 5.2.17 |
 | Base de datos | PostgreSQL 17 (driver `psycopg` 3.3.5) |
 | Interactividad | HTMX 2.0.11 y Alpine.js 3.14.9, servidos desde `static/js/vendor/` |
 | Pagos | Webpay Plus con `transbank-sdk` 6.1.0, solo en ambiente de integración |
-| Otros | `qrcode` 8.2, Pillow 12.3.0, `python-dotenv` 1.2.3 |
+| Otros | `qrcode` 8.2, Pillow 13.0.0, `python-dotenv` 1.2.3, WhiteNoise 6.12.0 (archivos estáticos) y gunicorn 26.2.0 (servidor en la web) |
 
-No hay servicio en la nube: la demostración corre en una red local.
+Se publica en https://kippurestaurant.com (ver "En la web"); también puede correr en una red local.
 
 ## Ejecutar localmente (Windows y PowerShell)
 
-Requisitos: Python 3.14 y PostgreSQL con una base vacía y un usuario que pueda crear bases (las
+Requisitos: Python 3.13 o 3.14 y PostgreSQL con una base vacía y un usuario que pueda crear bases (las
 pruebas crean una base temporal).
 
 ```powershell
