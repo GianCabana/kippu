@@ -23,6 +23,7 @@
         <span class="tk-sello tk-sello--ok">Pagado</span>
     </div>
     <p class="tk__ref">{{ intento.cuenta.mesa.local.nombre|upper }} · MESA {{ intento.cuenta.mesa.numero }} · KIP-{{ pago.pk }}</p>
+    {% if intento.pedido.nombre %}<p class="tk__nombre">Para <strong>{{ intento.pedido.nombre }}</strong></p>{% endif %}
     <p class="wp-estado">{% if enviado_cocina %}Tu pedido está pagado y fue enviado a cocina. Puedes seguir su estado en Mis pedidos.{% else %}El pago está registrado. Consulta al personal para revisar tu pedido.{% endif %}</p>
     <div class="tk__corte"></div>
     {% for item in intento.detalle %}
