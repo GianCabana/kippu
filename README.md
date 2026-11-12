@@ -46,6 +46,7 @@ Completar `.env`:
 | `DJANGO_ALLOWED_HOSTS` | Hosts aceptados, separados por comas (vacío: `127.0.0.1,localhost`) |
 | `DJANGO_DEBUG` | `True` en el computador de desarrollo (sirve `/media` y muestra los errores); vacío o `False` en la web |
 | `DJANGO_HTTPS` | `True` solo en la web con HTTPS (redirige a HTTPS, cookies seguras y HSTS); `False` en local |
+| `DJANGO_SERVIR_MEDIA` | `True` solo en la web, para que Django sirva las fotos de `/media` con `DEBUG` apagado |
 
 Webpay no necesita credenciales: usa el código de comercio y la clave públicos de integración del SDK.
 
@@ -78,9 +79,20 @@ nunca con una tarjeta real. El comprobante es de demostración, no una boleta de
 
 Las pruebas de concurrencia necesitan PostgreSQL (usan `SELECT FOR UPDATE`).
 
-### Con Docker
+### En la web
 
-[POR CONFIRMAR: lo completa Gian]
+Kippu se publica en https://kippurestaurant.com: Railway ejecuta la aplicación y PostgreSQL, y
+Cloudflare maneja el dominio, el HTTPS y la protección delante de Railway.
+
+- **Variables en Railway:** las de la tabla de arriba, con `DJANGO_DEBUG=False`, `DJANGO_HTTPS=True`,
+  `DJANGO_SERVIR_MEDIA=True`, `PUBLIC_BASE_URL=https://kippurestaurant.com`,
+  `DJANGO_ALLOWED_HOSTS=kippurestaurant.com,www.kippurestaurant.com`, una `DJANGO_SECRET_KEY` nueva y
+  las `DB_*` tomadas del servicio de PostgreSQL de Railway.
+- **Antes de cada despliegue:** `python manage.py migrate --noinput`.
+- **Arranque:** `python manage.py collectstatic --noinput && gunicorn config.wsgi --bind 0.0.0.0:$PORT`.
+- **Fotos:** `/media` vive en un volumen de Railway montado en `/app/media`, que no se borra al desplegar.
+- **Cloudflare:** registro DNS con proxy hacia Railway y SSL en modo *Full (strict)*.
+- Webpay sigue en integración: la URL de retorno se arma con el dominio.
 
 ## Integrantes y roles
 
