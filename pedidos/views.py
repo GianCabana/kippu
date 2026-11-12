@@ -174,9 +174,10 @@ def cocina(request):
                 Pedido.Estado.EN_PREPARACION,
             ]
         )
-        .select_related("mesa", "mesa__local")
+        # El reloj y el orden parten desde el pago: lo que esperó en caja no es tiempo de cocina.
+        .select_related("mesa", "mesa__local", "pago")
         .prefetch_related("detalles")
-        .order_by("creado", "pk")
+        .order_by("pago__creado", "pk")
     )
 
     return render(
@@ -228,9 +229,9 @@ def cambiar_estado(request, pedido_id):
 def entregas(request):
     pedidos = (
         Pedido.objects.filter(estado=Pedido.Estado.LISTO, pago__isnull=False)
-        .select_related("mesa", "mesa__local")
+        .select_related("mesa", "mesa__local", "pago")
         .prefetch_related("detalles")
-        .order_by("creado", "pk")
+        .order_by("pago__creado", "pk")
     )
 
     return render(
