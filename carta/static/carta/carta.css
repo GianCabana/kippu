@@ -2,7 +2,7 @@
    Solo usa las variables de kippu.css: ni :root ni colores propios (decisión 30, temas por local). */
 
 [hidden] { display: none !important; }
-html { scroll-behavior: smooth; scroll-padding-top: 24px; }
+html { scroll-behavior: smooth; scroll-padding-top: 24px; scroll-padding-bottom: calc(96px + env(safe-area-inset-bottom)); }
 body.modal-abierto { overflow: hidden; }
 button, input, a { -webkit-tap-highlight-color: transparent; }
 button, input { font: inherit; }

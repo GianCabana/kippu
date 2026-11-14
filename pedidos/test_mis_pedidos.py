@@ -41,6 +41,17 @@ class MisPedidosTicketTests(MisPedidosBase):
         self.assertNotContains(r, 'http-equiv="refresh"')
         self.assertContains(r, f'hx-get="{self.url_estado}"')
 
+    def test_titulo_y_aviso_para_lector_de_pantalla(self):
+        self.crear_pedido('pendiente')
+        r = self.client.get(self.url)
+        self.assertContains(r, '<h1 class="tk-etiqueta">MIS PEDIDOS</h1>', html=True)
+        self.assertContains(r, 'role="status" id="aviso-estado"')
+        self.assertContains(r, 'data-anuncio="Tu pedido llegó a cocina."')
+
+    def test_sin_pedidos_activos_no_hay_aviso_en_vivo(self):
+        self.crear_pedido('entregado')
+        self.assertNotContains(self.client.get(self.url), 'id="aviso-estado"')
+
     def test_estados_de_la_linea_de_tiempo(self):
         pedido = self.crear_pedido('en_preparacion')
         self.assertContains(self.client.get(self.url), 'En cocina · preparando')

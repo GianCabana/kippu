@@ -4,7 +4,7 @@
 {% block clase_body %}tk-pantalla{% endblock %}
 {% block encabezado %}
 <header class="tk-barra">
-    <div class="tk-barra__marca"><span class="logo logo--chico" aria-hidden="true">券</span><span class="tk-etiqueta">MIS PEDIDOS</span></div>
+    <div class="tk-barra__marca"><span class="logo logo--chico" aria-hidden="true">券</span><h1 class="tk-etiqueta">MIS PEDIDOS</h1></div>
     <span class="tk-mesa">{{ mesa.local.nombre }} · Mesa {{ mesa.numero }}</span>
 </header>
 {% endblock %}
@@ -59,6 +59,7 @@
     <a class="boton boton--bloque tk-boton" href="{% url 'carta:por_mesa' codigo=mesa.codigo %}">Pedir algo más</a>
     {% with ultimo=pedidos.0 %}{% if ultimo.resultado_url and ultimo.estado != 'sin_pagar' %}<a class="tk-enlace" href="{{ ultimo.resultado_url }}">Ver pago / comprobante del pedido #{{ ultimo.pk }}</a>{% endif %}{% endwith %}
 </footer>
+{% if consultar_estado %}<p class="sr-only" role="status" id="aviso-estado"></p>{% endif %}
 {% if consultar_estado %}<div hidden hx-get="{% url 'pedidos:mis_pedidos_estado' codigo=mesa.codigo %}" hx-trigger="every 5s [!document.hidden], kippu:volver from:document" hx-swap="none"></div>{% endif %}
 {% endblock %}
 
@@ -67,6 +68,15 @@
 <script>
     document.addEventListener('visibilitychange', () => {
         if (!document.hidden) htmx.trigger(document, 'kippu:volver');
+    });
+    // La consulta reemplaza el estado cada 5 s: solo se anuncia cuando cambia.
+    const avisoEstado = document.getElementById('aviso-estado');
+    const anuncioActual = () => document.querySelector('[id^="vivo-"] [data-anuncio]')?.dataset.anuncio || '';
+    let ultimoAnuncio = anuncioActual();
+    document.addEventListener('htmx:oobAfterSwap', () => {
+        const texto = anuncioActual();
+        if (texto && texto !== ultimoAnuncio) avisoEstado.textContent = texto;
+        ultimoAnuncio = texto;
     });
 </script>
 {% endif %}
