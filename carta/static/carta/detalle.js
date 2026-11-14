@@ -100,6 +100,7 @@
         grupo.append(aviso);
         if (grupo === grupo.closest('.detalle__cuerpo').querySelector('.grupo-opcion:has(:invalid)')) {
             grupo.scrollIntoView({block: 'center', behavior: demora() ? 'smooth' : 'auto'});
+            grupo.querySelector('input')?.focus({preventScroll: true});
         }
     }, true);
     document.addEventListener('change', event => {

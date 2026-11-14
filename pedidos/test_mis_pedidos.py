@@ -41,6 +41,44 @@ class MisPedidosTicketTests(MisPedidosBase):
         self.assertNotContains(r, 'http-equiv="refresh"')
         self.assertContains(r, f'hx-get="{self.url_estado}"')
 
+    def test_titulo_y_aviso_para_lector_de_pantalla(self):
+        self.crear_pedido('pendiente')
+        r = self.client.get(self.url)
+        self.assertContains(r, '<h1 class="tk-etiqueta">MIS PEDIDOS</h1>', html=True)
+        self.assertContains(r, 'role="status" id="aviso-estado"')
+        self.assertContains(r, 'data-anuncio="Tu pedido llegó a cocina."')
+
+    def test_ticket_muestra_metodo_de_pago_en_caja(self):
+        self.crear_pedido('pendiente')
+        self.assertContains(self.client.get(self.url), 'WEBPAY · ')
+        for metodo, texto in (('efectivo', 'EFECTIVO'), ('debito', 'DÉBITO'), ('credito', 'CRÉDITO')):
+            Pago.objects.update(metodo=metodo)
+            self.assertContains(self.client.get(self.url), f'PAGADO EN CAJA · {texto} · ')
+
+    def test_anulado_sin_pago_antiguo_no_se_muestra(self):
+        anulado = self.crear_pedido('cancelado', pagado=False)
+        self.crear_pedido('pendiente')
+        r = self.client.get(self.url)
+        self.assertNotContains(r, f'#{anulado.pk} · ')
+        self.assertNotContains(r, 'Anulado')
+        self.assertNotContains(self.client.get(self.url_estado), f'sello-{anulado.pk}')
+
+    def test_anulado_sin_pago_se_muestra_si_es_el_mas_reciente(self):
+        self.crear_pedido('entregado')
+        anulado = self.crear_pedido('cancelado', pagado=False)
+        r = self.client.get(self.url)
+        self.assertContains(r, f'PEDIDO #{anulado.pk} · ')
+        self.assertContains(r, 'Anulado')
+
+    def test_anulado_con_pago_siempre_se_muestra(self):
+        anulado = self.crear_pedido('cancelado')
+        self.crear_pedido('pendiente')
+        self.assertContains(self.client.get(self.url), f'#{anulado.pk} · ')
+
+    def test_sin_pedidos_activos_no_hay_aviso_en_vivo(self):
+        self.crear_pedido('entregado')
+        self.assertNotContains(self.client.get(self.url), 'id="aviso-estado"')
+
     def test_estados_de_la_linea_de_tiempo(self):
         pedido = self.crear_pedido('en_preparacion')
         self.assertContains(self.client.get(self.url), 'En cocina · preparando')
@@ -53,7 +91,7 @@ class MisPedidosTicketTests(MisPedidosBase):
         self.assertContains(r, 'Pago pendiente')
         Pedido.objects.update(estado='cancelado')
         r = self.client.get(self.url)
-        self.assertContains(r, 'Cancelado')
+        self.assertContains(r, 'Anulado')
         self.assertNotContains(r, 'class="tk-pasos"')
 
     def test_pedidos_anteriores_como_ticket_corto(self):

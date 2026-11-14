@@ -119,6 +119,16 @@ body {
   -webkit-font-smoothing: antialiased;
 }
 
+/* Texto solo para lectores de pantalla. */
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+}
+
 h1,
 h2,
 h3 {
@@ -862,7 +872,9 @@ a {
   color: var(--papel);
   font-family: var(--mono);
   font-size: 12px;
+  font-weight: 400;
   letter-spacing: 0.14em;
+  line-height: inherit;
 }
 .tk-mesa {
   color: rgba(251, 247, 240, 0.7);

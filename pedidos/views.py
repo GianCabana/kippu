@@ -287,6 +287,12 @@ def _pedidos_del_navegador(request, mesa):
     )
 
 
+def _sin_anulados_viejos(pedidos):
+    """Un anulado sin pago no deja registro de dinero: solo se muestra si es el pedido más reciente."""
+    return [pedido for i, pedido in enumerate(pedidos)
+            if i == 0 or pedido.estado != Pedido.Estado.CANCELADO or hasattr(pedido, "pago")]
+
+
 def _hay_pedidos_activos(pedidos):
     return any(pedido.estado not in ESTADOS_FINALES for pedido in pedidos)
 
@@ -296,7 +302,8 @@ def mis_pedidos(request, codigo):
     mesa = _mesa_del_cliente(codigo)
     vencer_por_cobrar(mesa)
     sincronizar_carrito(request, mesa)
-    pedidos = _pedidos_del_navegador(request, mesa).prefetch_related("detalles", "intentos_webpay")
+    pedidos = _sin_anulados_viejos(
+        _pedidos_del_navegador(request, mesa).prefetch_related("detalles", "intentos_webpay"))
 
     from .vistas_webpay import _url_resultado
     for pedido in pedidos:
@@ -321,7 +328,7 @@ def estado_mis_pedidos(request, codigo):
     mesa = _mesa_del_cliente(codigo)
     # Cancelar un por_cobrar vencido no es actividad de la cuenta: solo cambia su estado.
     vencer_por_cobrar(mesa)
-    pedidos = list(_pedidos_del_navegador(request, mesa))
+    pedidos = _sin_anulados_viejos(_pedidos_del_navegador(request, mesa))
     estado = 200 if _hay_pedidos_activos(pedidos) else DETENER_CONSULTA
     return render(
         request,

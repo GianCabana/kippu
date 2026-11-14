@@ -24,7 +24,7 @@ def pagar_en_caja(request, codigo):
     except ErrorPago as exc:
         messages.error(request, str(exc))
         return redirect('carta:por_mesa', codigo=mesa.codigo)
-    messages.success(request, f'Pedido #{pedido.pk} enviado a caja. Acércate a pagar para que pase a cocina.')
+    messages.success(request, f'Pedido #{pedido.pk} enviado. Acércate a caja para pagar tu pedido.')
     return redirect('pedidos:mis_pedidos', codigo=mesa.codigo)
 
 
@@ -35,9 +35,9 @@ def cancelar_del_cliente(request, codigo, pedido_id):
     # Solo los pedidos de este navegador: el de otra persona da 404.
     pedido = get_object_or_404(_pedidos_del_navegador(request, mesa), pk=pedido_id)
     if cancelar_por_cobrar(pedido.pk):
-        messages.success(request, f'Cancelaste el pedido #{pedido.pk}.')
+        messages.success(request, f'Anulaste el pedido #{pedido.pk}.')
     else:
-        messages.info(request, f'El pedido #{pedido.pk} ya no se puede cancelar desde aquí.')
+        messages.info(request, f'El pedido #{pedido.pk} ya no se puede anular desde aquí.')
     return redirect('pedidos:mis_pedidos', codigo=mesa.codigo)
 
 
@@ -64,7 +64,7 @@ def cobrar(request, pedido_id):
 def cancelar_en_caja(request, pedido_id):
     pedido = get_object_or_404(Pedido, pk=pedido_id)
     if cancelar_por_cobrar(pedido.pk):
-        messages.success(request, f'Pedido #{pedido.pk} cancelado. No pasó a cocina.')
+        messages.success(request, f'Pedido #{pedido.pk} anulado. No pasó a cocina.')
     else:
         messages.info(request, f'El pedido #{pedido.pk} ya no estaba por cobrar.')
     return redirect('pedidos:caja')
