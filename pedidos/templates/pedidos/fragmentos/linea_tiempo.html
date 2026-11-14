@@ -2,14 +2,14 @@
 {% if pedido.estado == 'por_cobrar' %}
 <div class="tk-caja" x-data="{ cancelando: false }">
     <p class="tk-caja__titulo">Acércate a caja a pagar <span class="cifra">${{ pedido.total_con_propina|floatformat:"0g" }}</span></p>
-    <p class="tk-caja__texto">Di que es el <strong>pedido #{{ pedido.pk }}</strong>{% if pedido.nombre %}, a nombre de <strong>{{ pedido.nombre }}</strong>{% endif %}. Pasa a cocina cuando el personal te cobre, en efectivo o con tarjeta. Si no se paga en 30 minutos, se cancela solo.</p>
-    <button class="boton boton--bloque tk-boton" type="button" x-ref="cancelar" x-show="!cancelando" @click="cancelando = true; $nextTick(() => $refs.volver.focus())">Cancelar pedido</button>
+    <p class="tk-caja__texto">Pregunta por el <strong>pedido #{{ pedido.pk }}</strong>{% if pedido.nombre %}, a nombre de <strong>{{ pedido.nombre }}</strong>{% endif %}. Tu pedido, una vez pagado, empezará a prepararse. Si no se paga en 30 minutos, se anulará.</p>
+    <button class="boton boton--bloque tk-boton" type="button" x-ref="cancelar" x-show="!cancelando" @click="cancelando = true; $nextTick(() => $refs.volver.focus())">Anular pedido</button>
     <form method="post" action="{% url 'pedidos:cancelar_por_cobrar' codigo=mesa.codigo pedido_id=pedido.pk %}" x-show="cancelando" x-cloak>
         {% csrf_token %}
-        <p class="tk-caja__texto">¿Cancelar el pedido #{{ pedido.pk }}? No pasará a cocina.</p>
+        <p class="tk-caja__texto">¿Deseas anular el pedido #{{ pedido.pk }}?</p>
         <div class="tk-caja__acciones">
             <button class="boton tk-boton" type="button" x-ref="volver" @click="cancelando = false; $nextTick(() => $refs.cancelar.focus())">Volver</button>
-            <button class="boton" type="submit">Sí, cancelar</button>
+            <button class="boton" type="submit">Sí, anular</button>
         </div>
     </form>
 </div>

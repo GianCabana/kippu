@@ -54,11 +54,11 @@ class NombreEnComprobanteTests(TestCase):
 
         self.assertContains(
             respuesta,
-            f"Di que es el <strong>pedido #{pedido.pk}</strong>, a nombre de <strong>Ana</strong>.",
+            f"Pregunta por el <strong>pedido #{pedido.pk}</strong>, a nombre de <strong>Ana</strong>.",
         )
 
     def test_aviso_de_caja_sin_nombre_queda_como_antes(self):
         pedido, respuesta = self.por_cobrar("")
 
-        self.assertContains(respuesta, f"Di que es el <strong>pedido #{pedido.pk}</strong>. Pasa")
+        self.assertContains(respuesta, f"Pregunta por el <strong>pedido #{pedido.pk}</strong>. Tu pedido")
         self.assertNotContains(respuesta, "a nombre de")

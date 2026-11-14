@@ -36,7 +36,7 @@ def revisar_cierre(cuenta):
             pago = por_pedido.get(pedido.pk)
             if pago:
                 if pedido.estado != Pedido.Estado.ENTREGADO:
-                    motivo = 'Falta entregar un pedido pagado o revisar un pedido pagado cancelado.'
+                    motivo = 'Falta entregar un pedido pagado o revisar un pedido pagado anulado.'
                     break
                 try:
                     lineas, monto = detalle_pedido(pedido)

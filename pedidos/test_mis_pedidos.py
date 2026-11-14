@@ -71,7 +71,7 @@ class MisPedidosTicketTests(MisPedidosBase):
         self.assertContains(r, 'Pago pendiente')
         Pedido.objects.update(estado='cancelado')
         r = self.client.get(self.url)
-        self.assertContains(r, 'Cancelado')
+        self.assertContains(r, 'Anulado')
         self.assertNotContains(r, 'class="tk-pasos"')
 
     def test_pedidos_anteriores_como_ticket_corto(self):

@@ -37,7 +37,7 @@
                 <button class="boton" type="button" @click="metodo = 'credito'; etiqueta = 'con crédito'; $nextTick(() => $refs.volverCobro.focus())">Crédito</button>
             </div>
         </div>
-        <button class="boton boton--bloque boton--fantasma" type="button" x-ref="cancelar" x-show="!metodo && !cancelando" @click="cancelando = true; $nextTick(() => $refs.volverCancelar.focus())">Cancelar pedido</button>
+        <button class="boton boton--bloque boton--fantasma" type="button" x-ref="cancelar" x-show="!metodo && !cancelando" @click="cancelando = true; $nextTick(() => $refs.volverCancelar.focus())">Anular pedido</button>
         <form class="caja-mesa__confirmar" method="post" action="{% url 'pedidos:cobrar_presencial' pedido_id=pedido.pk %}" x-show="metodo" x-cloak>
             {% csrf_token %}
             <input type="hidden" name="metodo" :value="metodo">
@@ -49,10 +49,10 @@
         </form>
         <form class="caja-mesa__confirmar" method="post" action="{% url 'pedidos:cancelar_presencial' pedido_id=pedido.pk %}" x-show="cancelando" x-cloak>
             {% csrf_token %}
-            <p>¿Cancelar el pedido #{{ pedido.pk }}? No pasará a cocina y el cliente tendrá que pedir de nuevo.</p>
+            <p>¿Deseas anular el pedido #{{ pedido.pk }}? No pasará a cocina y el cliente tendrá que pedir de nuevo.</p>
             <div class="acciones">
                 <button class="boton boton--fantasma" type="button" x-ref="volverCancelar" @click="cancelando = false; $nextTick(() => $refs.cancelar.focus())">Volver</button>
-                <button class="boton" type="submit">Sí, cancelar</button>
+                <button class="boton" type="submit">Sí, anular</button>
             </div>
         </form>
     </article>
@@ -106,7 +106,7 @@
             <span class="caja-mesa__monto">${{ cuenta.revision.total_pagado|floatformat:"0g" }}</span>
         </div>
         {% if cuenta.revision.motivo %}<p class="caja-mesa__motivo">{{ cuenta.revision.motivo }}</p>{% endif %}
-        {% if cuenta.revision.borradores %}<p class="caja-sub">Al cerrar se descartarán {{ cuenta.revision.borradores }} borrador{{ cuenta.revision.borradores|pluralize:"es" }} sin pago. No se cancelan pedidos pagados.</p>{% endif %}
+        {% if cuenta.revision.borradores %}<p class="caja-sub">Al cerrar se descartarán {{ cuenta.revision.borradores }} borrador{{ cuenta.revision.borradores|pluralize:"es" }} sin pago. No se anulan pedidos pagados.</p>{% endif %}
         <button class="boton boton--bloque" type="button" x-ref="mostrar" x-show="!confirmando" @click="confirmando = true; $nextTick(() => $refs.volverConfirmar.focus())"{% if not cuenta.revision.puede_cerrar %} disabled{% endif %}>Cerrar mesa {{ cuenta.mesa.numero }}</button>
         {% if cuenta.revision.puede_cerrar %}
         <form class="caja-mesa__confirmar" method="post" action="{% url 'pedidos:cerrar_mesa' cuenta_id=cuenta.pk %}" x-show="confirmando" x-cloak>
@@ -146,7 +146,7 @@
     <div class="caja-lista__fila">
         <span class="cifra">{{ pago.creado|date:"d/m H:i" }}</span>
         <span>Mesa {{ pago.cuenta.mesa.numero }} · {% if pago.pedido_id %}Pedido #{{ pago.pedido_id }}{% else %}Cuenta anterior #{{ pago.cuenta_id }}{% endif %}<br><span class="caja-sub">{{ pago.cuenta.mesa.local.nombre }} · {{ pago.get_metodo_display }}</span></span>
-        <span>{% if pago.pedido_id %}<span class="chip {% if pago.pedido.estado == 'entregado' %}chip--verde{% elif pago.pedido.estado == 'cancelado' %}chip--gris{% else %}chip--ambar{% endif %}">{{ pago.pedido.get_estado_display }}</span>{% endif %}</span>
+        <span>{% if pago.pedido_id %}<span class="chip {% if pago.pedido.estado == 'entregado' %}chip--verde{% elif pago.pedido.estado == 'cancelado' %}chip--gris{% else %}chip--ambar{% endif %}">{% if pago.pedido.estado == 'cancelado' %}Anulado{% else %}{{ pago.pedido.get_estado_display }}{% endif %}</span>{% endif %}</span>
         <span class="cifra monto">${{ pago.monto|floatformat:"0g" }}</span>
         {% if pago.intento_webpay_id %}<a href="{% url 'pedidos:webpay_resultado' intento_id=pago.intento_webpay_id %}">Ver comprobante</a>{% else %}<span></span>{% endif %}
     </div>
