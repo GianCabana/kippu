@@ -364,6 +364,12 @@ def resolver_intento(intento_id, confirmar=False, cancelar=False):
         status, code = respuesta.get('status'), respuesta.get('response_code')
         intento.codigo_respuesta = code if type(code) is int else None
         if status == 'AUTHORIZED' and type(code) is int and code == 0:
+            # Solo cuenta lo confirmado con commit tras un retorno normal; status() solo informa.
+            if not intento.retorno_confirmable:
+                intento.observacion = ('Transbank informa una autorización sin la confirmación de Kippu. '
+                    'No se envió a cocina; consulta al personal.')
+                intento.save()
+                return intento
             autorizacion = str(respuesta.get('authorization_code') or '')
             if not autorizacion:
                 intento.observacion = 'Falta el código de autorización. Consulta al personal antes de reintentar.'

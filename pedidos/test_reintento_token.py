@@ -94,11 +94,12 @@ class ReintentoTokenTests(TestCase):
         i.refresh_from_db();self.assertEqual(i.estado,'anulado')
         self.assertEqual(self.accion(i,'webpay_reintentar').status_code,200)
 
-    def test_si_ya_autorizado_registra_y_no_reintenta(self):
+    def test_si_ya_autorizado_sin_retorno_no_registra_ni_reintenta(self):
         i=self.iniciado();self.sdk.status.return_value=self.respuesta(i)
         self.assertEqual(self.accion(i,'webpay_reintentar').status_code,302)
-        self.assertEqual(Pago.objects.count(),1)
+        self.assertFalse(Pago.objects.exists())
         self.assertEqual(IntentoWebpay.objects.count(),1)
+        i.refresh_from_db();self.assertEqual(i.estado,'por_verificar')
         self.sdk.commit.assert_not_called()
 
     def test_retorno_viejo_no_confirma_token_abandonado(self):
