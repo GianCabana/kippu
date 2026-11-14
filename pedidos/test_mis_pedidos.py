@@ -55,6 +55,26 @@ class MisPedidosTicketTests(MisPedidosBase):
             Pago.objects.update(metodo=metodo)
             self.assertContains(self.client.get(self.url), f'PAGADO EN CAJA · {texto} · ')
 
+    def test_anulado_sin_pago_antiguo_no_se_muestra(self):
+        anulado = self.crear_pedido('cancelado', pagado=False)
+        self.crear_pedido('pendiente')
+        r = self.client.get(self.url)
+        self.assertNotContains(r, f'#{anulado.pk} · ')
+        self.assertNotContains(r, 'Anulado')
+        self.assertNotContains(self.client.get(self.url_estado), f'sello-{anulado.pk}')
+
+    def test_anulado_sin_pago_se_muestra_si_es_el_mas_reciente(self):
+        self.crear_pedido('entregado')
+        anulado = self.crear_pedido('cancelado', pagado=False)
+        r = self.client.get(self.url)
+        self.assertContains(r, f'PEDIDO #{anulado.pk} · ')
+        self.assertContains(r, 'Anulado')
+
+    def test_anulado_con_pago_siempre_se_muestra(self):
+        anulado = self.crear_pedido('cancelado')
+        self.crear_pedido('pendiente')
+        self.assertContains(self.client.get(self.url), f'#{anulado.pk} · ')
+
     def test_sin_pedidos_activos_no_hay_aviso_en_vivo(self):
         self.crear_pedido('entregado')
         self.assertNotContains(self.client.get(self.url), 'id="aviso-estado"')
