@@ -48,6 +48,13 @@ class MisPedidosTicketTests(MisPedidosBase):
         self.assertContains(r, 'role="status" id="aviso-estado"')
         self.assertContains(r, 'data-anuncio="Tu pedido llegó a cocina."')
 
+    def test_ticket_muestra_metodo_de_pago_en_caja(self):
+        self.crear_pedido('pendiente')
+        self.assertContains(self.client.get(self.url), 'WEBPAY · ')
+        for metodo, texto in (('efectivo', 'EFECTIVO'), ('debito', 'DÉBITO'), ('credito', 'CRÉDITO')):
+            Pago.objects.update(metodo=metodo)
+            self.assertContains(self.client.get(self.url), f'PAGADO EN CAJA · {texto} · ')
+
     def test_sin_pedidos_activos_no_hay_aviso_en_vivo(self):
         self.crear_pedido('entregado')
         self.assertNotContains(self.client.get(self.url), 'id="aviso-estado"')
