@@ -61,7 +61,7 @@ def iniciar(request, cuenta_id):
 
 
 @never_cache
-@require_POST
+@require_http_methods(["GET", "POST"])
 def iniciar_cliente(request, codigo):
     mesa = get_object_or_404(
         Mesa,
@@ -69,6 +69,9 @@ def iniciar_cliente(request, codigo):
         activa=True,
         local__activo=True,
     )
+    if request.method == "GET":
+        # Volver atrás desde Webpay pide esta página con GET: solo un POST con CSRF inicia un pago.
+        return redirect('carta:por_mesa', codigo=mesa.codigo)
     return_url = getattr(settings, 'WEBPAY_RETURN_URL', '') or request.build_absolute_uri(reverse('pedidos:webpay_retorno'))
     parsed = urlsplit(return_url)
     if parsed.scheme not in ('http', 'https') or not parsed.hostname or parsed.username or parsed.password:

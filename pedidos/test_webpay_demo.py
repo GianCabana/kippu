@@ -151,7 +151,10 @@ class PagoPrevioTests(TestCase):
 
     def test_controles_staff_post_csrf_y_comprobante_privado(self):
         url=reverse('pedidos:webpay_cliente',args=[self.mesa.codigo])
-        self.assertEqual(self.client.get(url).status_code,405)
+        # Volver atrás desde Webpay hace un GET: lleva a la carta sin crear nada.
+        self.assertRedirects(self.client.get(url),reverse('carta:por_mesa',args=[self.mesa.codigo]),fetch_redirect_response=False)
+        self.assertFalse(Pedido.objects.exists())
+        self.assertFalse(IntentoWebpay.objects.exists())
         self.assertEqual(Client(enforce_csrf_checks=True).post(url).status_code,403)
         self.assertEqual(self.client.get(reverse('pedidos:cocina')).status_code,302)
         i=self.crear()
