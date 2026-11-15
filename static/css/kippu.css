@@ -975,7 +975,7 @@ p.tk__nombre {
   text-transform: uppercase;
   white-space: nowrap;
 }
-.tk-sello--ok { border-color: #b9cbaa; color: var(--semaforo-verde-texto); }
+.tk-sello--ok { border-color: color-mix(in srgb, var(--semaforo-verde) 50%, var(--papel)); color: var(--semaforo-verde-texto); }
 .tk-sello--aji { border-color: var(--aji); color: var(--aji); }
 .tk-sello--gris { border-color: var(--linea); color: var(--texto-2); }
 .tk-perforado {

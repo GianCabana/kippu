@@ -41,9 +41,14 @@
                     {% else %}
                         <div class="carrito-vacio">
                             <span class="vacio-icono"><svg class="icono" aria-hidden="true"><use href="#i-bolsa"/></svg></span>
+                            {% if mesa.local.recibe_pedidos %}
                             <h3>Algo rico te espera.</h3>
                             <p>Tu carrito está vacío. Explora la carta y agrega lo que más te guste.</p>
-                            <button class="boton boton--fantasma" type="button" @click="cerrarCarrito()">Explorar la carta <svg class="icono" aria-hidden="true"><use href="#i-flecha"/></svg></button>
+                            {% else %}
+                            <h3>Pedidos cerrados por ahora.</h3>
+                            <p>Puedes mirar la carta, pero en este momento no se reciben pedidos. Para pedir, consulta al personal.</p>
+                            {% endif %}
+                            <button class="boton boton--fantasma" type="button" @click="cerrarCarrito()">{% if mesa.local.recibe_pedidos %}Explorar la carta{% else %}Ver la carta{% endif %} <svg class="icono" aria-hidden="true"><use href="#i-flecha"/></svg></button>
                         </div>
                     {% endif %}
                 </div>
