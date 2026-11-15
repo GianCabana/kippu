@@ -160,9 +160,11 @@ class SemillasDelRepoTests(SimpleTestCase):
         from carta.management.commands import cargar_casa_causa as comando
 
         nombres = {slugify(nombre) for _, productos in comando.CARTA_CASA_CAUSA for nombre, *_ in productos}
-        fotos = sorted((comando.DIRECTORIO_SEMILLAS / "la-casa-causa").glob("*.webp"))
+        fotos = [ruta for ruta in (comando.DIRECTORIO_SEMILLAS / "la-casa-causa").iterdir()
+                 if ruta.suffix in comando.EXTENSIONES]
 
-        self.assertEqual(len(fotos), 12)
         for foto in fotos:
             with self.subTest(foto=foto.name):
                 self.assertIn(foto.stem, nombres)
+        # Una sola foto por producto: con dos extensiones, buscar_semilla elegiría en silencio.
+        self.assertCountEqual([foto.stem for foto in fotos], nombres)
