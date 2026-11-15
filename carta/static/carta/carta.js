@@ -5,6 +5,9 @@
     const esCarrito = event => event.detail.elt?.matches('[data-carrito-form]');
     let foco = '';
     let scroll = 0;
+    // El carrito se redibuja entero con + y −: lo escrito en el formulario de pago se repone después.
+    let pago = null;
+    const formularioPago = () => document.getElementById('enviar-pedido');
     document.addEventListener('htmx:beforeRequest', event => {
         if (!esCarrito(event)) return;
         const app = document.getElementById('carta-app');
@@ -12,10 +15,26 @@
         if (state?.pagando || state?.error) { event.preventDefault(); return; }
         foco = document.activeElement?.id || '';
         scroll = document.getElementById('carrito-contenido')?.scrollTop || 0;
+        const form = formularioPago();
+        pago = form && {
+            nombre: form.elements.nombre?.value,
+            propina: form.querySelector('input[name="propina"]:checked')?.value,
+            mayoria: form.elements.confirma_mayoria_edad?.checked,
+        };
         emitir('kippu-inicio');
     });
+    const reponerPago = datos => {
+        const form = formularioPago();
+        if (!form || !datos) return;
+        if (form.elements.nombre && datos.nombre !== undefined) form.elements.nombre.value = datos.nombre;
+        if (form.elements.confirma_mayoria_edad && datos.mayoria) form.elements.confirma_mayoria_edad.checked = true;
+        const propina = datos.propina && form.querySelector(`input[name="propina"][value="${datos.propina}"]`);
+        // Después de que Alpine inicie el fragmento nuevo, para que x-model vea el cambio.
+        if (propina) setTimeout(() => { propina.checked = true; propina.dispatchEvent(new Event('change', {bubbles: true})); });
+    };
     document.addEventListener('htmx:afterSwap', event => {
         if (event.detail.target?.id !== 'carrito-datos') return;
+        reponerPago(pago);
         emitir('kippu-actualizado', {foco, scroll});
     });
     document.addEventListener('htmx:afterRequest', event => {
