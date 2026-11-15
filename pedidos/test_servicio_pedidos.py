@@ -46,6 +46,16 @@ class ServicioPedidosTests(TestCase):
     def recibe(self):
         return Local.objects.get(pk=self.local.pk).recibe_pedidos
 
+    def test_carrito_vacio_no_invita_a_pedir_con_servicio_cerrado(self):
+        url = reverse("carta:por_mesa", args=[self.mesa.codigo])
+        self.assertContains(Client().get(url), "Explora la carta y agrega")
+
+        self.cerrar_servicio()
+        respuesta = Client().get(url)
+
+        self.assertContains(respuesta, "en este momento no se reciben pedidos")
+        self.assertNotContains(respuesta, "Explora la carta y agrega")
+
     def test_servicio_por_defecto_recibe_pedidos(self):
         self.assertTrue(Local.objects.create(nombre="Nuevo", slug="nuevo").recibe_pedidos)
 
