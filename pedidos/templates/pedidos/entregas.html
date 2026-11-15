@@ -27,7 +27,7 @@
             </dl>
             <div class="buscador" id="buscador" hidden><svg class="icono" aria-hidden="true"><use href="#i-buscar"/></svg><input type="search" id="buscar" placeholder="Local, mesa, pedido o producto" aria-label="Buscar local, mesa, pedido o producto" autocomplete="off"><button class="limpiar" type="button" id="limpiar" aria-label="Borrar búsqueda" hidden><svg class="icono" aria-hidden="true"><use href="#i-cerrar"/></svg></button></div>
         </div>
-        <p class="orden">Más antiguos primero · tiempo desde la recepción del pedido</p>
+        <p class="orden">Más antiguos primero · tiempo desde el pago del pedido</p>
         <p class="sr-only" id="anuncio" role="status" aria-live="polite" aria-atomic="true"></p>
         <div class="pedidos" id="lista-entregas" data-panel="kippu-entregas">
             {% for pedido in pedidos %}
