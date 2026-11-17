@@ -1,8 +1,12 @@
 """Pago presencial en caja (D-07, decisión 43): el pedido espera en por_cobrar y solo entra a cocina cuando el personal cobra."""
+import time
+from concurrent.futures import ThreadPoolExecutor
 from datetime import timedelta
 from decimal import Decimal
+from threading import Event
 
-from django.test import Client, TestCase
+from django.db import close_old_connections, connection, transaction
+from django.test import Client, TestCase, TransactionTestCase, skipUnlessDBFeature
 from django.urls import reverse
 from django.utils import timezone
 
@@ -11,6 +15,7 @@ from . import test_webpay_demo as base
 from .cierre import cerrar_si_inactiva, revisar_cierre
 from .models import Cuenta, IntentoWebpay, Pago, Pedido
 from .pagos import resolver_intento
+from .presencial import cobrar_por_cobrar, vencer_por_cobrar
 
 POR_COBRAR = Pedido.Estado.POR_COBRAR
 
@@ -434,3 +439,61 @@ class MisPedidosPorCobrarTests(PagoPresencialBase):
 
         self.assertContains(respuesta, "Pagar en caja")
         self.assertContains(respuesta, reverse("pedidos:pagar_en_caja", args=[self.mesa.codigo]))
+
+
+@skipUnlessDBFeature("has_select_for_update")
+class VencimientoConcurrenteTests(TransactionTestCase):
+    """Requiere PostgreSQL: el vencimiento tiene que esperar el bloqueo del cobro en caja."""
+    setUp = PagoPresencialBase.setUp
+    llenar = PagoPresencialBase.llenar
+    pedir = PagoPresencialBase.pedir
+    pedido = PagoPresencialBase.pedido
+    estado = PagoPresencialBase.estado
+
+    def esperar_update_bloqueado(self, segundos=5):
+        limite = time.monotonic() + segundos
+        while time.monotonic() < limite:
+            with connection.cursor() as cursor:
+                cursor.execute(
+                    "SELECT count(*) FROM pg_stat_activity WHERE datname = current_database() "
+                    "AND pid <> pg_backend_pid() AND wait_event_type = 'Lock' AND query ILIKE 'UPDATE%%'")
+                if cursor.fetchone()[0]:
+                    return True
+            time.sleep(0.05)
+        return False
+
+    def test_vencer_no_cancela_un_pedido_que_la_caja_esta_cobrando(self):
+        pedido = self.pedido()
+        cobrado, soltar = Event(), Event()
+
+        def cobrar():
+            close_old_connections()
+            try:
+                with transaction.atomic():
+                    cobrar_por_cobrar(pedido.pk, Pago.Metodo.EFECTIVO, self.staff)
+                    cobrado.set()
+                    soltar.wait(timeout=10)
+            finally:
+                close_old_connections()
+
+        def vencer():
+            close_old_connections()
+            try:
+                return vencer_por_cobrar(ahora=timezone.now() + timedelta(minutes=31))
+            finally:
+                close_old_connections()
+
+        with ThreadPoolExecutor(max_workers=2) as pool:
+            caja = pool.submit(cobrar)
+            try:
+                self.assertTrue(cobrado.wait(timeout=10))
+                vencimiento = pool.submit(vencer)
+                self.assertTrue(self.esperar_update_bloqueado(), "el vencimiento no llegó a esperar el bloqueo")
+            finally:
+                soltar.set()
+            caja.result(timeout=10)
+            vencidos = vencimiento.result(timeout=10)
+
+        self.assertEqual(vencidos, 0)
+        self.assertEqual(Pago.objects.filter(pedido=pedido).count(), 1)
+        self.assertEqual(self.estado(pedido), Pedido.Estado.PENDIENTE)

@@ -22,7 +22,9 @@ class YaPorCobrar(ErrorPago):
 
 def vencer_por_cobrar(mesa=None, ahora=None):
     limite = (ahora or timezone.now()) - VENCE_POR_COBRAR
-    pedidos = Pedido.objects.filter(estado=Pedido.Estado.POR_COBRAR, pago__isnull=True, creado__lte=limite)
+    # Sin filtrar por Pago: con ese JOIN, PostgreSQL no vuelve a revisar la fila tras esperar
+    # al cobro y cancelaba un pedido recién cobrado. Cobrar ya saca al pedido de POR_COBRAR.
+    pedidos = Pedido.objects.filter(estado=Pedido.Estado.POR_COBRAR, creado__lte=limite)
     if mesa is not None:
         pedidos = pedidos.filter(mesa=mesa)
     return pedidos.update(estado=Pedido.Estado.CANCELADO)
