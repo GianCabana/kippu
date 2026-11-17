@@ -41,7 +41,7 @@ class ServicioPedidosTests(TestCase):
         return self.client.get(reverse("carta:por_mesa", args=[self.mesa.codigo]))
 
     def cambiar(self, client, accion):
-        return client.post(reverse("pedidos:cambiar_servicio", args=[self.local.pk]), {"accion": accion})
+        return client.post(reverse("pedidos:cambiar_servicio"), {"accion": accion})
 
     def recibe(self):
         return Local.objects.get(pk=self.local.pk).recibe_pedidos
@@ -140,7 +140,7 @@ class ServicioPedidosTests(TestCase):
         self.assertTrue(self.recibe())
 
     def test_servicio_cambiar_exige_post(self):
-        respuesta = self.operador.get(reverse("pedidos:cambiar_servicio", args=[self.local.pk]))
+        respuesta = self.operador.get(reverse("pedidos:cambiar_servicio"))
 
         self.assertEqual(respuesta.status_code, 405)
         self.assertTrue(self.recibe())
@@ -163,10 +163,11 @@ class ServicioPedidosTests(TestCase):
 
         self.assertTrue(self.recibe())
 
-    def test_servicio_local_inexistente_da_404(self):
-        respuesta = self.operador.post(reverse("pedidos:cambiar_servicio", args=[99999]), {"accion": "cerrar"})
+    def test_servicio_el_local_ya_no_viaja_en_la_url(self):
+        respuesta = self.operador.post(f"/pedidos/caja/local/{self.local.pk}/servicio/", {"accion": "cerrar"})
 
         self.assertEqual(respuesta.status_code, 404)
+        self.assertTrue(self.recibe())
 
     def test_servicio_al_reabrir_todo_vuelve_a_funcionar(self):
         self.cerrar_servicio()

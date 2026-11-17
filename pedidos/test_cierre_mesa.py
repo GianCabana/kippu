@@ -3,7 +3,7 @@ from unittest.mock import patch
 from django.contrib.auth import get_user_model
 from django.test import TestCase, Client
 from django.urls import reverse
-from mesas.models import Mesa
+from mesas.models import Mesa, PerfilPersonal
 from carta.models import Producto
 from .models import Cuenta, Pedido, DetallePedido, Pago, IntentoWebpay
 from .cierre import cerrar_cuenta
@@ -21,6 +21,7 @@ class CierreMesaTests(TestCase):
         self.intento=IntentoWebpay.objects.create(cuenta=self.cuenta,pedido=self.pedido,monto=3500,estado='autorizado')
         self.pago=Pago.objects.create(cuenta=self.cuenta,pedido=self.pedido,intento_webpay=self.intento,monto=3500,metodo='webpay')
         self.user=get_user_model().objects.create_user(username='personal_cierre',password='Pruebas123!',is_staff=True)
+        PerfilPersonal.objects.create(usuario=self.user,local=self.mesa.local)
         self.client.force_login(self.user)
         self.url=reverse('pedidos:cerrar_mesa',args=[self.cuenta.pk])
 

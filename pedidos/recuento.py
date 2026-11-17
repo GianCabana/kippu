@@ -29,9 +29,9 @@ def cobrado_por(pago):
     return pago.registrado_por.get_username() if pago.registrado_por else "Sin registro"
 
 
-def recuento_del_dia(fecha):
+def recuento_del_dia(fecha, local):
     inicio, fin = rango_del_dia(fecha)
-    pagos = Pago.objects.filter(creado__gte=inicio, creado__lt=fin)
+    pagos = Pago.objects.filter(creado__gte=inicio, creado__lt=fin, cuenta__mesa__local=local)
     sumas = (pagos.values("cuenta__mesa__local__nombre", "metodo")
              .annotate(cantidad=Count("id"), monto=Sum("monto")))
     anulados = (pagos.filter(pedido__estado=Pedido.Estado.CANCELADO)

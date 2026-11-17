@@ -7,7 +7,7 @@ from django.test import Client, TestCase
 from django.urls import reverse
 from django.utils import timezone
 
-from mesas.models import Local, Mesa
+from mesas.models import Local, Mesa, PerfilPersonal
 
 from .models import Cuenta, Pago, Pedido
 
@@ -24,6 +24,7 @@ class RecuentoCajaTests(TestCase):
         self.mesa = Mesa.objects.create(local=self.local, numero=31)
         self.cuenta = Cuenta.objects.create(mesa=self.mesa)
         self.cajera = get_user_model().objects.create_user(username="cajera_ana", password="Pruebas123!", is_staff=True)
+        PerfilPersonal.objects.create(usuario=self.cajera, local=self.local)
         self.client.force_login(self.cajera)
         self.url = reverse("pedidos:recuento_caja")
 
@@ -85,7 +86,7 @@ class RecuentoCajaTests(TestCase):
         self.assertEqual(self.resumen(respuesta)["anulados"], 5000)
         self.assertContains(respuesta, "Anulado")
 
-    def test_separa_por_local(self):
+    def test_solo_cuenta_el_local_de_quien_mira(self):
         otro = Local.objects.create(nombre="Otro Local", slug="otro-local")
         cuenta_otro = Cuenta.objects.create(mesa=Mesa.objects.create(local=otro, numero=1))
         self.pagar("efectivo", 5000, a_las(16, 12))
@@ -94,7 +95,8 @@ class RecuentoCajaTests(TestCase):
         respuesta = self.recuento()
 
         self.assertEqual(self.resumen(respuesta)["total"], 5000)
-        self.assertEqual(self.resumen(respuesta, "Otro Local")["total"], 3000)
+        self.assertEqual([r["local"] for r in respuesta.context["locales"]], ["Local Recuento"])
+        self.assertNotContains(respuesta, "Otro Local")
 
     def test_dia_sin_pagos(self):
         respuesta = self.recuento()

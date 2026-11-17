@@ -9,7 +9,7 @@ from django.test import SimpleTestCase, TestCase
 from django.urls import reverse
 
 from carta.models import Categoria, GrupoOpcion, OpcionProducto, Producto
-from mesas.models import Local, Mesa
+from mesas.models import Local, Mesa, PerfilPersonal, local_principal_pk
 
 ARCHIVOS_ESTATICOS = [
     "css/kippu.css",
@@ -175,6 +175,7 @@ class CartaConDisenoKippuTests(TestCase):
 class PanelConDisenoKippuTests(TestCase):
     def setUp(self):
         personal = get_user_model().objects.create_user(username="panel_diseno", password="Pruebas123!", is_staff=True)
+        PerfilPersonal.objects.create(usuario=personal, local_id=local_principal_pk())
         self.client.force_login(personal)
 
     def test_cocina_y_entregas_usan_la_barra_y_la_hoja_del_panel(self):

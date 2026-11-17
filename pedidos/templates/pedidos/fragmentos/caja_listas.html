@@ -59,7 +59,7 @@
             <p class="caja-sub">Los clientes ven la carta, pero no pueden agregar ni pagar.</p>
             <button class="boton boton--bloque" type="button" x-ref="mostrar" x-show="!confirmando" @click="confirmando = true; $nextTick(() => $refs.volverConfirmar.focus())">Abrir pedidos</button>
             {% endif %}
-            <form class="caja-mesa__confirmar" method="post" action="{% url 'pedidos:cambiar_servicio' local_id=local.pk %}" x-show="confirmando" x-cloak>
+            <form class="caja-mesa__confirmar" method="post" action="{% url 'pedidos:cambiar_servicio' %}" x-show="confirmando" x-cloak>
                 {% csrf_token %}
                 {% if local.recibe_pedidos %}
                 <input type="hidden" name="accion" value="cerrar">

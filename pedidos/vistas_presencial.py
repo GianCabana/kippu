@@ -7,6 +7,7 @@ from django.views.decorators.http import require_POST
 
 from .models import Pedido
 from .pagos import ErrorPago, recordar_nombre
+from .personal import con_local
 from .presencial import YaPorCobrar, cancelar_por_cobrar, cobrar_por_cobrar, crear_por_cobrar
 from .views import _mesa_del_cliente, _pedidos_del_navegador
 
@@ -42,10 +43,10 @@ def cancelar_del_cliente(request, codigo, pedido_id):
 
 
 @staff_member_required
+@con_local
 @require_POST
 def cobrar(request, pedido_id):
-    # Pendiente D-3: el pedido llega por la URL hasta ligar usuario y local.
-    pedido = get_object_or_404(Pedido, pk=pedido_id)
+    pedido = get_object_or_404(Pedido, pk=pedido_id, mesa__local=request.local_personal)
     try:
         pago, nuevo = cobrar_por_cobrar(pedido.pk, request.POST.get('metodo', ''), request.user)
     except ErrorPago as exc:
@@ -60,9 +61,10 @@ def cobrar(request, pedido_id):
 
 
 @staff_member_required
+@con_local
 @require_POST
 def cancelar_en_caja(request, pedido_id):
-    pedido = get_object_or_404(Pedido, pk=pedido_id)
+    pedido = get_object_or_404(Pedido, pk=pedido_id, mesa__local=request.local_personal)
     if cancelar_por_cobrar(pedido.pk):
         messages.success(request, f'Pedido #{pedido.pk} anulado. No pasó a cocina.')
     else:
