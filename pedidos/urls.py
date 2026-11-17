@@ -63,6 +63,7 @@ urlpatterns = [
         views.caja,
         name="caja",
     ),
+    path("caja/recuento/", views.recuento_caja, name="recuento_caja"),
     path("caja/cuenta/<int:cuenta_id>/pagar/", vistas_webpay.iniciar, name="webpay_iniciar"),
     path("webpay/retorno/", vistas_webpay.retorno, name="webpay_retorno"),
     path("webpay/resultado/<int:intento_id>/", vistas_webpay.resultado, name="webpay_resultado"),

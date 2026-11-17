@@ -140,6 +140,7 @@
 </div>
 
 <h2>Últimos pagos</h2>
+<p class="caja-sub"><a href="{% url 'pedidos:recuento_caja' %}">Ver el recuento de caja del día</a></p>
 <div class="caja-lista">
     {% if pagos %}<div class="caja-lista__fila caja-lista__fila--cabeza"><span>Hora</span><span>Mesa · pedido</span><span>Estado</span><span class="monto">Monto</span><span></span></div>{% endif %}
     {% for pago in pagos %}

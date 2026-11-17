@@ -1,0 +1,55 @@
+{% extends "base.html" %}
+
+{% block titulo %}Recuento de caja · Kippu{% endblock %}
+{% block encabezado %}{% include "pedidos/fragmentos/barra_panel.html" with actual="caja" %}{% endblock %}
+{% block clase_main %}caja{% endblock %}
+
+{% block contenido %}
+<div class="caja__titulo"><h1>Recuento de caja</h1><p><a href="{% url 'pedidos:caja' %}">Volver a Caja</a></p></div>
+
+<form class="recuento-fecha" method="get" action="{% url 'pedidos:recuento_caja' %}">
+    <label for="fecha">Día</label>
+    <input id="fecha" name="fecha" type="date" value="{{ fecha|date:'Y-m-d' }}" required>
+    <button class="boton" type="submit">Ver</button>
+</form>
+<p class="caja-sub">Pagos del {{ fecha|date:"d/m/Y" }}, de 00:00 a 23:59 (hora de Chile).</p>
+
+{% for local in locales %}
+<h2>{{ local.local }}</h2>
+<div class="caja-lista">
+    <div class="caja-lista__fila caja-lista__fila--cabeza"><span>Método</span><span>Pagos</span><span></span><span class="monto">Monto</span><span></span></div>
+    {% for metodo in local.metodos %}
+    <div class="caja-lista__fila">
+        <span>{% if metodo.clave == "efectivo" %}<strong>{{ metodo.nombre }}</strong>{% else %}{{ metodo.nombre }}{% endif %}</span>
+        <span class="cifra">{{ metodo.cantidad }} pago{{ metodo.cantidad|pluralize }}</span>
+        <span>{% if metodo.clave == "efectivo" %}<span class="caja-sub">Debe estar en la gaveta</span>{% endif %}</span>
+        <span class="cifra monto">{% if metodo.clave == "efectivo" %}<strong>${{ metodo.monto|floatformat:"0g" }}</strong>{% else %}${{ metodo.monto|floatformat:"0g" }}{% endif %}</span>
+        <span></span>
+    </div>
+    {% endfor %}
+    <div class="caja-lista__fila">
+        <span><strong>Total</strong></span>
+        <span class="cifra">{{ local.cantidad }} pago{{ local.cantidad|pluralize }}</span>
+        <span>{% if local.anulados %}<span class="caja-sub">Incluye ${{ local.anulados|floatformat:"0g" }} de pedidos anulados</span>{% endif %}</span>
+        <span class="cifra monto"><strong>${{ local.total|floatformat:"0g" }}</strong></span>
+        <span></span>
+    </div>
+</div>
+
+<h3>Detalle</h3>
+<div class="caja-lista">
+    <div class="caja-lista__fila caja-lista__fila--cabeza"><span>Hora</span><span>Mesa · pedido</span><span>Cobró</span><span class="monto">Monto</span><span></span></div>
+    {% for pago in local.pagos %}
+    <div class="caja-lista__fila">
+        <span class="cifra">{{ pago.creado|date:"H:i" }}</span>
+        <span>Mesa {{ pago.cuenta.mesa.numero }} · {% if pago.pedido_id %}Pedido #{{ pago.pedido_id }}{% else %}Cuenta #{{ pago.cuenta_id }}{% endif %}<br><span class="caja-sub">{{ pago.get_metodo_display }}</span></span>
+        <span>{{ pago.cobrado_por }}</span>
+        <span class="cifra monto">${{ pago.monto|floatformat:"0g" }}</span>
+        <span>{% if pago.pedido.estado == "cancelado" %}<span class="chip chip--gris">Anulado</span>{% endif %}</span>
+    </div>
+    {% endfor %}
+</div>
+{% empty %}
+<div class="caja-lista"><p class="caja-vacio">No hay pagos registrados este día.</p></div>
+{% endfor %}
+{% endblock %}

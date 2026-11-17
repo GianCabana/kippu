@@ -16,6 +16,7 @@ from django.shortcuts import render
 from .carrito import Carrito, ErrorOpciones
 from .cierre import revisar_cierre, cerrar_cuenta
 from .presencial import vencer_por_cobrar
+from .recuento import leer_fecha, recuento_del_dia
 from .pagos import ErrorPago, calcular_propina, exigir_pedidos_abiertos, nombre_recordado
 from django.http import HttpResponse
 from django.utils.cache import patch_cache_control, patch_vary_headers
@@ -360,6 +361,12 @@ def caja(request):
     locales = Local.objects.filter(activo=True).order_by('nombre')
     return render(request, 'pedidos/caja.html', {'pagos': pagos, 'pendientes': pendientes, 'por_cobrar': por_cobrar,
         'cuentas': cuentas, 'cerradas': cerradas, 'locales': locales})
+
+
+@staff_member_required
+def recuento_caja(request):
+    fecha = leer_fecha(request.GET.get("fecha"))
+    return render(request, "pedidos/recuento_caja.html", {"fecha": fecha, "locales": recuento_del_dia(fecha)})
 
 
 @staff_member_required
