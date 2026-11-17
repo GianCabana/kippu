@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
+  <mask id="muescas">
+    <rect width="64" height="64" fill="#fff"/>
+    <circle cx="0" cy="32" r="10" fill="#000"/>
+    <circle cx="64" cy="32" r="10" fill="#000"/>
+  </mask>
+  <rect width="64" height="64" rx="15" fill="#a83a22" mask="url(#muescas)"/>
+  <text x="32" y="34" fill="#fbf7f0" font-size="38" text-anchor="middle" dominant-baseline="central"
+        font-family="'Noto Serif JP', 'Yu Mincho', 'Hiragino Mincho ProN', 'MS Mincho', serif">券</text>
+</svg>

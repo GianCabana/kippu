@@ -55,6 +55,20 @@ class MisPedidosTicketTests(MisPedidosBase):
             Pago.objects.update(metodo=metodo)
             self.assertContains(self.client.get(self.url), f'PAGADO EN CAJA · {texto} · ')
 
+    def test_sin_pedidos_reales_invita_a_ir_a_la_carta(self):
+        self.assertContains(self.client.get(self.url), 'Ir a la carta')
+        for estado in ('sin_pagar', 'cancelado'):
+            with self.subTest(estado=estado):
+                Pedido.objects.all().delete()
+                self.crear_pedido(estado, pagado=False)
+                r = self.client.get(self.url)
+                self.assertContains(r, 'Ir a la carta')
+                self.assertNotContains(r, 'Pedir algo más')
+
+    def test_pedido_por_pagar_en_caja_invita_a_pedir_algo_mas(self):
+        self.crear_pedido('por_cobrar', pagado=False)
+        self.assertContains(self.client.get(self.url), 'Pedir algo más')
+
     def test_anulado_sin_pago_antiguo_no_se_muestra(self):
         anulado = self.crear_pedido('cancelado', pagado=False)
         self.crear_pedido('pendiente')
