@@ -5,7 +5,7 @@ from django.urls import reverse
 from carta.models import Categoria, Producto
 from pedidos.models import Pedido
 
-from .models import Local, Mesa
+from ..models import Local, Mesa
 
 
 class LocalesTests(TestCase):

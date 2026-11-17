@@ -2,10 +2,10 @@ from datetime import timedelta
 from django.test import TestCase
 from django.utils import timezone
 from transbank.common.integration_type import IntegrationType
-from .models import IntentoWebpay, Pago
-from .pagos import resolver_intento
+from ..models import IntentoWebpay, Pago
+from ..pagos import resolver_intento
 from . import test_webpay_demo as base
-from .vistas_webpay import _url_resultado
+from ..vistas_webpay import _url_resultado
 
 
 class RecuperacionDemoTests(TestCase):
@@ -98,7 +98,7 @@ class RecuperacionDemoTests(TestCase):
         self.assertEqual(resolver_intento(i.pk).estado,'por_verificar')
 
     def test_recuperado_permite_cerrar_borrador_sin_pago(self):
-        from .cierre import cerrar_cuenta
+        from ..cierre import cerrar_cuenta
         i=self.viejo()
         resolver_intento(i.pk)
         cuenta,nueva=cerrar_cuenta(i.cuenta_id)

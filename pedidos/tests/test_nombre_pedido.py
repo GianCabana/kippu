@@ -4,8 +4,8 @@ from django.test import Client, TestCase
 from django.urls import reverse
 
 from . import test_webpay_demo as base
-from .models import Pedido
-from .pagos import limpiar_nombre, resolver_intento
+from ..models import Pedido
+from ..pagos import limpiar_nombre, resolver_intento
 
 
 class NombrePedidoTests(TestCase):

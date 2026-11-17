@@ -5,8 +5,8 @@ from django.test import TestCase
 from django.urls import reverse
 
 from . import test_webpay_demo as base
-from .models import IntentoWebpay, Pago
-from .pagos import resolver_intento
+from ..models import IntentoWebpay, Pago
+from ..pagos import resolver_intento
 from carta.models import Categoria, Producto
 from mesas.models import Mesa
 

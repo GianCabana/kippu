@@ -4,7 +4,7 @@ from django.test import TestCase
 from django.urls import reverse
 
 from . import test_webpay_demo as base
-from .vistas_webpay import _url_resultado
+from ..vistas_webpay import _url_resultado
 
 
 class ResultadoPagoTests(TestCase):

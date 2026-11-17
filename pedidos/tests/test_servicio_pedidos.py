@@ -7,9 +7,9 @@ from django.utils import timezone
 
 from mesas.models import Local
 from . import test_webpay_demo as base
-from .cierre import cerrar_si_inactiva
-from .models import Cuenta, IntentoWebpay, Pago, Pedido
-from .pagos import ErrorPago, reintentar_pago, resolver_intento
+from ..cierre import cerrar_si_inactiva
+from ..models import Cuenta, IntentoWebpay, Pago, Pedido
+from ..pagos import ErrorPago, reintentar_pago, resolver_intento
 
 AVISO = "Pedidos cerrados por ahora"
 

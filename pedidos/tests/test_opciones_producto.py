@@ -9,8 +9,8 @@ from django.urls import reverse
 from carta.models import GrupoOpcion, OpcionProducto, Producto
 
 from . import test_webpay_demo as base
-from .models import IntentoWebpay, Pedido
-from .pagos import ErrorPago, reintentar_pago, resolver_intento
+from ..models import IntentoWebpay, Pedido
+from ..pagos import ErrorPago, reintentar_pago, resolver_intento
 
 
 class OpcionesProductoTests(TestCase):

@@ -6,8 +6,8 @@ from django.test import TestCase, Client
 from django.urls import reverse
 from mesas.models import Mesa
 from carta.models import Producto
-from .models import Cuenta, Pedido, Pago, IntentoWebpay
-from .pagos import resolver_intento
+from ..models import Cuenta, Pedido, Pago, IntentoWebpay
+from ..pagos import resolver_intento
 
 
 from mesas.models import PerfilPersonal
@@ -232,7 +232,7 @@ class PagoPrevioTests(TestCase):
 
     def test_enlace_salida_firmado_y_url_proveedor_validada(self):
         i=self.crear()
-        from .vistas_webpay import _url_resultado
+        from ..vistas_webpay import _url_resultado
         self.assertEqual(Client().get(_url_resultado(i.pk)).status_code,200)
         self.sdk.status.return_value=self.respuesta(i,'FAILED',-1)
         resolver_intento(i.pk,True)
@@ -251,7 +251,7 @@ class PagoPrevioTests(TestCase):
         self.assertEqual(segundo.monto,Decimal('3500'))
         i.pedido.refresh_from_db(); self.assertEqual(i.pedido.estado,'cancelado')
         otro=Client();self.llenar(otro,4)
-        from .vistas_webpay import _url_resultado
+        from ..vistas_webpay import _url_resultado
         self.aprobar(segundo)
         otro.get(_url_resultado(segundo.pk))
         self.assertEqual(otro.session[self.carrito],{str(self.producto.pk):4})

@@ -12,10 +12,10 @@ from django.utils import timezone
 
 from mesas.models import Local
 from . import test_webpay_demo as base
-from .cierre import cerrar_si_inactiva, revisar_cierre
-from .models import Cuenta, IntentoWebpay, Pago, Pedido
-from .pagos import resolver_intento
-from .presencial import cobrar_por_cobrar, vencer_por_cobrar
+from ..cierre import cerrar_si_inactiva, revisar_cierre
+from ..models import Cuenta, IntentoWebpay, Pago, Pedido
+from ..pagos import resolver_intento
+from ..presencial import cobrar_por_cobrar, vencer_por_cobrar
 
 POR_COBRAR = Pedido.Estado.POR_COBRAR
 

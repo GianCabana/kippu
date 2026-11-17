@@ -5,7 +5,7 @@ from django.utils import timezone
 from carta.models import Categoria, Producto
 from mesas.models import Mesa
 
-from .models import Cuenta, DetallePedido, Pago, Pedido
+from ..models import Cuenta, DetallePedido, Pago, Pedido
 
 
 class MisPedidosBase(TestCase):

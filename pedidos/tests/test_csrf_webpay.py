@@ -3,8 +3,8 @@ from unittest.mock import patch
 from django.test import TestCase, Client
 from django.urls import reverse
 from mesas.models import Mesa
-from .models import Cuenta, IntentoWebpay
-from .vistas_webpay import _url_resultado
+from ..models import Cuenta, IntentoWebpay
+from ..vistas_webpay import _url_resultado
 
 
 class CsrfWebpayTests(TestCase):

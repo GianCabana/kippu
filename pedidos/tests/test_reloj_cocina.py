@@ -4,7 +4,7 @@ from datetime import timedelta
 from django.urls import reverse
 from django.utils import dateformat, timezone
 
-from .models import Pago, Pedido
+from ..models import Pago, Pedido
 from .test_pago_presencial import PagoPresencialBase
 
 

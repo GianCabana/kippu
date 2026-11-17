@@ -6,8 +6,8 @@ from django.test import Client, TestCase
 from django.urls import reverse
 
 from . import test_webpay_demo as base
-from .models import IntentoWebpay, Pedido
-from .vistas_webpay import _url_resultado
+from ..models import IntentoWebpay, Pedido
+from ..vistas_webpay import _url_resultado
 
 
 class RetornoSinDatosTests(TestCase):
