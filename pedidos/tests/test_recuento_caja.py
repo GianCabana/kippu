@@ -9,7 +9,7 @@ from django.utils import timezone
 
 from mesas.models import Local, Mesa, PerfilPersonal
 
-from .models import Cuenta, Pago, Pedido
+from ..models import Cuenta, Pago, Pedido
 
 SANTIAGO = ZoneInfo("America/Santiago")
 

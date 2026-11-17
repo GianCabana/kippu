@@ -5,9 +5,9 @@ from django.test import TestCase, Client
 from django.urls import reverse
 from mesas.models import Mesa, PerfilPersonal
 from carta.models import Producto
-from .models import Cuenta, Pedido, DetallePedido, Pago, IntentoWebpay
-from .cierre import cerrar_cuenta
-from .pagos import ErrorPago
+from ..models import Cuenta, Pedido, DetallePedido, Pago, IntentoWebpay
+from ..cierre import cerrar_cuenta
+from ..pagos import ErrorPago
 
 
 class CierreMesaTests(TestCase):

@@ -4,8 +4,8 @@ from django.urls import reverse
 
 from . import test_nombre_pedido as nombres
 from . import test_webpay_demo as base
-from .models import Pedido
-from .vistas_webpay import _url_resultado
+from ..models import Pedido
+from ..vistas_webpay import _url_resultado
 
 
 class NombreEnComprobanteTests(TestCase):

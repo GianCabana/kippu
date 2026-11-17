@@ -7,7 +7,7 @@ from django.urls import reverse
 
 from mesas.models import Local, Mesa, PerfilPersonal
 
-from .models import Cuenta, IntentoWebpay, Pago, Pedido
+from ..models import Cuenta, IntentoWebpay, Pago, Pedido
 
 
 def personal(nombre, local=None, **extra):

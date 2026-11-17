@@ -2,10 +2,10 @@ from unittest.mock import patch
 from django.test import TestCase, Client
 from django.urls import reverse
 from . import test_webpay_demo as base
-from .models import IntentoWebpay, Pago
-from .pagos import resolver_intento
-from .vistas_webpay import _url_resultado, _firma
-from .cierre import cerrar_cuenta
+from ..models import IntentoWebpay, Pago
+from ..pagos import resolver_intento
+from ..vistas_webpay import _url_resultado, _firma
+from ..cierre import cerrar_cuenta
 
 
 class ReintentoTokenTests(TestCase):
@@ -181,7 +181,7 @@ class ReintentoConcurrenteTests(TransactionTestCase):
     iniciado=ReintentoTokenTests.iniciado
 
     def test_dos_reintentos_crean_un_sucesor(self):
-        from .pagos import reintentar_pago
+        from ..pagos import reintentar_pago
         from django.contrib.auth.models import AnonymousUser
         i=self.iniciado();barrier=Barrier(2)
         def enviar(_):

@@ -7,7 +7,7 @@ from django.utils import timezone
 from carta.models import Categoria, Producto
 from mesas.models import Mesa
 
-from .models import Cuenta, DetallePedido, IntentoWebpay, Pago, Pedido
+from ..models import Cuenta, DetallePedido, IntentoWebpay, Pago, Pedido
 
 
 class CierrePerezosoTests(TestCase):
