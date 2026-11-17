@@ -278,10 +278,11 @@ def _mesa_del_cliente(codigo):
 
 
 def _pedidos_del_navegador(request, mesa):
-    """Solo los pedidos de este navegador: nunca los de otra persona de la mesa."""
+    """Solo los pedidos de este navegador en la visita actual (cuenta abierta), nunca los de otra persona."""
     pedidos_sesion = request.session.get(f"pedidos_{mesa.codigo}", [])
     return (
-        Pedido.objects.filter(Q(pk__in=pedidos_sesion) | Q(cliente_clave=cliente_clave(request)), mesa=mesa)
+        Pedido.objects.filter(Q(pk__in=pedidos_sesion) | Q(cliente_clave=cliente_clave(request)),
+                              mesa=mesa, cuenta__estado=Cuenta.Estado.ABIERTA)
         .select_related("pago")
         .order_by("-creado", "-pk")
     )

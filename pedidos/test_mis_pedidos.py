@@ -1,5 +1,6 @@
 from django.test import Client, TestCase
 from django.urls import reverse
+from django.utils import timezone
 
 from carta.models import Categoria, Producto
 from mesas.models import Mesa
@@ -159,3 +160,47 @@ class EstadoMisPedidosTests(MisPedidosBase):
         self.crear_pedido('pendiente')
         Mesa.objects.filter(pk=self.mesa.pk).update(activa=False)
         self.assertEqual(self.client.get(self.url_estado).status_code, 404)
+
+
+class VisitaActualTests(MisPedidosBase):
+    """Mis pedidos muestra solo la visita en curso (la cuenta abierta de la mesa)."""
+
+    def cerrar_visita(self):
+        Cuenta.objects.filter(pk=self.cuenta.pk).update(estado=Cuenta.Estado.CERRADA, cerrada=timezone.now())
+
+    def nueva_visita(self):
+        self.cerrar_visita()
+        self.cuenta = Cuenta.objects.create(mesa=self.mesa)
+
+    def test_con_la_mesa_cerrada_no_se_ven_los_pedidos(self):
+        pedido = self.crear_pedido('entregado')
+        self.cerrar_visita()
+        r = self.client.get(self.url)
+        self.assertNotContains(r, f'#{pedido.pk} · ')
+        self.assertContains(r, 'Aún no tienes pedidos en esta visita.')
+        self.assertContains(r, 'Ir a la carta')
+        self.assertNotContains(r, 'Pedir algo más')
+
+    def test_solo_se_ven_los_pedidos_de_la_visita_actual(self):
+        anterior = self.crear_pedido('entregado')
+        self.nueva_visita()
+        actual = self.crear_pedido('pendiente')
+        r = self.client.get(self.url)
+        self.assertContains(r, f'#{actual.pk} · ')
+        self.assertNotContains(r, f'#{anterior.pk} · ')
+        self.assertNotContains(r, 'Pedidos anteriores')
+
+    def test_fragmento_no_trae_pedidos_de_otra_visita(self):
+        anterior = self.crear_pedido('en_preparacion')
+        self.nueva_visita()
+        actual = self.crear_pedido('pendiente')
+        r = self.client.get(self.url_estado)
+        self.assertContains(r, f'sello-{actual.pk}')
+        self.assertNotContains(r, f'sello-{anterior.pk}')
+
+    def test_los_pedidos_de_la_visita_anterior_siguen_en_la_base(self):
+        anterior = self.crear_pedido('entregado')
+        self.nueva_visita()
+        self.client.get(self.url)
+        self.assertTrue(Pedido.objects.filter(pk=anterior.pk).exists())
+        self.assertTrue(Pago.objects.filter(pedido=anterior).exists())
