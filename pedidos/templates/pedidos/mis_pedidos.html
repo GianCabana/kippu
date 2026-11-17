@@ -56,7 +56,7 @@
 {% endfor %}
 
 <footer class="tk-pie">
-    <a class="boton boton--bloque tk-boton" href="{% url 'carta:por_mesa' codigo=mesa.codigo %}">Pedir algo más</a>
+    <a class="boton boton--bloque tk-boton" href="{% url 'carta:por_mesa' codigo=mesa.codigo %}">{% if ya_pidio %}Pedir algo más{% else %}Ir a la carta{% endif %}</a>
     {% with ultimo=pedidos.0 %}{% if ultimo.resultado_url and ultimo.estado != 'sin_pagar' %}<a class="tk-enlace" href="{{ ultimo.resultado_url }}">Ver pago / comprobante del pedido #{{ ultimo.pk }}</a>{% endif %}{% endwith %}
 </footer>
 {% if consultar_estado %}<p class="sr-only" role="status" id="aviso-estado"></p>{% endif %}

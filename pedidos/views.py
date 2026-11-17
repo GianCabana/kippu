@@ -318,8 +318,15 @@ def mis_pedidos(request, codigo):
             "mesa": mesa,
             "pedidos": pedidos,
             "consultar_estado": _hay_pedidos_activos(pedidos),
+            "ya_pidio": any(_es_pedido_real(pedido) for pedido in pedidos),
         },
     )
+
+
+def _es_pedido_real(pedido):
+    """Un pago fallido o un anulado sin pago no cuentan: no hay "algo más" que pedir."""
+    sin_efecto = pedido.estado in (Pedido.Estado.SIN_PAGAR, Pedido.Estado.CANCELADO)
+    return not sin_efecto or hasattr(pedido, "pago")
 
 
 @never_cache
