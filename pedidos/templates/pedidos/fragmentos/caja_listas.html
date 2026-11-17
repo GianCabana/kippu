@@ -1,0 +1,157 @@
+<div id="caja-listas" hx-get="{% url 'pedidos:caja_listas' %}" hx-trigger="every 15s [!document.hidden && !document.querySelector('#caja-listas .caja-mesa--confirmando')]" hx-swap="outerHTML">
+    <h2>Por cobrar</h2>
+    <div class="caja-grilla">
+        {% for pedido in por_cobrar %}
+        <article class="caja-mesa caja-cobro" x-data="{ metodo: '', etiqueta: '', cancelando: false }" :class="(metodo || cancelando) && 'caja-mesa--confirmando'">
+            <div class="caja-mesa__cabeza">
+                <div><h3 class="caja-mesa__numero">Mesa {{ pedido.mesa.numero }}</h3><p class="caja-mesa__local">{{ pedido.mesa.local.nombre }}</p></div>
+                <span class="chip chip--ambar">Por pagar en caja</span>
+            </div>
+            <p class="caja-sub">Pedido #{{ pedido.pk }} · <span class="cifra">{{ pedido.creado|date:"H:i" }}</span>{% if pedido.nombre %} · Para <strong>{{ pedido.nombre }}</strong>{% endif %}{% if pedido.mayoria_edad_confirmada %} <span class="insignia-18" aria-label="Pedido con productos para mayores de 18 años">+18</span>{% endif %}<br>
+            {% for detalle in pedido.detalles.all %}{{ detalle.cantidad }} × {{ detalle.nombre_producto }}{% if detalle.opciones %} ({% for opcion in detalle.opciones %}{{ opcion.nombre }}{% if not forloop.last %}, {% endif %}{% endfor %}){% endif %}{% if not forloop.last %} · {% endif %}{% endfor %}</p>
+            <div class="caja-mesa__datos">
+                <span>{% if pedido.propina %}Incluye propina ${{ pedido.propina|floatformat:"0g" }}{% else %}Sin propina{% endif %}</span>
+                <span class="caja-mesa__monto">${{ pedido.total_con_propina|floatformat:"0g" }}</span>
+            </div>
+            <div class="caja-mesa__confirmar" x-show="!metodo && !cancelando">
+                <p>Cobrado con:</p>
+                <div class="acciones">
+                    <button class="boton" type="button" x-ref="efectivo" @click="metodo = 'efectivo'; etiqueta = 'en efectivo'; $nextTick(() => $refs.volverCobro.focus())">Efectivo</button>
+                    <button class="boton" type="button" @click="metodo = 'debito'; etiqueta = 'con débito'; $nextTick(() => $refs.volverCobro.focus())">Débito</button>
+                    <button class="boton" type="button" @click="metodo = 'credito'; etiqueta = 'con crédito'; $nextTick(() => $refs.volverCobro.focus())">Crédito</button>
+                </div>
+            </div>
+            <button class="boton boton--bloque boton--fantasma" type="button" x-ref="cancelar" x-show="!metodo && !cancelando" @click="cancelando = true; $nextTick(() => $refs.volverCancelar.focus())">Anular pedido</button>
+            <form class="caja-mesa__confirmar" method="post" action="{% url 'pedidos:cobrar_presencial' pedido_id=pedido.pk %}" x-show="metodo" x-cloak>
+                {% csrf_token %}
+                <input type="hidden" name="metodo" :value="metodo">
+                <p>¿Cobraste <strong>${{ pedido.total_con_propina|floatformat:"0g" }}</strong> <span x-text="etiqueta"></span> del pedido #{{ pedido.pk }}? Pasará a cocina.</p>
+                <div class="acciones">
+                    <button class="boton boton--fantasma" type="button" x-ref="volverCobro" @click="metodo = ''; $nextTick(() => $refs.efectivo.focus())">Volver</button>
+                    <button class="boton" type="submit">Sí, cobrado</button>
+                </div>
+            </form>
+            <form class="caja-mesa__confirmar" method="post" action="{% url 'pedidos:cancelar_presencial' pedido_id=pedido.pk %}" x-show="cancelando" x-cloak>
+                {% csrf_token %}
+                <p>¿Deseas anular el pedido #{{ pedido.pk }}? No pasará a cocina y el cliente tendrá que pedir de nuevo.</p>
+                <div class="acciones">
+                    <button class="boton boton--fantasma" type="button" x-ref="volverCancelar" @click="cancelando = false; $nextTick(() => $refs.cancelar.focus())">Volver</button>
+                    <button class="boton" type="submit">Sí, anular</button>
+                </div>
+            </form>
+        </article>
+        {% empty %}
+        <p class="caja-vacio">No hay pedidos esperando pago en caja.</p>
+        {% endfor %}
+    </div>
+
+    <h2>Pedidos por QR</h2>
+    <div class="caja-grilla">
+        {% for local in locales %}
+        <article class="caja-mesa caja-servicio" x-data="{ confirmando: false }" :class="confirmando && 'caja-mesa--confirmando'">
+            <div class="caja-mesa__cabeza">
+                <h3 class="caja-mesa__numero">{{ local.nombre }}</h3>
+                {% if local.recibe_pedidos %}<span class="chip chip--verde">Recibiendo pedidos</span>{% else %}<span class="chip chip--gris">Pedidos cerrados</span>{% endif %}
+            </div>
+            {% if local.recibe_pedidos %}
+            <button class="boton boton--bloque boton--fantasma" type="button" x-ref="mostrar" x-show="!confirmando" @click="confirmando = true; $nextTick(() => $refs.volverConfirmar.focus())">Cerrar pedidos</button>
+            {% else %}
+            <p class="caja-sub">Los clientes ven la carta, pero no pueden agregar ni pagar.</p>
+            <button class="boton boton--bloque" type="button" x-ref="mostrar" x-show="!confirmando" @click="confirmando = true; $nextTick(() => $refs.volverConfirmar.focus())">Abrir pedidos</button>
+            {% endif %}
+            <form class="caja-mesa__confirmar" method="post" action="{% url 'pedidos:cambiar_servicio' local_id=local.pk %}" x-show="confirmando" x-cloak>
+                {% csrf_token %}
+                {% if local.recibe_pedidos %}
+                <input type="hidden" name="accion" value="cerrar">
+                <p>¿Cerrar los pedidos por QR de {{ local.nombre }}? Los clientes verán la carta, pero no podrán agregar ni pagar. Los pedidos ya pagados siguen en cocina.</p>
+                {% else %}
+                <input type="hidden" name="accion" value="abrir">
+                <p>¿Abrir los pedidos por QR de {{ local.nombre }}? Los clientes podrán volver a pedir y pagar.</p>
+                {% endif %}
+                <div class="acciones">
+                    <button class="boton boton--fantasma" type="button" x-ref="volverConfirmar" @click="confirmando = false; $nextTick(() => $refs.mostrar.focus())">Cancelar</button>
+                    <button class="boton" type="submit">{% if local.recibe_pedidos %}Sí, cerrar{% else %}Sí, abrir{% endif %}</button>
+                </div>
+            </form>
+        </article>
+        {% endfor %}
+    </div>
+
+    <h2>Mesas con cuenta abierta</h2>
+    <div class="caja-grilla">
+        {% for cuenta in cuentas %}
+        <article class="caja-mesa" x-data="{ confirmando: false }" :class="confirmando && 'caja-mesa--confirmando'">
+            <div class="caja-mesa__cabeza">
+                <div><h3 class="caja-mesa__numero">Mesa {{ cuenta.mesa.numero }}</h3><p class="caja-mesa__local">{{ cuenta.mesa.local.nombre }}</p></div>
+                {% if cuenta.revision.puede_cerrar %}<span class="chip chip--verde">Lista para cerrar</span>{% else %}<span class="chip chip--ambar">En atención</span>{% endif %}
+            </div>
+            <div class="caja-mesa__datos">
+                <span>Cuenta #{{ cuenta.pk }} · desde <span class="cifra">{{ cuenta.creada|date:"d/m H:i" }}</span><br>{{ cuenta.revision.cantidad_pedidos }} pedido{{ cuenta.revision.cantidad_pedidos|pluralize }}</span>
+                <span class="caja-mesa__monto">${{ cuenta.revision.total_pagado|floatformat:"0g" }}</span>
+            </div>
+            {% if cuenta.revision.motivo %}<p class="caja-mesa__motivo">{{ cuenta.revision.motivo }}</p>{% endif %}
+            {% if cuenta.revision.borradores %}<p class="caja-sub">Al cerrar se descartarán {{ cuenta.revision.borradores }} borrador{{ cuenta.revision.borradores|pluralize:"es" }} sin pago. No se anulan pedidos pagados.</p>{% endif %}
+            <button class="boton boton--bloque" type="button" x-ref="mostrar" x-show="!confirmando" @click="confirmando = true; $nextTick(() => $refs.volverConfirmar.focus())"{% if not cuenta.revision.puede_cerrar %} disabled{% endif %}>Cerrar mesa {{ cuenta.mesa.numero }}</button>
+            {% if cuenta.revision.puede_cerrar %}
+            <form class="caja-mesa__confirmar" method="post" action="{% url 'pedidos:cerrar_mesa' cuenta_id=cuenta.pk %}" x-show="confirmando" x-cloak>
+                {% csrf_token %}
+                <p>¿Cerrar la Mesa {{ cuenta.mesa.numero }}? Queda lista para una nueva visita y no se puede deshacer.</p>
+                <div class="acciones">
+                    <button class="boton boton--fantasma" type="button" x-ref="volverConfirmar" @click="confirmando = false; $nextTick(() => $refs.mostrar.focus())">Cancelar</button>
+                    <button class="boton" type="submit">Sí, cerrar</button>
+                </div>
+            </form>
+            {% endif %}
+        </article>
+        {% empty %}
+        <p class="caja-vacio">No hay cuentas abiertas. La próxima compra abrirá una cuenta nueva.</p>
+        {% endfor %}
+    </div>
+
+    <h2>Pagos por verificar</h2>
+    <div class="caja-lista">
+        {% for intento in pendientes %}
+        <div class="caja-lista__fila">
+            <span class="cifra">{{ intento.creado|date:"d/m H:i" }}</span>
+            <span>Mesa {{ intento.cuenta.mesa.numero }} · {% if intento.pedido_id %}Pedido #{{ intento.pedido_id }}{% else %}Cuenta anterior #{{ intento.cuenta_id }}{% endif %}<br><span class="caja-sub">{{ intento.cuenta.mesa.local.nombre }} · no cobrar de nuevo</span></span>
+            <span><span class="chip chip--ambar">{{ intento.get_estado_display }}</span></span>
+            <span class="cifra monto">${{ intento.monto|floatformat:"0g" }}</span>
+            <a href="{% url 'pedidos:webpay_resultado' intento_id=intento.pk %}">Revisar pago</a>
+        </div>
+        {% empty %}
+        <p class="caja-vacio">No hay pagos por verificar.</p>
+        {% endfor %}
+    </div>
+
+    <h2>Últimos pagos</h2>
+    <p class="caja-sub"><a href="{% url 'pedidos:recuento_caja' %}">Ver el recuento de caja del día</a></p>
+    <div class="caja-lista">
+        {% if pagos %}<div class="caja-lista__fila caja-lista__fila--cabeza"><span>Hora</span><span>Mesa · pedido</span><span>Estado</span><span class="monto">Monto</span><span></span></div>{% endif %}
+        {% for pago in pagos %}
+        <div class="caja-lista__fila">
+            <span class="cifra">{{ pago.creado|date:"d/m H:i" }}</span>
+            <span>Mesa {{ pago.cuenta.mesa.numero }} · {% if pago.pedido_id %}Pedido #{{ pago.pedido_id }}{% else %}Cuenta anterior #{{ pago.cuenta_id }}{% endif %}<br><span class="caja-sub">{{ pago.cuenta.mesa.local.nombre }} · {{ pago.get_metodo_display }}</span></span>
+            <span>{% if pago.pedido_id %}<span class="chip {% if pago.pedido.estado == 'entregado' %}chip--verde{% elif pago.pedido.estado == 'cancelado' %}chip--gris{% else %}chip--ambar{% endif %}">{% if pago.pedido.estado == 'cancelado' %}Anulado{% else %}{{ pago.pedido.get_estado_display }}{% endif %}</span>{% endif %}</span>
+            <span class="cifra monto">${{ pago.monto|floatformat:"0g" }}</span>
+            {% if pago.intento_webpay_id %}<a href="{% url 'pedidos:webpay_resultado' intento_id=pago.intento_webpay_id %}">Ver comprobante</a>{% else %}<span></span>{% endif %}
+        </div>
+        {% empty %}
+        <p class="caja-vacio">Aún no hay pagos registrados.</p>
+        {% endfor %}
+    </div>
+
+    <h2>Últimos cierres</h2>
+    <div class="caja-lista">
+        {% for cuenta in cerradas %}
+        <div class="caja-lista__fila">
+            <span class="cifra">{{ cuenta.cerrada|date:"d/m H:i" }}</span>
+            <span>Mesa {{ cuenta.mesa.numero }} · Cuenta #{{ cuenta.pk }}<br><span class="caja-sub">{{ cuenta.mesa.local.nombre }}</span></span>
+            <span><span class="chip chip--gris">Cerrada</span></span>
+            <span></span><span></span>
+        </div>
+        {% empty %}
+        <p class="caja-vacio">Aún no hay cuentas cerradas.</p>
+        {% endfor %}
+    </div>
+</div>
+{% if oob %}<time id="panel-hora" class="cifra" hx-swap-oob="true">{% now "H:i" %}</time>{% endif %}

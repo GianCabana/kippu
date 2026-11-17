@@ -6,7 +6,7 @@
         <a href="{% url 'pedidos:caja' %}"{% if actual == 'caja' %} aria-current="page"{% endif %}>Caja</a>
     </nav>
     <div class="panel-barra__derecha">
-        <span>Actualizado <time class="cifra">{% now "H:i" %}</time></span>
+        <span>Actualizado <time id="panel-hora" class="cifra">{% now "H:i" %}</time></span>
         <form method="post" action="{% url 'admin:logout' %}">
             {% csrf_token %}
             <input type="hidden" name="next" value="{% url 'pedidos:caja' %}">

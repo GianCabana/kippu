@@ -96,7 +96,7 @@ class CierreMesaTests(TestCase):
         self.assertContains(r,'Sí, cerrar')
         self.assertContains(r,f'action="{self.url}"')
         self.assertContains(r,f'action="{reverse("admin:logout")}"')
-        self.assertContains(r,'http-equiv="refresh" content="15"')
+        self.assertContains(r,'<noscript><meta http-equiv="refresh" content="15"></noscript>')
 
     def test_caja_sin_cierre_posible_no_ofrece_formulario(self):
         Pedido.objects.filter(pk=self.pedido.pk).update(estado='listo')
