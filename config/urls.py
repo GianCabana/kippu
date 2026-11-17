@@ -20,6 +20,10 @@ from django.urls import include, path
 
 from config.views import servir_media
 
+admin.site.site_header = "Administración de Kippu"
+admin.site.site_title = "Administración de Kippu"
+admin.site.index_title = "Panel de Kippu"
+
 urlpatterns = [
     path("admin/", admin.site.urls),
     path("pedidos/", include("pedidos.urls")),

@@ -2,7 +2,9 @@ import tempfile
 from pathlib import Path
 
 from django.conf import settings
-from django.test import SimpleTestCase, override_settings
+from django.contrib.auth import get_user_model
+from django.test import SimpleTestCase, TestCase, override_settings
+from django.urls import reverse
 
 from config.settings import ajustes_https, leer_booleano, leer_hosts, origen
 
@@ -111,3 +113,20 @@ class LeerHostsTests(SimpleTestCase):
             leer_hosts(" 127.0.0.1 , localhost,,192.168.137.1 "),
             ["127.0.0.1", "localhost", "192.168.137.1"],
         )
+
+
+class MarcaDelAdminTests(TestCase):
+    def setUp(self):
+        admin = get_user_model().objects.create_superuser(username="admin_marca", password="Pruebas123!")
+        self.client.force_login(admin)
+
+    def test_el_admin_dice_kippu_y_no_django(self):
+        r = self.client.get(reverse("admin:index"))
+        self.assertContains(r, "<title>Panel de Kippu | Administración de Kippu</title>", html=False)
+        self.assertContains(r, "Administración de Kippu")
+        self.assertNotContains(r, "Django")
+
+    def test_las_paginas_internas_usan_la_marca_en_la_pestana(self):
+        r = self.client.get(reverse("admin:carta_producto_changelist"))
+        self.assertContains(r, "| Administración de Kippu</title>")
+        self.assertNotContains(r, "sitio de Django")
