@@ -82,7 +82,6 @@ class Pago(models.Model):
         EFECTIVO = ('efectivo', 'Efectivo')
         DEBITO = ('debito', 'Tarjeta de débito')
         CREDITO = ('credito', 'Tarjeta de crédito')
-        TRANSFERENCIA = ('transferencia', 'Transferencia')
         WEBPAY = ('webpay', 'Webpay Plus (integración)')
     cuenta = models.ForeignKey('Cuenta', on_delete=models.PROTECT, related_name='pagos')
     pedido = models.OneToOneField('Pedido', on_delete=models.PROTECT, related_name='pago', null=True, blank=True)

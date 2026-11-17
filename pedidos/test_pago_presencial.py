@@ -196,6 +196,10 @@ class CobrarEnCajaTests(PagoPresencialBase):
         self.assertFalse(Pago.objects.exists())
         self.assertEqual(self.estado(pedido), POR_COBRAR)
 
+    def test_transferencia_ya_no_es_un_metodo_de_pago(self):
+        self.assertNotIn("transferencia", Pago.Metodo.values)
+        self.assertNotIn("transferencia", dict(Pago._meta.get_field("metodo").choices))
+
     def test_sin_sesion_de_personal_va_al_login(self):
         pedido = self.pedido()
 
