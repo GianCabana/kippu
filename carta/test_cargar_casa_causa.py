@@ -11,7 +11,7 @@ from django.test import SimpleTestCase, TestCase, override_settings
 from django.utils.text import slugify
 from PIL import Image
 
-from carta.models import Categoria, Producto
+from carta.models import Categoria, GrupoOpcion, OpcionProducto, Producto
 from mesas.models import Local, Mesa
 
 
@@ -132,11 +132,25 @@ class CargarCasaCausaTests(TestCase):
         self.cargar()
 
         con_descripcion = Producto.objects.filter(categoria__local__slug="la-casa-causa").exclude(descripcion="")
-        self.assertEqual(con_descripcion.count(), 12)
+        self.assertEqual(con_descripcion.count(), 35)
         self.assertTrue(
             Producto.objects.get(nombre="Pisco sour").descripcion.startswith("Pisco, jugo de limón, jarabe de goma")
         )
-        self.assertEqual(Producto.objects.get(nombre="Cau cau").descripcion, "")
+        self.assertTrue(Producto.objects.get(nombre="Cau cau").descripcion.startswith("Guiso de mondongo"))
+        self.assertNotIn("papas fritas", Producto.objects.get(nombre="Lomo saltado").descripcion)
+
+    def test_fondos_de_arroz_y_fideos_sin_acompanamiento(self):
+        self.cargar()
+
+        for nombre in ("Arroz con mariscos", "Chaufa de mariscos", "Chaufa de pollo", "Tallarín saltado criollo"):
+            with self.subTest(producto=nombre):
+                grupos = GrupoOpcion.objects.filter(producto__nombre=nombre)
+                self.assertEqual(set(grupos.values_list("nombre", flat=True)), {"Agregados"})
+                self.assertTrue(
+                    OpcionProducto.objects.filter(grupo__in=grupos, nombre="Porción extra de arroz").exists()
+                )
+        lomo = GrupoOpcion.objects.filter(producto__nombre="Lomo saltado")
+        self.assertEqual(set(lomo.values_list("nombre", flat=True)), {"Acompañamiento", "Agregados"})
 
     def test_no_pisa_una_descripcion_escrita_en_el_admin(self):
         self.cargar()
