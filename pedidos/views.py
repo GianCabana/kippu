@@ -17,6 +17,7 @@ from .carrito import Carrito, ErrorOpciones
 from .cierre import revisar_cierre, cerrar_cuenta
 from .presencial import vencer_por_cobrar
 from .recuento import leer_fecha, recuento_del_dia
+from .personal import con_local
 from .pagos import ErrorPago, calcular_propina, exigir_pedidos_abiertos, nombre_recordado
 from django.http import HttpResponse
 from django.contrib.auth.views import redirect_to_login
@@ -168,9 +169,11 @@ def enviar_pedido(request, codigo):
     return iniciar_cliente(request, codigo)
 
 @staff_member_required
+@con_local
 def cocina(request):
     pedidos = (
         Pedido.objects.filter(
+            mesa__local=request.local_personal,
             pago__isnull=False,
             estado__in=[
                 Pedido.Estado.PENDIENTE,
@@ -189,6 +192,7 @@ def cocina(request):
         {"pedidos": pedidos},
     )
 @staff_member_required
+@con_local
 @require_POST
 def cambiar_estado(request, pedido_id):
     nuevo_estado = request.POST.get("estado")
@@ -207,6 +211,7 @@ def cambiar_estado(request, pedido_id):
     pedido = get_object_or_404(
         Pedido.objects.select_related("mesa", "mesa__local"),
         pk=pedido_id,
+        mesa__local=request.local_personal,
     )
 
     actualizado = Pedido.objects.filter(
@@ -229,9 +234,10 @@ def cambiar_estado(request, pedido_id):
 
     return redirect("pedidos:cocina")
 @staff_member_required
+@con_local
 def entregas(request):
     pedidos = (
-        Pedido.objects.filter(estado=Pedido.Estado.LISTO, pago__isnull=False)
+        Pedido.objects.filter(estado=Pedido.Estado.LISTO, pago__isnull=False, mesa__local=request.local_personal)
         .select_related("mesa", "mesa__local", "pago")
         .prefetch_related("detalles")
         .order_by("pago__creado", "pk")
@@ -245,11 +251,13 @@ def entregas(request):
 
 
 @staff_member_required
+@con_local
 @require_POST
 def marcar_entregado(request, pedido_id):
     pedido = get_object_or_404(
         Pedido.objects.select_related("mesa", "mesa__local"),
         pk=pedido_id,
+        mesa__local=request.local_personal,
     )
 
     actualizado = Pedido.objects.filter(
@@ -350,8 +358,9 @@ def estado_mis_pedidos(request, codigo):
 
 
 @staff_member_required
+@con_local
 def caja(request):
-    return render(request, 'pedidos/caja.html', _contexto_caja())
+    return render(request, 'pedidos/caja.html', _contexto_caja(request.local_personal))
 
 
 @require_GET
@@ -362,36 +371,44 @@ def caja_listas(request):
         if request.headers.get('HX-Request') == 'true':
             return HttpResponse(headers={'HX-Redirect': al_login.url})
         return al_login
-    return render(request, 'pedidos/fragmentos/caja_listas.html', {**_contexto_caja(), 'oob': True})
+    return _listas_del_local(request)
 
 
-def _contexto_caja():
+@con_local
+def _listas_del_local(request):
+    return render(request, 'pedidos/fragmentos/caja_listas.html',
+                  {**_contexto_caja(request.local_personal), 'oob': True})
+
+
+def _contexto_caja(local):
     vencer_por_cobrar()
-    por_cobrar = (Pedido.objects.filter(estado=Pedido.Estado.POR_COBRAR, pago__isnull=True)
+    por_cobrar = (Pedido.objects.filter(estado=Pedido.Estado.POR_COBRAR, pago__isnull=True, mesa__local=local)
         .select_related('mesa', 'mesa__local').prefetch_related('detalles').order_by('creado', 'pk'))
-    pagos = Pago.objects.select_related('cuenta__mesa', 'cuenta__mesa__local', 'pedido', 'intento_webpay').order_by('-creado')[:100]
-    pendientes = IntentoWebpay.objects.filter(estado__in=ESTADOS_ACTIVOS).select_related('cuenta__mesa', 'cuenta__mesa__local', 'pedido').order_by('creado')
-    cuentas = list(Cuenta.objects.filter(estado=Cuenta.Estado.ABIERTA).select_related('mesa', 'mesa__local').order_by('mesa__local__nombre', 'mesa__numero'))
+    pagos = Pago.objects.filter(cuenta__mesa__local=local).select_related('cuenta__mesa', 'cuenta__mesa__local', 'pedido', 'intento_webpay').order_by('-creado')[:100]
+    pendientes = IntentoWebpay.objects.filter(estado__in=ESTADOS_ACTIVOS, cuenta__mesa__local=local).select_related('cuenta__mesa', 'cuenta__mesa__local', 'pedido').order_by('creado')
+    cuentas = list(Cuenta.objects.filter(estado=Cuenta.Estado.ABIERTA, mesa__local=local).select_related('mesa', 'mesa__local').order_by('mesa__local__nombre', 'mesa__numero'))
     for cuenta in cuentas:
         cuenta.revision = revisar_cierre(cuenta)
-    cerradas = Cuenta.objects.filter(estado=Cuenta.Estado.CERRADA).select_related('mesa', 'mesa__local').order_by('-cerrada')[:10]
-    locales = Local.objects.filter(activo=True).order_by('nombre')
+    cerradas = Cuenta.objects.filter(estado=Cuenta.Estado.CERRADA, mesa__local=local).select_related('mesa', 'mesa__local').order_by('-cerrada')[:10]
+    locales = [local]
     return {'pagos': pagos, 'pendientes': pendientes, 'por_cobrar': por_cobrar,
             'cuentas': cuentas, 'cerradas': cerradas, 'locales': locales}
 
 
 @staff_member_required
+@con_local
 def recuento_caja(request):
     fecha = leer_fecha(request.GET.get("fecha"))
-    return render(request, "pedidos/recuento_caja.html", {"fecha": fecha, "locales": recuento_del_dia(fecha)})
+    return render(request, "pedidos/recuento_caja.html",
+                  {"fecha": fecha, "locales": recuento_del_dia(fecha, request.local_personal)})
 
 
 @staff_member_required
+@con_local
 @require_POST
-def cambiar_servicio(request, local_id):
+def cambiar_servicio(request):
     # Se pide el estado final (no "alternar"): un doble envío no lo da vuelta.
-    # Pendiente D-3: el local llega por la URL hasta ligar usuario y local.
-    local = get_object_or_404(Local, pk=local_id, activo=True)
+    local = request.local_personal
     acciones = {'cerrar': False, 'abrir': True}
     accion = request.POST.get('accion')
     if accion not in acciones:
@@ -406,9 +423,10 @@ def cambiar_servicio(request, local_id):
 
 
 @staff_member_required
+@con_local
 @require_POST
 def cerrar_mesa(request, cuenta_id):
-    get_object_or_404(Cuenta, pk=cuenta_id)
+    get_object_or_404(Cuenta, pk=cuenta_id, mesa__local=request.local_personal)
     try:
         cuenta, cerrada = cerrar_cuenta(cuenta_id)
     except ErrorPago as exc:

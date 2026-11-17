@@ -1,0 +1,10 @@
+{% extends "base.html" %}
+
+{% block titulo %}Sin local asignado · Kippu{% endblock %}
+{% block encabezado %}{% include "pedidos/fragmentos/barra_panel.html" %}{% endblock %}
+{% block clase_main %}caja{% endblock %}
+
+{% block contenido %}
+<div class="caja__titulo"><h1>Sin local asignado</h1></div>
+<div class="caja-lista"><p class="caja-vacio">Tu usuario no tiene un local asignado, así que el panel no muestra pedidos ni pagos. Pide a quien administra Kippu que te asigne tu local.</p></div>
+{% endblock %}

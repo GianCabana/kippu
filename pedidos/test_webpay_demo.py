@@ -10,12 +10,16 @@ from .models import Cuenta, Pedido, Pago, IntentoWebpay
 from .pagos import resolver_intento
 
 
+from mesas.models import PerfilPersonal
+
+
 class PagoPrevioTests(TestCase):
     def setUp(self):
         self.mesa = Mesa.objects.create(numero=901, activa=True)
         categoria = Producto._meta.get_field('categoria').remote_field.model.objects.create(nombre='Pruebas', activa=True)
         self.producto = Producto.objects.create(categoria=categoria, nombre='Producto prueba', precio=3500, disponible=True)
         self.staff = get_user_model().objects.create_user(username='cocina_test', password='Pruebas123!', is_staff=True)
+        PerfilPersonal.objects.create(usuario=self.staff, local=self.mesa.local)
         self.operador = Client()
         self.operador.force_login(self.staff)
         self.carrito = f'carrito_{self.mesa.codigo}'

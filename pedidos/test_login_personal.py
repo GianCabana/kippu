@@ -2,6 +2,8 @@ from django.contrib.auth import get_user_model
 from django.test import TestCase
 from django.urls import reverse
 
+from mesas.models import PerfilPersonal, local_principal_pk
+
 
 class LoginPersonalTests(TestCase):
     def setUp(self):
@@ -9,6 +11,7 @@ class LoginPersonalTests(TestCase):
         self.caja = reverse('pedidos:caja')
         modelo = get_user_model()
         self.personal = modelo.objects.create_user(username='personal_login', password='Pruebas123!', is_staff=True)
+        PerfilPersonal.objects.create(usuario=self.personal, local_id=local_principal_pk())
         self.cliente = modelo.objects.create_user(username='cliente_login', password='Pruebas123!')
 
     def test_muestra_la_entrada_del_personal(self):

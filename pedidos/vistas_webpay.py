@@ -17,6 +17,7 @@ from django.views.decorators.http import require_GET, require_POST, require_http
 
 from .models import Cuenta, IntentoWebpay, Pago, Pedido
 from mesas.models import Mesa
+from .personal import local_del_personal
 from .pagos import ErrorPago, ESTADOS_ACTIVOS, cliente_clave, crear_intento_cliente, resolver_intento, sincronizar_carrito, reintentar_pago, consumir_formulario, recordar_nombre
 
 SALT = "kippu-comprobante-demo-v1"
@@ -34,8 +35,14 @@ def _url_resultado(intento_id):
     return reverse("pedidos:webpay_resultado", args=[intento_id]) + "?" + urlencode({"firma": _firma(intento_id)})
 
 
+def _personal_del_intento(request, intento_id):
+    # El personal ve sin firma solo los pagos de su propio local.
+    return _es_personal(request) and IntentoWebpay.objects.filter(
+        pk=intento_id, cuenta__mesa__local=local_del_personal(request.user)).exists()
+
+
 def _autorizar_resultado(request, intento_id):
-    if _es_personal(request):
+    if _personal_del_intento(request, intento_id):
         return
     firma = request.POST.get("firma") or request.GET.get("firma")
     try:
@@ -151,7 +158,7 @@ def resultado(request, intento_id):
         sincronizar_carrito(request, intento.cuenta.mesa)
     return _privado(render(request, "pedidos/webpay_resultado.html", {
         "intento": intento, "pago": pago, "firma": _firma(intento.pk),
-        "personal": _es_personal(request),
+        "personal": _personal_del_intento(request, intento.pk),
         "pendiente": intento.estado in ESTADOS_ACTIVOS,
         "puede_reintentar": bool(not pago and intento.pedido_id
             and intento.pedido.estado == Pedido.Estado.SIN_PAGAR

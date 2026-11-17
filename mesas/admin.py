@@ -2,13 +2,15 @@ import qrcode
 
 from django.conf import settings
 from django.contrib import admin
+from django.contrib.auth import get_user_model
+from django.contrib.auth.admin import UserAdmin
 from django.core.exceptions import PermissionDenied
 from django.http import HttpResponse
 from django.shortcuts import get_object_or_404
 from django.urls import path, reverse
 from django.utils.html import format_html
 
-from .models import Local, Mesa
+from .models import Local, Mesa, PerfilPersonal
 
 
 @admin.register(Local)
@@ -70,3 +72,26 @@ class MesaAdmin(admin.ModelAdmin):
         )
         imagen.save(respuesta, format="PNG")
         return respuesta
+
+
+class PerfilPersonalInline(admin.StackedInline):
+    model = PerfilPersonal
+    can_delete = True
+    extra = 0
+    max_num = 1
+
+
+Usuario = get_user_model()
+admin.site.unregister(Usuario)
+
+
+@admin.register(Usuario)
+class UsuarioConLocalAdmin(UserAdmin):
+    inlines = [PerfilPersonalInline]
+    list_display = (*UserAdmin.list_display, "local_del_personal")
+    list_select_related = ("perfil_personal__local",)
+
+    @admin.display(description="Local")
+    def local_del_personal(self, obj):
+        perfil = getattr(obj, "perfil_personal", None)
+        return perfil.local if perfil else "—"

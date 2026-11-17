@@ -1,5 +1,6 @@
 import uuid
 
+from django.conf import settings
 from django.core.validators import MinValueValidator
 from django.db import models
 from django.urls import reverse
@@ -69,3 +70,17 @@ class Mesa(models.Model):
             "carta:por_mesa",
             kwargs={"codigo": self.codigo},
         )
+
+
+class PerfilPersonal(models.Model):
+    """Liga a una persona del personal con su local: el panel muestra y actúa solo sobre ese local."""
+    usuario = models.OneToOneField(settings.AUTH_USER_MODEL, on_delete=models.CASCADE,
+                                   related_name="perfil_personal")
+    local = models.ForeignKey(Local, on_delete=models.PROTECT, related_name="personal")
+
+    class Meta:
+        verbose_name = "local del personal"
+        verbose_name_plural = "local del personal"
+
+    def __str__(self):
+        return f"{self.usuario} · {self.local}"
