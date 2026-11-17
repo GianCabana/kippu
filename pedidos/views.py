@@ -1,6 +1,6 @@
 from django.contrib import messages
 from django.shortcuts import get_object_or_404, redirect
-from django.views.decorators.http import require_POST
+from django.views.decorators.http import require_GET, require_POST
 from django.views.decorators.cache import never_cache
 from django.db import transaction
 
@@ -19,6 +19,8 @@ from .presencial import vencer_por_cobrar
 from .recuento import leer_fecha, recuento_del_dia
 from .pagos import ErrorPago, calcular_propina, exigir_pedidos_abiertos, nombre_recordado
 from django.http import HttpResponse
+from django.contrib.auth.views import redirect_to_login
+from django.urls import reverse
 from django.utils.cache import patch_cache_control, patch_vary_headers
 
 
@@ -349,6 +351,21 @@ def estado_mis_pedidos(request, codigo):
 
 @staff_member_required
 def caja(request):
+    return render(request, 'pedidos/caja.html', _contexto_caja())
+
+
+@require_GET
+def caja_listas(request):
+    # Lo pide HTMX cada 15 s: sin sesión de personal no se entrega el login dentro de las listas.
+    if not (request.user.is_active and request.user.is_staff):
+        al_login = redirect_to_login(reverse('pedidos:caja'), reverse('admin:login'))
+        if request.headers.get('HX-Request') == 'true':
+            return HttpResponse(headers={'HX-Redirect': al_login.url})
+        return al_login
+    return render(request, 'pedidos/fragmentos/caja_listas.html', {**_contexto_caja(), 'oob': True})
+
+
+def _contexto_caja():
     vencer_por_cobrar()
     por_cobrar = (Pedido.objects.filter(estado=Pedido.Estado.POR_COBRAR, pago__isnull=True)
         .select_related('mesa', 'mesa__local').prefetch_related('detalles').order_by('creado', 'pk'))
@@ -359,8 +376,8 @@ def caja(request):
         cuenta.revision = revisar_cierre(cuenta)
     cerradas = Cuenta.objects.filter(estado=Cuenta.Estado.CERRADA).select_related('mesa', 'mesa__local').order_by('-cerrada')[:10]
     locales = Local.objects.filter(activo=True).order_by('nombre')
-    return render(request, 'pedidos/caja.html', {'pagos': pagos, 'pendientes': pendientes, 'por_cobrar': por_cobrar,
-        'cuentas': cuentas, 'cerradas': cerradas, 'locales': locales})
+    return {'pagos': pagos, 'pendientes': pendientes, 'por_cobrar': por_cobrar,
+            'cuentas': cuentas, 'cerradas': cerradas, 'locales': locales}
 
 
 @staff_member_required
