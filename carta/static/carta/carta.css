@@ -194,6 +194,7 @@ dialog { color: var(--texto); }
 .enviar--caja { margin-top: 10px; }
 .enviar .icono { width: 18px; height: 18px; }
 .nota-pedido { margin: 10px 0 0; color: var(--texto-2); font-size: 12px; text-align: center; }
+.aviso-demanda { margin: 0 0 12px; padding: 10px 12px; border-left: 3px solid var(--aji); border-radius: 6px; background: var(--superficie); color: var(--texto); font-size: 13px; line-height: 1.45; }
 .seguir { display: block; width: 100%; min-height: 44px; margin-top: 2px; border: none; background: transparent; color: var(--texto-2); font-size: 13px; }
 
 .carrito-vacio { display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 260px; height: 100%; padding: 35px 10px; text-align: center; }

@@ -1070,6 +1070,7 @@ p.tk__nombre {
   gap: 8px;
 }
 .tk-caja__acciones .boton { flex: 1; }
+.tk-espera { display: block; margin-top: 2px; font-weight: 600; }
 .tk-aviso18 {
   margin: 2px 0 0;
   color: #e8a594;
