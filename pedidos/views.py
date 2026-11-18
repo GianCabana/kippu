@@ -1,4 +1,7 @@
 from django.contrib import messages
+from django.utils.translation import gettext
+
+from carta.idioma import traducir
 from django.shortcuts import get_object_or_404, redirect
 from django.views.decorators.http import require_GET, require_POST
 from django.views.decorators.cache import never_cache
@@ -86,7 +89,7 @@ def agregar_al_carrito(request, codigo, producto_id):
     activo = intento_activo(request, mesa)
     if activo:
         from .vistas_webpay import _url_resultado
-        messages.info(request, 'Resuelve el pago en curso antes de modificar el carrito.')
+        messages.info(request, gettext('Resuelve el pago en curso antes de modificar el carrito.'))
         return _redireccion_carrito(request, _url_resultado(activo.pk))
     sincronizar_carrito(request, mesa)
 
@@ -111,19 +114,21 @@ def agregar_al_carrito(request, codigo, producto_id):
         renovar_carrito(request, mesa)
         messages.success(
             request,
-            f"Agregaste {producto.nombre}.",
+            gettext("Agregaste %(producto)s.") % {"producto": traducir(producto, "nombre")},
         )
     elif carrito.ultimo_error == "opciones_distintas":
         messages.warning(
             request,
-            "Ese producto ya está en el carrito con otra configuración. "
-            "Quítalo antes de elegir opciones diferentes.",
+            gettext(
+                "Ese producto ya está en el carrito con otra configuración. "
+                "Quítalo antes de elegir opciones diferentes."
+            ),
         )
     else:
         messages.warning(
             request,
-            f"Puedes agregar hasta {Carrito.MAXIMO_POR_PRODUCTO} "
-            "unidades de cada producto.",
+            gettext("Puedes agregar hasta %(maximo)s unidades de cada producto.")
+            % {"maximo": Carrito.MAXIMO_POR_PRODUCTO},
         )
 
     return _respuesta_carrito(request, mesa, carrito)
@@ -148,7 +153,7 @@ def quitar_del_carrito(request, codigo, producto_id):
     activo = intento_activo(request, mesa)
     if activo:
         from .vistas_webpay import _url_resultado
-        messages.info(request, 'Resuelve el pago en curso antes de modificar el carrito.')
+        messages.info(request, gettext('Resuelve el pago en curso antes de modificar el carrito.'))
         return _redireccion_carrito(request, _url_resultado(activo.pk))
     sincronizar_carrito(request, mesa)
 
@@ -158,7 +163,7 @@ def quitar_del_carrito(request, codigo, producto_id):
 
     messages.success(
         request,
-        f"Quitaste una unidad de {producto.nombre}.",
+        gettext("Quitaste una unidad de %(producto)s.") % {"producto": traducir(producto, "nombre")},
     )
 
     return _respuesta_carrito(request, mesa, carrito)

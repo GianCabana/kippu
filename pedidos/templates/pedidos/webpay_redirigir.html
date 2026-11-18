@@ -1,8 +1,8 @@
 {% extends "base.html" %}
-{% load static %}
+{% load static i18n %}
 
 {% block meta %}<meta name="referrer" content="same-origin">{% endblock %}
-{% block titulo %}Abriendo Webpay · Kippu{% endblock %}
+{% block titulo %}{% translate "Abriendo Webpay" %} · Kippu{% endblock %}
 {% block estilos %}<link rel="stylesheet" href="{% static 'pedidos/webpay.css' %}">{% endblock %}
 {% block encabezado %}{% include "pedidos/fragmentos/barra_webpay.html" %}{% endblock %}
 {% block clase_main %}contenedor wp-pagina{% endblock %}
@@ -10,12 +10,12 @@
 {% block contenido %}
 <div class="wp-abriendo">
     <span class="wp-abriendo__carga" aria-hidden="true"></span>
-    <h1 class="wp-titulo">Abriendo Webpay…</h1>
-    <p class="wp-nota">Te estamos llevando al formulario de pago.</p>
+    <h1 class="wp-titulo">{% translate "Abriendo Webpay…" %}</h1>
+    <p class="wp-nota">{% translate "Te estamos llevando al formulario de pago." %}</p>
 </div>
-<form id="transbank" method="post" action="{{ intento.url_webpay }}"><input type="hidden" name="token_ws" value="{{ intento.token }}"><noscript><button class="boton boton--bloque" type="submit">Abrir formulario de Webpay</button></noscript></form>
-<p class="wp-nota">Si cancelaste, cerraste el formulario o Webpay muestra un error, vuelve al resultado para reintentar.</p>
-<a class="boton boton--bloque boton--fantasma" href="{{ resultado_url }}">Volver al resultado del pago</a>
+<form id="transbank" method="post" action="{{ intento.url_webpay }}"><input type="hidden" name="token_ws" value="{{ intento.token }}"><noscript><button class="boton boton--bloque" type="submit">{% translate "Abrir formulario de Webpay" %}</button></noscript></form>
+<p class="wp-nota">{% translate "Si cancelaste, cerraste el formulario o Webpay muestra un error, vuelve al resultado para reintentar." %}</p>
+<a class="boton boton--bloque boton--fantasma" href="{{ resultado_url }}">{% translate "Volver al resultado del pago" %}</a>
 {% endblock %}
 
 {% block scripts %}<script>document.getElementById('transbank').submit();window.addEventListener('pageshow',e=>{if(e.persisted)window.location.replace('{{ resultado_url|escapejs }}')});</script>{% endblock %}

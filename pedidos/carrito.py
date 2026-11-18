@@ -1,3 +1,6 @@
+from django.utils.translation import gettext
+
+from carta.idioma import traducir
 from carta.models import GrupoOpcion, OpcionProducto, Producto
 
 
@@ -48,7 +51,7 @@ class Carrito:
             try:
                 opcion_id = int(valor)
             except (TypeError, ValueError):
-                raise ErrorOpciones("Una opción seleccionada no es válida.")
+                raise ErrorOpciones(gettext("Una opción seleccionada no es válida."))
             if opcion_id not in ids:
                 ids.append(opcion_id)
 
@@ -64,7 +67,7 @@ class Carrito:
         )
         if len(opciones) != len(ids):
             raise ErrorOpciones(
-                "Una opción ya no está disponible. Vuelve a elegir el producto."
+                gettext("Una opción ya no está disponible. Vuelve a elegir el producto.")
             )
 
         seleccionadas_por_grupo = {}
@@ -78,15 +81,15 @@ class Carrito:
         for grupo in grupos:
             cantidad = len(seleccionadas_por_grupo.get(grupo.pk, []))
             if exigir_requeridas and grupo.requerido and cantidad == 0:
-                raise ErrorOpciones(f"Debes elegir una opción en {grupo.nombre}.")
+                raise ErrorOpciones(gettext("Debes elegir una opción en %(grupo)s.") % {"grupo": traducir(grupo, "nombre")})
             if not grupo.seleccion_multiple and cantidad > 1:
                 raise ErrorOpciones(
-                    f"Solo puedes elegir una opción en {grupo.nombre}."
+                    gettext("Solo puedes elegir una opción en %(grupo)s.") % {"grupo": traducir(grupo, "nombre")}
                 )
             if cantidad > grupo.max_selecciones:
                 raise ErrorOpciones(
-                    f"Puedes elegir hasta {grupo.max_selecciones} "
-                    f"opciones en {grupo.nombre}."
+                    gettext("Puedes elegir hasta %(maximo)s opciones en %(grupo)s.")
+                    % {"maximo": grupo.max_selecciones, "grupo": traducir(grupo, "nombre")}
                 )
         return opciones
 

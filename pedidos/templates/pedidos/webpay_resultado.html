@@ -1,15 +1,15 @@
 {% extends "base.html" %}
-{% load static espera impuestos %}
+{% load static espera impuestos i18n %}
 
 {% block meta %}<meta name="referrer" content="same-origin">{% endblock %}
-{% block titulo %}Pago · Kippu{% endblock %}
+{% block titulo %}{% translate "Pago" %} · Kippu{% endblock %}
 {% block estilos %}<link rel="stylesheet" href="{% static 'pedidos/webpay.css' %}">{% endblock %}
 {% block clase_body %}{% if pago %}tk-pantalla wp-comprobante{% endif %}{% endblock %}
 {% block encabezado %}
 {% if pago %}
 <header class="tk-barra">
-    <div class="tk-barra__marca"><span class="logo logo--chico" aria-hidden="true">券</span><span class="tk-etiqueta">COMPROBANTE</span></div>
-    <span class="tk-mesa">{{ intento.cuenta.mesa.local.nombre }} · Mesa {{ intento.cuenta.mesa.numero }}</span>
+    <div class="tk-barra__marca"><span class="logo logo--chico" aria-hidden="true">券</span><span class="tk-etiqueta">{% translate "COMPROBANTE" %}</span></div>
+    <span class="tk-mesa">{{ intento.cuenta.mesa.local.nombre }} · {% blocktranslate with numero=intento.cuenta.mesa.numero %}Mesa {{ numero }}{% endblocktranslate %}</span>
 </header>
 {% else %}{% include "pedidos/fragmentos/barra_webpay.html" %}{% endif %}
 {% endblock %}
@@ -19,53 +19,53 @@
 {% if pago %}
 <article class="tk" aria-labelledby="comprobante-titulo">
     <div class="tk__cabeza">
-        <h1 class="tk__local" id="comprobante-titulo">Pago autorizado</h1>
-        <span class="tk-sello tk-sello--ok">Pagado</span>
+        <h1 class="tk__local" id="comprobante-titulo">{% translate "Pago autorizado" %}</h1>
+        <span class="tk-sello tk-sello--ok">{% translate "Pagado" %}</span>
     </div>
-    <p class="tk__ref">{{ intento.cuenta.mesa.local.nombre|upper }} · MESA {{ intento.cuenta.mesa.numero }} · KIP-{{ pago.pk }}</p>
-    {% if intento.pedido.nombre %}<p class="tk__nombre">Para <strong>{{ intento.pedido.nombre }}</strong></p>{% endif %}
-    <p class="wp-estado">{% if enviado_cocina %}Tu pedido está pagado y fue enviado a cocina. Puedes seguir su estado en Mis pedidos.{% else %}El pago está registrado. Consulta al personal para revisar tu pedido.{% endif %}</p>
-    {% if enviado_cocina %}{% with e=intento.pedido|espera_estimada %}{% if e %}<p class="wp-espera"><strong>Listo aprox. entre las {{ e.desde|time:"H:i" }} y las {{ e.hasta|time:"H:i" }}.</strong>{% if e.alta_demanda %} Hay muchos pedidos en cocina: podría demorar más de lo habitual.{% endif %}</p>{% endif %}{% endwith %}{% endif %}
+    <p class="tk__ref">{{ intento.cuenta.mesa.local.nombre|upper }} · {% blocktranslate with numero=intento.cuenta.mesa.numero %}MESA {{ numero }}{% endblocktranslate %} · KIP-{{ pago.pk }}</p>
+    {% if intento.pedido.nombre %}<p class="tk__nombre">{% blocktranslate with nombre=intento.pedido.nombre %}Para <strong>{{ nombre }}</strong>{% endblocktranslate %}</p>{% endif %}
+    <p class="wp-estado">{% if enviado_cocina %}{% translate "Tu pedido está pagado y fue enviado a cocina. Puedes seguir su estado en Mis pedidos." %}{% else %}{% translate "El pago está registrado. Consulta al personal para revisar tu pedido." %}{% endif %}</p>
+    {% if enviado_cocina %}{% with e=intento.pedido|espera_estimada %}{% if e %}<p class="wp-espera"><strong>{% blocktranslate with desde=e.desde|time:"H:i" hasta=e.hasta|time:"H:i" %}Listo aprox. entre las {{ desde }} y las {{ hasta }}.{% endblocktranslate %}</strong>{% if e.alta_demanda %} {% translate "Hay muchos pedidos en cocina: podría demorar más de lo habitual." %}{% endif %}</p>{% endif %}{% endwith %}{% endif %}
     <div class="tk__corte"></div>
     {% for item in intento.detalle %}
     <div class="tk__linea">
-        <span>{{ item.cantidad }} × {{ item.nombre }}{% if item.requiere_mayoria_edad %} <span class="insignia-18" aria-label="Producto para mayores de 18 años">+18</span>{% endif %}{% if item.opciones %}<span class="tk__op">{% for opcion in item.opciones %}{{ opcion.grupo }}: {{ opcion.nombre }}{% if opcion.precio_extra != '0.00' %} (+${{ opcion.precio_extra|floatformat:"0g" }}){% endif %}{% if not forloop.last %} · {% endif %}{% endfor %}</span>{% endif %}<span class="tk__op">Pedido #{{ item.pedido }}</span></span>
+        <span>{{ item.cantidad }} × {{ item.nombre }}{% if item.requiere_mayoria_edad %} <span class="insignia-18" aria-label="{% translate "Producto para mayores de 18 años" %}">+18</span>{% endif %}{% if item.opciones %}<span class="tk__op">{% for opcion in item.opciones %}{{ opcion.grupo }}: {{ opcion.nombre }}{% if opcion.precio_extra != '0.00' %} (+${{ opcion.precio_extra|floatformat:"0g" }}){% endif %}{% if not forloop.last %} · {% endif %}{% endfor %}</span>{% endif %}<span class="tk__op">{% blocktranslate with numero=item.pedido %}Pedido #{{ numero }}{% endblocktranslate %}</span></span>
         <span class="cifra" data-pesos="{{ item.subtotal }}">${{ item.subtotal|floatformat:"0g" }}</span>
     </div>
     {% endfor %}
     <div class="tk__corte"></div>
-    <div class="tk__linea tk__linea--suave"><span>Subtotal</span><span class="cifra" data-pesos="{{ intento.subtotal|floatformat:'2u' }}">${{ intento.subtotal|floatformat:"0g" }}</span></div>
-    {% with d=intento.subtotal|iva_incluido %}<div class="tk__linea tk__linea--suave tk__linea--iva"><span>Neto</span><span class="cifra">${{ d.neto|floatformat:"0g" }}</span></div>
-    <div class="tk__linea tk__linea--suave tk__linea--iva"><span>IVA (19 %) incluido</span><span class="cifra">${{ d.iva|floatformat:"0g" }}</span></div>{% endwith %}
-    <div class="tk__linea tk__linea--suave"><span>Propina opcional</span><span class="cifra" data-pesos="{{ intento.propina|floatformat:'2u' }}">${{ intento.propina|floatformat:"0g" }}</span></div>
-    <div class="tk__total"><span>Total pagado</span><span class="cifra" data-pesos="{{ pago.monto|floatformat:'2u' }}">${{ pago.monto|floatformat:"0g" }}</span></div>
+    <div class="tk__linea tk__linea--suave"><span>{% translate "Subtotal" %}</span><span class="cifra" data-pesos="{{ intento.subtotal|floatformat:'2u' }}">${{ intento.subtotal|floatformat:"0g" }}</span></div>
+    {% with d=intento.subtotal|iva_incluido %}<div class="tk__linea tk__linea--suave tk__linea--iva"><span>{% translate "Neto" %}</span><span class="cifra">${{ d.neto|floatformat:"0g" }}</span></div>
+    <div class="tk__linea tk__linea--suave tk__linea--iva"><span>{% blocktranslate with tasa="19 %" %}IVA ({{ tasa }}) incluido{% endblocktranslate %}</span><span class="cifra">${{ d.iva|floatformat:"0g" }}</span></div>{% endwith %}
+    <div class="tk__linea tk__linea--suave"><span>{% translate "Propina opcional" %}</span><span class="cifra" data-pesos="{{ intento.propina|floatformat:'2u' }}">${{ intento.propina|floatformat:"0g" }}</span></div>
+    <div class="tk__total"><span>{% translate "Total pagado" %}</span><span class="cifra" data-pesos="{{ pago.monto|floatformat:'2u' }}">${{ pago.monto|floatformat:"0g" }}</span></div>
     <div class="tk__corte"></div>
-    <p class="etiqueta wp-datos__titulo">Comprobante de pago · Demostración</p>
+    <p class="etiqueta wp-datos__titulo">{% translate "Comprobante de pago · Demostración" %}</p>
     <dl class="wp-datos">
-        <div><dt>Comprobante</dt><dd>KIP-{{ pago.pk }}</dd></div>
-        <div><dt>Mesa / Cuenta</dt><dd>{{ intento.cuenta.mesa.numero }} / #{{ intento.cuenta_id }}</dd></div>
-        <div><dt>Confirmación registrada</dt><dd>{{ pago.creado|date:"d/m/Y H:i:s" }}</dd></div>
-        <div><dt>Orden de compra</dt><dd>{{ intento.orden_compra }}</dd></div>
-        <div><dt>Autorización</dt><dd>{{ intento.codigo_autorizacion }}</dd></div>
-        <div><dt>Medio de pago</dt><dd>Webpay Plus · {{ intento.tipo_pago }}</dd></div>
-        {% if intento.ultimos_digitos %}<div><dt>Tarjeta</dt><dd>•••• {{ intento.ultimos_digitos }}</dd></div>{% endif %}
-        {% if intento.pedido.mayoria_edad_confirmada %}<div><dt>Control de edad</dt><dd>Confirmación +18 registrada</dd></div>{% endif %}
+        <div><dt>{% translate "Comprobante" %}</dt><dd>KIP-{{ pago.pk }}</dd></div>
+        <div><dt>{% translate "Mesa / Cuenta" %}</dt><dd>{{ intento.cuenta.mesa.numero }} / #{{ intento.cuenta_id }}</dd></div>
+        <div><dt>{% translate "Confirmación registrada" %}</dt><dd>{{ pago.creado|date:"d/m/Y H:i:s" }}</dd></div>
+        <div><dt>{% translate "Orden de compra" %}</dt><dd>{{ intento.orden_compra }}</dd></div>
+        <div><dt>{% translate "Autorización" %}</dt><dd>{{ intento.codigo_autorizacion }}</dd></div>
+        <div><dt>{% translate "Medio de pago" %}</dt><dd>Webpay Plus · {{ intento.tipo_pago }}</dd></div>
+        {% if intento.ultimos_digitos %}<div><dt>{% translate "Tarjeta" %}</dt><dd>•••• {{ intento.ultimos_digitos }}</dd></div>{% endif %}
+        {% if intento.pedido.mayoria_edad_confirmada %}<div><dt>{% translate "Control de edad" %}</dt><dd>{% translate "Confirmación +18 registrada" %}</dd></div>{% endif %}
     </dl>
     {% if intento.observacion %}<p class="mensaje mensaje--warning">{{ intento.observacion }}</p>{% endif %}
-    <p class="tk__pie">COMPROBANTE DE DEMOSTRACIÓN · AMBIENTE DE INTEGRACIÓN<br>Precios con IVA incluido; la propina no está afecta a IVA.<br>No es una boleta tributaria ni acredita un cobro real.</p>
+    <p class="tk__pie">{% translate "COMPROBANTE DE DEMOSTRACIÓN · AMBIENTE DE INTEGRACIÓN" %}<br>{% translate "Precios con IVA incluido; la propina no está afecta a IVA." %}<br>{% translate "No es una boleta tributaria ni acredita un cobro real." %}</p>
 </article>
 <div class="tk-perforado" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div>
-<div class="wp-acciones"><button class="boton boton--bloque tk-boton" id="imprimir" type="button">Imprimir / Guardar como PDF</button></div>
+<div class="wp-acciones"><button class="boton boton--bloque tk-boton" id="imprimir" type="button">{% translate "Imprimir / Guardar como PDF" %}</button></div>
 {% else %}
-<h1 class="wp-titulo">{% if pendiente %}Pago por verificar{% else %}Pago no completado{% endif %}</h1>
-<p class="mensaje mensaje--warning">{{ intento.observacion|default:"Todavía no hay un pago confirmado para este pedido." }}</p>
-<p class="wp-ref">Mesa {{ intento.cuenta.mesa.numero }} · Cuenta #{{ intento.cuenta_id }}</p>
-<p class="wp-nota">Estado: {{ intento.get_estado_display }}<br>Inicio: {{ intento.creado|date:"d/m/Y H:i" }} · Hace {{ intento.creado|timesince }}</p>
-{% if puede_reintentar %}<div class="wp-acciones"><form method="post" action="{% url 'pedidos:webpay_reintentar' intento_id=intento.pk %}">{% csrf_token %}<input type="hidden" name="firma" value="{{ firma }}"><button class="boton boton--bloque" type="submit">Reintentar pago</button></form><p class="wp-nota">Comprobaremos el intento anterior antes de iniciar otro pago.</p></div>{% endif %}
-{% if pendiente %}<div class="wp-acciones"><form method="post" action="{% url 'pedidos:webpay_verificar' intento_id=intento.pk %}">{% csrf_token %}<input type="hidden" name="firma" value="{{ firma }}"><button class="boton boton--bloque{% if puede_reintentar %} boton--fantasma{% endif %}" type="submit">Verificar con Transbank</button></form><p class="wp-nota">Tu pedido aún no se envía a cocina. El carrito se conserva hasta confirmar el pago.</p></div>
-<div class="wp-acciones"><form method="post" action="{% url 'pedidos:webpay_cancelar' intento_id=intento.pk %}">{% csrf_token %}<input type="hidden" name="firma" value="{{ firma }}"><button class="boton boton--bloque boton--fantasma" type="submit">Cancelar este intento</button></form></div>{% endif %}
+<h1 class="wp-titulo">{% if pendiente %}{% translate "Pago por verificar" %}{% else %}{% translate "Pago no completado" %}{% endif %}</h1>
+<p class="mensaje mensaje--warning">{% if intento.observacion %}{{ intento.observacion }}{% else %}{% translate "Todavía no hay un pago confirmado para este pedido." %}{% endif %}</p>
+<p class="wp-ref">{% blocktranslate with numero=intento.cuenta.mesa.numero cuenta=intento.cuenta_id %}Mesa {{ numero }} · Cuenta #{{ cuenta }}{% endblocktranslate %}</p>
+<p class="wp-nota">{% translate "Estado" %}: {{ intento.get_estado_display }}<br>{% translate "Inicio" %}: {{ intento.creado|date:"d/m/Y H:i" }} · {% blocktranslate with tiempo=intento.creado|timesince %}Hace {{ tiempo }}{% endblocktranslate %}</p>
+{% if puede_reintentar %}<div class="wp-acciones"><form method="post" action="{% url 'pedidos:webpay_reintentar' intento_id=intento.pk %}">{% csrf_token %}<input type="hidden" name="firma" value="{{ firma }}"><button class="boton boton--bloque" type="submit">{% translate "Reintentar pago" %}</button></form><p class="wp-nota">{% translate "Comprobaremos el intento anterior antes de iniciar otro pago." %}</p></div>{% endif %}
+{% if pendiente %}<div class="wp-acciones"><form method="post" action="{% url 'pedidos:webpay_verificar' intento_id=intento.pk %}">{% csrf_token %}<input type="hidden" name="firma" value="{{ firma }}"><button class="boton boton--bloque{% if puede_reintentar %} boton--fantasma{% endif %}" type="submit">{% translate "Verificar con Transbank" %}</button></form><p class="wp-nota">{% translate "Tu pedido aún no se envía a cocina. El carrito se conserva hasta confirmar el pago." %}</p></div>
+<div class="wp-acciones"><form method="post" action="{% url 'pedidos:webpay_cancelar' intento_id=intento.pk %}">{% csrf_token %}<input type="hidden" name="firma" value="{{ firma }}"><button class="boton boton--bloque boton--fantasma" type="submit">{% translate "Cancelar este intento" %}</button></form></div>{% endif %}
 {% endif %}
-<div class="wp-acciones">{% if personal %}<a class="boton boton--bloque {% if pago %}tk-boton{% else %}boton--fantasma{% endif %}" href="{% url 'pedidos:caja' %}">Volver a Caja</a>{% else %}<a class="boton boton--bloque {% if pago %}tk-boton{% else %}boton--fantasma{% endif %}" href="{% url 'carta:por_mesa' codigo=intento.cuenta.mesa.codigo %}">Volver a la carta</a>{% if pago %}<a class="tk-enlace wp-enlace-mis-pedidos" href="{% url 'pedidos:mis_pedidos' codigo=intento.cuenta.mesa.codigo %}">Ver mis pedidos</a>{% endif %}{% endif %}</div>
+<div class="wp-acciones">{% if personal %}<a class="boton boton--bloque {% if pago %}tk-boton{% else %}boton--fantasma{% endif %}" href="{% url 'pedidos:caja' %}">Volver a Caja</a>{% else %}<a class="boton boton--bloque {% if pago %}tk-boton{% else %}boton--fantasma{% endif %}" href="{% url 'carta:por_mesa' codigo=intento.cuenta.mesa.codigo %}">{% translate "Volver a la carta" %}</a>{% if pago %}<a class="tk-enlace wp-enlace-mis-pedidos" href="{% url 'pedidos:mis_pedidos' codigo=intento.cuenta.mesa.codigo %}">{% translate "Ver mis pedidos" %}</a>{% endif %}{% endif %}</div>
 {% endblock %}
 
 {% block scripts %}<script>(()=>{const f=new Intl.NumberFormat('es-CL',{style:'currency',currency:'CLP',maximumFractionDigits:0});document.querySelectorAll('[data-pesos]').forEach(e=>{const n=Number(e.dataset.pesos);if(Number.isFinite(n))e.textContent=f.format(n)});document.getElementById('imprimir')?.addEventListener('click',()=>window.print());document.querySelectorAll('form').forEach(form=>{let enviando=false;form.addEventListener('submit',e=>{if(enviando){e.preventDefault();return}enviando=true;form.querySelector('button').disabled=true})});window.addEventListener('pageshow',e=>{if(e.persisted)window.location.reload()})})();</script>{% endblock %}

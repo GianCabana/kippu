@@ -1,6 +1,7 @@
 from django.core.exceptions import ValidationError
 from django.core.validators import FileExtensionValidator, MaxValueValidator, MinValueValidator
 from django.db import models
+from django.utils.translation import gettext_lazy as _
 
 PESO_MAXIMO_IMAGEN = 2 * 1024 * 1024
 
@@ -30,6 +31,7 @@ class Categoria(models.Model):
         default=local_principal_pk,
     )
     nombre = models.CharField(max_length=100)
+    nombre_en = models.CharField("nombre en inglés", max_length=100, blank=True, help_text="Opcional. Si queda vacío, en inglés se muestra el texto en español.")
     activa = models.BooleanField(default=True)
 
     class Meta:
@@ -55,6 +57,8 @@ class Producto(models.Model):
     )
     nombre = models.CharField(max_length=150)
     descripcion = models.TextField("descripción", blank=True)
+    nombre_en = models.CharField("nombre en inglés", max_length=150, blank=True, help_text="Opcional. Si queda vacío, en inglés se muestra el texto en español.")
+    descripcion_en = models.TextField("descripción en inglés", blank=True, help_text="Opcional. Si queda vacío, en inglés se muestra el texto en español.")
     precio = models.DecimalField(
         max_digits=10,
         decimal_places=0,
@@ -93,13 +97,13 @@ class DiaDestacado(models.Model):
 
     class Dia(models.IntegerChoices):
         # Mismo número que date.weekday(): lunes = 0.
-        LUNES = 0, "Lunes"
-        MARTES = 1, "Martes"
-        MIERCOLES = 2, "Miércoles"
-        JUEVES = 3, "Jueves"
-        VIERNES = 4, "Viernes"
-        SABADO = 5, "Sábado"
-        DOMINGO = 6, "Domingo"
+        LUNES = 0, _("Lunes")
+        MARTES = 1, _("Martes")
+        MIERCOLES = 2, _("Miércoles")
+        JUEVES = 3, _("Jueves")
+        VIERNES = 4, _("Viernes")
+        SABADO = 5, _("Sábado")
+        DOMINGO = 6, _("Domingo")
 
     producto = models.ForeignKey(
         Producto,
@@ -134,6 +138,7 @@ class GrupoOpcion(models.Model):
         related_name="grupos_opciones",
     )
     nombre = models.CharField(max_length=100)
+    nombre_en = models.CharField("nombre en inglés", max_length=100, blank=True, help_text="Opcional. Si queda vacío, en inglés se muestra el texto en español.")
     requerido = models.BooleanField(default=False)
     seleccion_multiple = models.BooleanField(
         "permite varias opciones",
@@ -180,6 +185,7 @@ class OpcionProducto(models.Model):
         related_name="opciones",
     )
     nombre = models.CharField(max_length=100)
+    nombre_en = models.CharField("nombre en inglés", max_length=100, blank=True, help_text="Opcional. Si queda vacío, en inglés se muestra el texto en español.")
     precio_extra = models.DecimalField(
         max_digits=10,
         decimal_places=0,

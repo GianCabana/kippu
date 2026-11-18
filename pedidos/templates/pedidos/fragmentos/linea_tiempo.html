@@ -1,36 +1,36 @@
-{% load espera %}<div id="vivo-{{ pedido.pk }}"{% if oob %} hx-swap-oob="innerHTML"{% endif %}>
+{% load espera i18n %}<div id="vivo-{{ pedido.pk }}"{% if oob %} hx-swap-oob="innerHTML"{% endif %}>
 {% if pedido.estado == 'por_cobrar' %}
 <div class="tk-caja" x-data="{ cancelando: false }">
-    <p class="tk-caja__titulo">Acércate a caja a pagar <span class="cifra">${{ pedido.total_con_propina|floatformat:"0g" }}</span></p>
-    <p class="tk-caja__texto">Pregunta por el <strong>pedido #{{ pedido.pk }}</strong>{% if pedido.nombre %}, a nombre de <strong>{{ pedido.nombre }}</strong>{% endif %}. Tu pedido, una vez pagado, empezará a prepararse. Si no se paga en 30 minutos, se anulará.</p>
-    <button class="boton boton--bloque tk-boton" type="button" x-ref="cancelar" x-show="!cancelando" @click="cancelando = true; $nextTick(() => $refs.volver.focus())">Anular pedido</button>
+    <p class="tk-caja__titulo">{% translate "Acércate a caja a pagar" %} <span class="cifra">${{ pedido.total_con_propina|floatformat:"0g" }}</span></p>
+    <p class="tk-caja__texto">{% blocktranslate with numero=pedido.pk %}Pregunta por el <strong>pedido #{{ numero }}</strong>{% endblocktranslate %}{% if pedido.nombre %}{% blocktranslate with nombre=pedido.nombre %}, a nombre de <strong>{{ nombre }}</strong>{% endblocktranslate %}{% endif %}. {% translate "Tu pedido, una vez pagado, empezará a prepararse. Si no se paga en 30 minutos, se anulará." %}</p>
+    <button class="boton boton--bloque tk-boton" type="button" x-ref="cancelar" x-show="!cancelando" @click="cancelando = true; $nextTick(() => $refs.volver.focus())">{% translate "Anular pedido" %}</button>
     <form method="post" action="{% url 'pedidos:cancelar_por_cobrar' codigo=mesa.codigo pedido_id=pedido.pk %}" x-show="cancelando" x-cloak>
         {% csrf_token %}
-        <p class="tk-caja__texto">¿Deseas anular el pedido #{{ pedido.pk }}?</p>
+        <p class="tk-caja__texto">{% blocktranslate with numero=pedido.pk %}¿Deseas anular el pedido #{{ numero }}?{% endblocktranslate %}</p>
         <div class="tk-caja__acciones">
-            <button class="boton tk-boton" type="button" x-ref="volver" @click="cancelando = false; $nextTick(() => $refs.cancelar.focus())">Volver</button>
-            <button class="boton" type="submit">Sí, anular</button>
+            <button class="boton tk-boton" type="button" x-ref="volver" @click="cancelando = false; $nextTick(() => $refs.cancelar.focus())">{% translate "Volver" %}</button>
+            <button class="boton" type="submit">{% translate "Sí, anular" %}</button>
         </div>
     </form>
 </div>
 {% elif pedido.estado != 'cancelado' and pedido.estado != 'sin_pagar' %}
-<ol class="tk-pasos" data-anuncio="{% if pedido.estado == 'pendiente' %}Tu pedido llegó a cocina.{% elif pedido.estado == 'en_preparacion' %}La cocina está preparando tu pedido.{% elif pedido.estado == 'listo' %}Tu pedido está listo. Te lo llevamos a la mesa.{% elif pedido.estado == 'entregado' %}Tu pedido fue entregado.{% endif %}">
-    <li class="hecho"><span class="punto" aria-hidden="true">✓</span><div><b>Pagado</b>{% if pedido.pago %}<small>{{ pedido.pago.creado|date:"H:i" }}</small>{% endif %}</div></li>
+<ol class="tk-pasos" data-anuncio="{% if pedido.estado == 'pendiente' %}{% translate "Tu pedido llegó a cocina." %}{% elif pedido.estado == 'en_preparacion' %}{% translate "La cocina está preparando tu pedido." %}{% elif pedido.estado == 'listo' %}{% translate "Tu pedido está listo. Te lo llevamos a la mesa." %}{% elif pedido.estado == 'entregado' %}{% translate "Tu pedido fue entregado." %}{% endif %}">
+    <li class="hecho"><span class="punto" aria-hidden="true">✓</span><div><b>{% translate "Pagado" %}</b>{% if pedido.pago %}<small>{{ pedido.pago.creado|date:"H:i" }}</small>{% endif %}</div></li>
     {% if pedido.estado == 'pendiente' or pedido.estado == 'en_preparacion' %}{% with e=pedido|espera_estimada %}
-    <li class="ahora"><span class="punto" aria-hidden="true">•</span><div><b>{% if pedido.estado == 'pendiente' %}En cocina · en cola{% else %}En cocina · preparando{% endif %}</b><small>{% if pedido.estado == 'pendiente' %}Tu pedido llegó a cocina{% else %}La cocina ya lo está haciendo{% endif %}</small>{% if e %}<small class="tk-espera">Listo aprox. entre las {{ e.desde|time:"H:i" }} y las {{ e.hasta|time:"H:i" }}{% if e.alta_demanda %} · hay muchos pedidos en cocina{% endif %}</small>{% endif %}</div></li>
+    <li class="ahora"><span class="punto" aria-hidden="true">•</span><div><b>{% if pedido.estado == 'pendiente' %}{% translate "En cocina · en cola" %}{% else %}{% translate "En cocina · preparando" %}{% endif %}</b><small>{% if pedido.estado == 'pendiente' %}{% translate "Tu pedido llegó a cocina" %}{% else %}{% translate "La cocina ya lo está haciendo" %}{% endif %}</small>{% if e %}<small class="tk-espera">{% blocktranslate with desde=e.desde|time:"H:i" hasta=e.hasta|time:"H:i" %}Listo aprox. entre las {{ desde }} y las {{ hasta }}{% endblocktranslate %}{% if e.alta_demanda %} · {% translate "hay muchos pedidos en cocina" %}{% endif %}</small>{% endif %}</div></li>
     {% endwith %}
     {% else %}
-    <li class="hecho"><span class="punto" aria-hidden="true">✓</span><div><b>En cocina</b></div></li>
+    <li class="hecho"><span class="punto" aria-hidden="true">✓</span><div><b>{% translate "En cocina" %}</b></div></li>
     {% endif %}
     {% if pedido.estado == 'listo' %}
-    <li class="ahora"><span class="punto" aria-hidden="true">•</span><div><b>Listo</b><small>Te lo llevamos a la mesa</small></div></li>
+    <li class="ahora"><span class="punto" aria-hidden="true">•</span><div><b>{% translate "Listo" %}</b><small>{% translate "Te lo llevamos a la mesa" %}</small></div></li>
     {% elif pedido.estado == 'entregado' %}
-    <li class="hecho"><span class="punto" aria-hidden="true">✓</span><div><b>Listo</b></div></li>
+    <li class="hecho"><span class="punto" aria-hidden="true">✓</span><div><b>{% translate "Listo" %}</b></div></li>
     {% else %}
-    <li><span class="punto" aria-hidden="true"></span><div><b>Listo</b><small>Te lo llevamos a la mesa</small></div></li>
+    <li><span class="punto" aria-hidden="true"></span><div><b>{% translate "Listo" %}</b><small>{% translate "Te lo llevamos a la mesa" %}</small></div></li>
     {% endif %}
-    <li{% if pedido.estado == 'entregado' %} class="hecho"{% endif %}><span class="punto" aria-hidden="true">{% if pedido.estado == 'entregado' %}✓{% endif %}</span><div><b>Entregado</b>{% if pedido.estado == 'entregado' %}<small>¡Que lo disfrutes!</small>{% endif %}</div></li>
+    <li{% if pedido.estado == 'entregado' %} class="hecho"{% endif %}><span class="punto" aria-hidden="true">{% if pedido.estado == 'entregado' %}✓{% endif %}</span><div><b>{% translate "Entregado" %}</b>{% if pedido.estado == 'entregado' %}<small>{% translate "¡Que lo disfrutes!" %}</small>{% endif %}</div></li>
 </ol>
-{% if pedido.mayoria_edad_confirmada %}<p class="tk-aviso18">Declaraste ser mayor de 18. Te pueden pedir identificación al entregar.</p>{% endif %}
+{% if pedido.mayoria_edad_confirmada %}<p class="tk-aviso18">{% translate "Declaraste ser mayor de 18. Te pueden pedir identificación al entregar." %}</p>{% endif %}
 {% endif %}
 </div>

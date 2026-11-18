@@ -122,6 +122,66 @@ DESCRIPCIONES = {
     "Agua mineral": "Agua mineral en botella individual, servida helada.",
 }
 
+# Inglés de la carta (fase 3). Se cargan solo en campos vacíos: no pisan lo que se edite en el admin.
+CATEGORIAS_EN = {
+    "Piqueos": "Small bites",
+    "Entradas y ceviches": "Starters and ceviches",
+    "Fondos": "Main courses",
+    "Postres": "Desserts",
+    "Barra": "Drinks",
+}
+GRUPOS_EN = {"Tamaño": "Size", "Acompañamiento": "Side", "Agregados": "Extras"}
+OPCIONES_EN = {
+    "Personal": "Single serving",
+    "Para compartir": "To share",
+    "Arroz blanco": "White rice",
+    "Papas fritas": "French fries",
+    "Ambos": "Both",
+    "Huevo frito": "Fried egg",
+    "Porción extra de arroz": "Extra rice",
+    "Simple": "Single",
+    "Doble": "Double",
+    "Vaso": "Glass",
+    "Jarra": "Pitcher",
+}
+PRODUCTOS_EN = {
+    "Causa limeña clásica": ("Classic causa limeña", "Chilled yellow potato mash seasoned with ají amarillo and lime, filled with chicken, mayonnaise and avocado. With hard-boiled egg and botija olive."),
+    "Papa a la huancaína": ("Potatoes à la huancaína", "Slices of boiled potato covered in a creamy sauce of ají amarillo and fresh cheese, on lettuce leaves. With hard-boiled egg and botija olives."),
+    "Anticuchos de corazón (2 palitos)": ("Beef heart anticuchos (2 skewers)", "Two skewers of beef heart marinated in ají panca and grilled. With golden potato, Andean corn and rocoto sauce."),
+    "Yuquitas fritas con huancaína": ("Fried yuca with huancaína", "Fried yuca sticks, crispy outside and soft inside, sprinkled with parsley. With huancaína sauce of ají amarillo and fresh cheese for dipping."),
+    "Tequeños de queso (6 u.)": ("Cheese tequeños (6 pcs.)", "Six wonton rolls filled with melted fresh cheese, fried until golden and crispy. With guacamole on the side."),
+    "Chicharrón de pollo": ("Crispy fried chicken", "Marinated chicken pieces, breaded and fried until crispy. With criolla salsa of red onion and tomato, ají amarillo sauce and lime."),
+    "Ceviche clásico": ("Classic ceviche", "White fish cured in lime with red onion, cilantro and ají limo. With glazed sweet potato, Andean corn and cancha."),
+    "Ceviche mixto": ("Mixed seafood ceviche", "White fish, shrimp, squid and mussels cured in lime with red onion, cilantro and ají limo. With glazed sweet potato, Andean corn and lettuce."),
+    "Tiradito de corvina": ("Corvina tiradito", "Thin slices of corvina in a creamy ají amarillo and lime sauce, with red onion, ají limo and cilantro. With toasted cancha."),
+    "Pulpo al olivo": ("Octopus in olive sauce", "Thin slices of octopus covered in a cream of botija olives, with olive oil, olives and toast."),
+    "Causa de camarones": ("Shrimp causa", "Layers of chilled yellow potato mash with ají amarillo and lime, filled with shrimp, mayonnaise and avocado. Topped with shrimp and golf sauce."),
+    "Leche de tigre": ("Leche de tigre", "White fish ceviche juice with lime, ají limo, red onion and cilantro, served in a glass and topped with a shrimp. With Andean corn, cancha and lime."),
+    "Choritos a la chalaca": ("Mussels a la chalaca", "Cooked mussels served in their shells, topped with chalaca salsa of red onion, tomato, ají limo, cilantro and lime. Served cold with a lime wedge."),
+    "Lomo saltado": ("Lomo saltado", "Strips of beef tenderloin stir-fried in a hot wok with red onion, tomato, ají amarillo, soy sauce and vinegar, finished with chopped cilantro."),
+    "Pescado a lo macho": ("Fish a lo macho", "Fried fish fillet covered in a creamy, spicy seafood sauce (shrimp, squid, mussels and octopus) with ají panca and ají amarillo."),
+    "Seco de cordero": ("Lamb seco", "Lamb slowly stewed in a sauce of cilantro, ají amarillo and chicha de jora, with pieces of yellow potato. With stewed beans and criolla salsa."),
+    "Arroz con mariscos": ("Seafood rice", "Creamy rice with ají panca and ají amarillo, shrimp, squid, mussels and scallops, with peas and bell pepper. With criolla salsa."),
+    "Chaufa de mariscos": ("Seafood chaufa", "Wok-fried rice with shrimp, squid, mussels, pieces of fish, scrambled egg, bell pepper and scallions, seasoned with soy sauce and sesame oil."),
+    "Tallarín saltado criollo": ("Creole stir-fried noodles", "Noodles stir-fried in a hot wok with strips of beef tenderloin, red onion, tomato and scallions, seasoned with soy sauce, vinegar and ají amarillo."),
+    "Ají de gallina": ("Ají de gallina", "Shredded chicken in a creamy sauce of ají amarillo, bread, milk and walnuts, over yellow potato. With hard-boiled egg and botija olive."),
+    "Cau cau": ("Cau cau", "Tripe stew with diced potato and peas in a sauce of ají amarillo and turmeric. Finished with fresh mint leaves."),
+    "Chaufa de pollo": ("Chicken chaufa", "Wok-fried rice with pieces of chicken, scrambled egg, bell pepper and scallions, seasoned with soy sauce and sesame oil."),
+    "Suspiro limeño": ("Suspiro limeño", "Creamy dulce de leche topped with port meringue and a touch of cinnamon."),
+    "Picarones (6 u.)": ("Picarones (6 pcs.)", "Six fried rings of squash and sweet potato dough, with chancaca syrup spiced with cinnamon and orange."),
+    "Tres leches": ("Tres leches cake", "Fluffy sponge cake soaked in evaporated milk, condensed milk and cream, topped with whipped cream and cinnamon. With a strawberry."),
+    "Mazamorra morada": ("Purple corn pudding", "Thick dessert of purple corn cooked with pieces of pineapple, raisins and cinnamon, served in a bowl and dusted with ground cinnamon."),
+    "Arroz con leche": ("Rice pudding", "Rice slowly cooked in milk with sugar, cinnamon and cloves until creamy. Served in a bowl with a cinnamon stick and ground cinnamon."),
+    "Pisco sour": ("Pisco sour", "Pisco, lime juice, simple syrup and egg white, shaken and served with drops of angostura bitters."),
+    "Chilcano de pisco": ("Pisco chilcano", "Pisco with ginger ale, lime juice, ice and drops of angostura bitters, served in a tall glass with a slice of lime."),
+    "Maracuyá sour": ("Passion fruit sour", "Pisco, passion fruit juice, lime juice, simple syrup and egg white, shaken and served with passion fruit seeds and mint."),
+    "Cerveza artesanal": ("Craft beer", "Blonde craft beer in an individual bottle, served cold with a glass."),
+    "Chicha morada": ("Chicha morada", "Drink of purple corn boiled with pineapple, apple, cinnamon and cloves, with a touch of lime. Non-alcoholic."),
+    "Limonada de hierbabuena": ("Mint lemonade", "Freshly squeezed lime lemonade blended with fresh mint leaves, sweetened and served very cold with ice and a slice of lime. Non-alcoholic."),
+    "Inca Kola": ("Inca Kola", "Yellow Peruvian soda with a sweet flavor, served cold."),
+    "Agua mineral": ("Mineral water", "Mineral water in an individual bottle, served cold."),
+}
+
 # Destacado del día de La Casa Causa (fase 3): día de la semana (lunes = 0) → productos.
 DESTACADOS_CASA_CAUSA = {
     0: ["Ají de gallina"],
@@ -186,6 +246,27 @@ def sembrar_local(nombre, slug, cantidad_mesas, carta):
     return local
 
 
+def _completar(objeto, valores):
+    """Llena solo los campos vacíos: lo escrito en el admin se respeta."""
+    vacios = [campo for campo, valor in valores.items() if valor and not getattr(objeto, campo)]
+    for campo in vacios:
+        setattr(objeto, campo, valores[campo])
+    if vacios:
+        objeto.save(update_fields=vacios)
+
+
+def sembrar_ingles(local):
+    for categoria in Categoria.objects.filter(local=local):
+        _completar(categoria, {"nombre_en": CATEGORIAS_EN.get(categoria.nombre, "")})
+    for producto in Producto.objects.filter(categoria__local=local):
+        nombre_en, descripcion_en = PRODUCTOS_EN.get(producto.nombre, ("", ""))
+        _completar(producto, {"nombre_en": nombre_en, "descripcion_en": descripcion_en})
+    for grupo in GrupoOpcion.objects.filter(producto__categoria__local=local):
+        _completar(grupo, {"nombre_en": GRUPOS_EN.get(grupo.nombre, "")})
+    for opcion in OpcionProducto.objects.filter(grupo__producto__categoria__local=local):
+        _completar(opcion, {"nombre_en": OPCIONES_EN.get(opcion.nombre, "")})
+
+
 def sembrar_destacados(local, destacados):
     """Solo si el local no tiene ninguno: si el admin ya los cambió, no se pisan."""
     if DiaDestacado.objects.filter(producto__categoria__local=local).exists():
@@ -223,6 +304,7 @@ class Command(BaseCommand):
         with transaction.atomic():
             locales = [sembrar_local(*datos) for datos in LOCALES]
             sembrar_destacados(locales[0], DESTACADOS_CASA_CAUSA)
+            sembrar_ingles(locales[0])
         # Fuera de la transacción: un archivo copiado no se deshace con un rollback.
         for local in locales:
             for producto in Producto.objects.filter(categoria__local=local).select_related("categoria__local"):
@@ -239,7 +321,8 @@ class Command(BaseCommand):
                 f"{productos.filter(requiere_mayoria_edad=True).count()} +18, "
                 f"{productos.exclude(imagen='').count()} con imagen, "
                 f"{productos.exclude(descripcion='').count()} con descripción, "
-                f"{DiaDestacado.objects.filter(producto__in=productos).count()} destacados del día"
+                f"{DiaDestacado.objects.filter(producto__in=productos).count()} destacados del día, "
+                f"{productos.exclude(nombre_en='').count()} con nombre en inglés"
             )
         self.stdout.write(self.estado_local_principal())
         self.stdout.write(f"Locales en total: {Local.objects.count()}")

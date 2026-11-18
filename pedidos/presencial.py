@@ -3,6 +3,7 @@ personal cobra. Mismo orden de bloqueo que Webpay: Mesa -> Cuenta -> Pedido."""
 from datetime import timedelta
 
 from django.db import transaction
+from django.utils.translation import gettext
 from django.utils import timezone
 
 from mesas.models import Mesa
@@ -39,9 +40,9 @@ def crear_por_cobrar(request, codigo):
         mesa = Mesa.objects.select_for_update().get(codigo=codigo, activa=True, local__activo=True)
         vencer_por_cobrar(mesa)
         if Pedido.objects.filter(cliente_clave=cliente_clave(request), estado=Pedido.Estado.POR_COBRAR).exists():
-            raise YaPorCobrar('Ya tienes un pedido por pagar en caja. Págalo o cancélalo antes de pedir otro.')
+            raise YaPorCobrar(gettext('Ya tienes un pedido por pagar en caja. Págalo o cancélalo antes de pedir otro.'))
         if intento_activo(request, mesa):
-            raise ErrorPago('Tienes un pago con Webpay en curso. Resuélvelo antes de pagar en caja.')
+            raise ErrorPago(gettext('Tienes un pago con Webpay en curso. Resuélvelo antes de pagar en caja.'))
         carrito = Carrito(request, mesa)
         clave = clave_checkout(request, mesa, carrito.snapshot())
         pedido = Pedido.objects.filter(checkout_clave=clave).first()

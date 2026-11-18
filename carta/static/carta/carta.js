@@ -49,9 +49,11 @@
         document.addEventListener(nombre, event => {
             if (!esCarrito(event)) return;
             const status = event.detail.xhr?.status;
+            // Los textos vienen traducidos desde la plantilla (data-texto-*); el español queda de respaldo.
+            const textos = document.getElementById('carta-app')?.dataset || {};
             emitir('kippu-error', status === 403
-                ? 'Tu sesión necesita actualizarse. Recarga la carta antes de continuar.'
-                : 'No pudimos confirmar el cambio. Actualiza la carta para ver el estado antes de volver a intentarlo.');
+                ? (textos.textoSesion || 'Tu sesión necesita actualizarse. Recarga la carta antes de continuar.')
+                : (textos.textoCambio || 'No pudimos confirmar el cambio. Actualiza la carta para ver el estado antes de volver a intentarlo.'));
         });
     }
     // Solo para mostrar: el total que se cobra lo sigue calculando el servidor.
