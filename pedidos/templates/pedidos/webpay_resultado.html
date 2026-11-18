@@ -1,5 +1,5 @@
 {% extends "base.html" %}
-{% load static espera %}
+{% load static espera impuestos %}
 
 {% block meta %}<meta name="referrer" content="same-origin">{% endblock %}
 {% block titulo %}Pago · Kippu{% endblock %}
@@ -35,6 +35,8 @@
     {% endfor %}
     <div class="tk__corte"></div>
     <div class="tk__linea tk__linea--suave"><span>Subtotal</span><span class="cifra" data-pesos="{{ intento.subtotal|floatformat:'2u' }}">${{ intento.subtotal|floatformat:"0g" }}</span></div>
+    {% with d=intento.subtotal|iva_incluido %}<div class="tk__linea tk__linea--suave tk__linea--iva"><span>Neto</span><span class="cifra">${{ d.neto|floatformat:"0g" }}</span></div>
+    <div class="tk__linea tk__linea--suave tk__linea--iva"><span>IVA (19 %) incluido</span><span class="cifra">${{ d.iva|floatformat:"0g" }}</span></div>{% endwith %}
     <div class="tk__linea tk__linea--suave"><span>Propina opcional</span><span class="cifra" data-pesos="{{ intento.propina|floatformat:'2u' }}">${{ intento.propina|floatformat:"0g" }}</span></div>
     <div class="tk__total"><span>Total pagado</span><span class="cifra" data-pesos="{{ pago.monto|floatformat:'2u' }}">${{ pago.monto|floatformat:"0g" }}</span></div>
     <div class="tk__corte"></div>
@@ -50,7 +52,7 @@
         {% if intento.pedido.mayoria_edad_confirmada %}<div><dt>Control de edad</dt><dd>Confirmación +18 registrada</dd></div>{% endif %}
     </dl>
     {% if intento.observacion %}<p class="mensaje mensaje--warning">{{ intento.observacion }}</p>{% endif %}
-    <p class="tk__pie">COMPROBANTE DE DEMOSTRACIÓN · AMBIENTE DE INTEGRACIÓN<br>No es una boleta tributaria ni acredita un cobro real.</p>
+    <p class="tk__pie">COMPROBANTE DE DEMOSTRACIÓN · AMBIENTE DE INTEGRACIÓN<br>Precios con IVA incluido; la propina no está afecta a IVA.<br>No es una boleta tributaria ni acredita un cobro real.</p>
 </article>
 <div class="tk-perforado" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div>
 <div class="wp-acciones"><button class="boton boton--bloque tk-boton" id="imprimir" type="button">Imprimir / Guardar como PDF</button></div>

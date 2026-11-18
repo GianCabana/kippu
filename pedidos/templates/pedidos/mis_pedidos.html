@@ -1,4 +1,5 @@
 {% extends "base.html" %}
+{% load impuestos %}
 
 {% block titulo %}Mis pedidos · Kippu{% endblock %}
 {% block clase_body %}tk-pantalla{% endblock %}
@@ -27,9 +28,12 @@
         <span class="cifra">${{ detalle.subtotal|floatformat:"0g" }}</span>
     </div>
     {% endfor %}
+    {% with d=pedido.subtotal_productos|iva_incluido %}<div class="tk__linea tk__linea--suave tk__linea--iva"><span>Neto</span><span class="cifra">${{ d.neto|floatformat:"0g" }}</span></div>
+    <div class="tk__linea tk__linea--suave tk__linea--iva"><span>IVA (19 %) incluido</span><span class="cifra">${{ d.iva|floatformat:"0g" }}</span></div>{% endwith %}
     {% if pedido.propina %}<div class="tk__linea tk__linea--suave"><span>Propina</span><span class="cifra">${{ pedido.propina|floatformat:"0g" }}</span></div>{% endif %}
     <div class="tk__corte"></div>
     <div class="tk__total"><span>{% if pedido.pago %}Total pagado{% else %}Total{% endif %}</span><span class="cifra">${{ pedido.total_con_propina|floatformat:"0g" }}</span></div>
+    <p class="tk__nota-iva">Precios con IVA incluido; la propina no está afecta a IVA.</p>
     {% if pedido.pago %}<p class="tk__pie">{% if pedido.pago.metodo == 'webpay' %}WEBPAY{% else %}PAGADO EN CAJA · {% if pedido.pago.metodo == 'efectivo' %}EFECTIVO{% elif pedido.pago.metodo == 'debito' %}DÉBITO{% elif pedido.pago.metodo == 'credito' %}CRÉDITO{% else %}{{ pedido.pago.get_metodo_display|upper }}{% endif %}{% endif %} · {{ pedido.pago.creado|date:"H:i" }}</p>{% endif %}
     {% if pedido.estado == 'sin_pagar' %}
     <p class="tk__pie">Este pedido aún no pasó a cocina. Revisa el pago antes de reintentar.</p>
