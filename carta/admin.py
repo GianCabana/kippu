@@ -1,6 +1,14 @@
 from django.contrib import admin
 
-from .models import Categoria, GrupoOpcion, OpcionProducto, Producto
+from .models import Categoria, DiaDestacado, GrupoOpcion, OpcionProducto, Producto
+
+
+class DiaDestacadoInline(admin.TabularInline):
+    model = DiaDestacado
+    extra = 0
+    fields = ("dia",)
+    verbose_name = "día en que sale destacado"
+    verbose_name_plural = "Destacado del día (sale arriba de la carta esos días)"
 
 
 class GrupoOpcionInline(admin.TabularInline):
@@ -32,7 +40,7 @@ class ProductoAdmin(admin.ModelAdmin):
     )
     search_fields = ("nombre", "descripcion", "categoria__local__nombre")
     list_select_related = ("categoria", "categoria__local")
-    inlines = [GrupoOpcionInline]
+    inlines = [DiaDestacadoInline, GrupoOpcionInline]
 
     @admin.display(description="Local", ordering="categoria__local__nombre")
     def local(self, obj):

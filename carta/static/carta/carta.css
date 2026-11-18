@@ -193,6 +193,16 @@ dialog { color: var(--texto); }
 .enviar { margin-top: 14px; }
 .enviar--caja { margin-top: 10px; }
 .enviar .icono { width: 18px; height: 18px; }
+.destacados { margin: 0 0 28px; }
+.destacados__cabecera { margin-bottom: 12px; }
+.destacados__cabecera h2 { margin: 2px 0 0; font-size: 22px; }
+.destacados__lista { display: flex; gap: 12px; overflow-x: auto; padding-bottom: 6px; scroll-snap-type: x mandatory; }
+.destacado { flex: 0 0 164px; display: flex; flex-direction: column; gap: 6px; padding: 8px; border: 1px solid var(--linea); border-radius: var(--radio-tarjeta); background: var(--superficie); color: var(--tinta); text-align: left; scroll-snap-align: start; cursor: pointer; }
+.destacado:focus-visible { outline: 2px solid var(--aji); outline-offset: 2px; }
+.destacado__foto { display: block; aspect-ratio: 4 / 3; overflow: hidden; border-radius: var(--radio); background: var(--superficie-2); }
+.destacado__foto img { width: 100%; height: 100%; object-fit: cover; }
+.destacado__nombre { font-family: var(--serif); font-size: 15px; font-weight: 600; line-height: 1.25; }
+.destacado__precio { color: var(--texto-2); font-size: 13px; }
 .nota-pedido { margin: 10px 0 0; color: var(--texto-2); font-size: 12px; text-align: center; }
 .aviso-demanda { margin: 0 0 12px; padding: 10px 12px; border-left: 3px solid var(--aji); border-radius: 6px; background: var(--superficie); color: var(--texto); font-size: 13px; line-height: 1.45; }
 .seguir { display: block; width: 100%; min-height: 44px; margin-top: 2px; border: none; background: transparent; color: var(--texto-2); font-size: 13px; }

@@ -77,6 +77,20 @@
         {% endif %}
         {% if mesa %}
         {% regroup productos by categoria as grupos %}
+        {% if destacados_hoy %}
+        <section class="destacados" aria-labelledby="destacados-titulo" x-show="!busqueda">
+            <div class="destacados__cabecera"><p class="etiqueta">{{ dia_hoy }}</p><h2 id="destacados-titulo">Destacado de hoy</h2></div>
+            <div class="destacados__lista">
+                {% for producto in destacados_hoy %}
+                <button class="destacado" type="button" data-abrir-detalle="detalle-{{ producto.pk }}" aria-haspopup="dialog" aria-label="Ver {{ producto.nombre }}, destacado de hoy">
+                    <span class="destacado__foto{% if not producto.imagen %} destacado__foto--vacia{% endif %}">{% if producto.imagen %}<img src="{{ producto.imagen.url }}" alt="" loading="lazy" decoding="async">{% endif %}</span>
+                    <span class="destacado__nombre">{{ producto.nombre }}</span>
+                    <span class="destacado__precio cifra" data-pesos="{{ producto.precio|floatformat:'0u' }}">${{ producto.precio|floatformat:"0g" }}</span>
+                </button>
+                {% endfor %}
+            </div>
+        </section>
+        {% endif %}
         <h2 class="titulo-carta">Carta</h2>
         <div class="buscador" x-cloak>
             <svg class="icono" aria-hidden="true"><use href="#i-buscar"/></svg>

@@ -21,7 +21,7 @@ from django.core.management.base import BaseCommand
 from django.db import transaction
 from django.utils.text import slugify
 
-from carta.models import Categoria, GrupoOpcion, OpcionProducto, Producto
+from carta.models import Categoria, DiaDestacado, GrupoOpcion, OpcionProducto, Producto
 from mesas.models import Local, Mesa
 
 DIRECTORIO_SEMILLAS = Path(__file__).resolve().parents[2] / "semillas" / "imagenes"
@@ -122,6 +122,17 @@ DESCRIPCIONES = {
     "Agua mineral": "Agua mineral en botella individual, servida helada.",
 }
 
+# Destacado del día de La Casa Causa (fase 3): día de la semana (lunes = 0) → productos.
+DESTACADOS_CASA_CAUSA = {
+    0: ["Ají de gallina"],
+    1: ["Seco de cordero"],
+    2: ["Cau cau"],
+    3: ["Lomo saltado"],
+    4: ["Ceviche mixto", "Pescado a lo macho"],
+    5: ["Arroz con mariscos", "Causa limeña clásica"],
+    6: ["Ceviche clásico", "Picarones (6 u.)"],
+}
+
 CARTA_PRUEBA_2 = [
     ("Prueba", [
         ("Producto de prueba 1", 1000, True, False, []),
@@ -175,6 +186,17 @@ def sembrar_local(nombre, slug, cantidad_mesas, carta):
     return local
 
 
+def sembrar_destacados(local, destacados):
+    """Solo si el local no tiene ninguno: si el admin ya los cambió, no se pisan."""
+    if DiaDestacado.objects.filter(producto__categoria__local=local).exists():
+        return
+    productos = {p.nombre: p for p in Producto.objects.filter(categoria__local=local)}
+    for dia, nombres in destacados.items():
+        for nombre in nombres:
+            if nombre in productos:
+                DiaDestacado.objects.get_or_create(producto=productos[nombre], dia=dia)
+
+
 def buscar_semilla(slug_local, slug_producto):
     for extension in EXTENSIONES:
         ruta = DIRECTORIO_SEMILLAS / slug_local / f"{slug_producto}{extension}"
@@ -200,6 +222,7 @@ class Command(BaseCommand):
     def handle(self, *args, **opciones):
         with transaction.atomic():
             locales = [sembrar_local(*datos) for datos in LOCALES]
+            sembrar_destacados(locales[0], DESTACADOS_CASA_CAUSA)
         # Fuera de la transacción: un archivo copiado no se deshace con un rollback.
         for local in locales:
             for producto in Producto.objects.filter(categoria__local=local).select_related("categoria__local"):
@@ -215,7 +238,8 @@ class Command(BaseCommand):
                 f"{productos.filter(disponible=False).count()} no disponibles, "
                 f"{productos.filter(requiere_mayoria_edad=True).count()} +18, "
                 f"{productos.exclude(imagen='').count()} con imagen, "
-                f"{productos.exclude(descripcion='').count()} con descripción"
+                f"{productos.exclude(descripcion='').count()} con descripción, "
+                f"{DiaDestacado.objects.filter(producto__in=productos).count()} destacados del día"
             )
         self.stdout.write(self.estado_local_principal())
         self.stdout.write(f"Locales en total: {Local.objects.count()}")

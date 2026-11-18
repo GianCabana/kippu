@@ -88,6 +88,45 @@ class Producto(models.Model):
         return self.nombre
 
 
+class DiaDestacado(models.Model):
+    """Días de la semana en que un producto sale en "Destacado de hoy" arriba de la carta (fase 3)."""
+
+    class Dia(models.IntegerChoices):
+        # Mismo número que date.weekday(): lunes = 0.
+        LUNES = 0, "Lunes"
+        MARTES = 1, "Martes"
+        MIERCOLES = 2, "Miércoles"
+        JUEVES = 3, "Jueves"
+        VIERNES = 4, "Viernes"
+        SABADO = 5, "Sábado"
+        DOMINGO = 6, "Domingo"
+
+    producto = models.ForeignKey(
+        Producto,
+        on_delete=models.CASCADE,
+        related_name="dias_destacado",
+    )
+    dia = models.PositiveSmallIntegerField("día", choices=Dia.choices)
+
+    class Meta:
+        verbose_name = "día destacado"
+        verbose_name_plural = "días destacados"
+        ordering = ["dia", "producto__nombre"]
+        constraints = [
+            models.UniqueConstraint(
+                fields=["producto", "dia"],
+                name="carta_destacado_dia_unico",
+            ),
+            models.CheckConstraint(
+                condition=models.Q(dia__lte=6),
+                name="carta_destacado_dia_valido",
+            ),
+        ]
+
+    def __str__(self):
+        return f"{self.get_dia_display()} · {self.producto.nombre}"
+
+
 class GrupoOpcion(models.Model):
     producto = models.ForeignKey(
         Producto,
