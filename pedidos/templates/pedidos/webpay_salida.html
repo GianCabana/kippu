@@ -1,37 +1,37 @@
 {% extends "base.html" %}
-{% load static %}
+{% load static i18n %}
 
 {% block meta %}<meta name="referrer" content="same-origin">{% endblock %}
-{% block titulo %}Pago · Kippu{% endblock %}
+{% block titulo %}{% translate "Pago" %} · Kippu{% endblock %}
 {% block estilos %}<link rel="stylesheet" href="{% static 'pedidos/webpay.css' %}">{% endblock %}
 {% block encabezado %}{% include "pedidos/fragmentos/barra_webpay.html" %}{% endblock %}
 {% block clase_main %}contenedor wp-pagina{% endblock %}
 
 {% block contenido %}
-<h1 class="wp-titulo">Pago</h1>
-<section class="tarjeta wp-total" aria-label="Total a pagar">
+<h1 class="wp-titulo">{% translate "Pago" %}</h1>
+<section class="tarjeta wp-total" aria-label="{% translate "Total a pagar" %}">
     <div>
-        <p class="etiqueta">Total · Mesa {{ intento.cuenta.mesa.numero }}</p>
-        <p class="wp-total__detalle">Pedido #{{ intento.pedido_id }} · {% if intento.propina %}propina incluida{% else %}sin propina{% endif %}</p>
+        <p class="etiqueta">{% blocktranslate with numero=intento.cuenta.mesa.numero %}Total · Mesa {{ numero }}{% endblocktranslate %}</p>
+        <p class="wp-total__detalle">{% blocktranslate with numero=intento.pedido_id %}Pedido #{{ numero }}{% endblocktranslate %} · {% if intento.propina %}{% translate "propina incluida" %}{% else %}{% translate "sin propina" %}{% endif %}</p>
     </div>
     <p class="cifra wp-total__monto"><span data-pesos="{{ intento.monto|floatformat:'2u' }}">${{ intento.monto|floatformat:"0g" }}</span></p>
 </section>
-<div class="total"><span>Subtotal</span><span class="total__valor" data-pesos="{{ intento.subtotal|floatformat:'2u' }}">${{ intento.subtotal|floatformat:"0g" }}</span></div>
-<div class="total"><span>Propina opcional</span><span class="total__valor" data-pesos="{{ intento.propina|floatformat:'2u' }}">${{ intento.propina|floatformat:"0g" }}</span></div>
-{% if intento.pedido.mayoria_edad_confirmada %}<p class="mensaje mensaje--warning">Este pedido contiene productos +18. La edad podrá verificarse al entregar.</p>{% endif %}
+<div class="total"><span>{% translate "Subtotal" %}</span><span class="total__valor" data-pesos="{{ intento.subtotal|floatformat:'2u' }}">${{ intento.subtotal|floatformat:"0g" }}</span></div>
+<div class="total"><span>{% translate "Propina opcional" %}</span><span class="total__valor" data-pesos="{{ intento.propina|floatformat:'2u' }}">${{ intento.propina|floatformat:"0g" }}</span></div>
+{% if intento.pedido.mayoria_edad_confirmada %}<p class="mensaje mensaje--warning">{% translate "Este pedido contiene productos +18. La edad podrá verificarse al entregar." %}</p>{% endif %}
 
-<p class="etiqueta wp-subtitulo">Cómo pagas</p>
+<p class="etiqueta wp-subtitulo">{% translate "Cómo pagas" %}</p>
 <div class="tarjeta tarjeta--seleccionada wp-medio">
     <span class="cifra wp-medio__icono" aria-hidden="true">CARD</span>
-    <div><strong>Tarjeta · Webpay Plus</strong><p>Débito o crédito. Te llevamos a Webpay y vuelves acá con el pedido confirmado.</p></div>
+    <div><strong>{% translate "Tarjeta · Webpay Plus" %}</strong><p>{% translate "Débito o crédito. Te llevamos a Webpay y vuelves acá con el pedido confirmado." %}</p></div>
 </div>
-<p class="wp-nota">Kippu no guarda los datos de tu tarjeta: se ingresan en Webpay, no en Kippu.</p>
+<p class="wp-nota">{% translate "Kippu no guarda los datos de tu tarjeta: se ingresan en Webpay, no en Kippu." %}</p>
 
-<form id="salida" method="post" action="{% url 'pedidos:webpay_abrir' intento_id=intento.pk %}">{% csrf_token %}<input type="hidden" name="firma" value="{{ firma }}"><button class="boton boton--bloque" type="submit">Pagar <span class="cifra" data-pesos="{{ intento.monto|floatformat:'2u' }}">${{ intento.monto|floatformat:"0g" }}</span></button></form>
-<p class="wp-hint">Serás redirigido a Webpay</p>
-<form method="post" action="{% url 'pedidos:webpay_cancelar' intento_id=intento.pk %}">{% csrf_token %}<input type="hidden" name="firma" value="{{ firma }}"><button class="boton boton--bloque boton--fantasma" type="submit">Cancelar y volver</button></form>
-<p class="wp-enlace"><a href="{{ resultado_url }}">Consultar el estado de este intento</a></p>
-<p class="wp-demo">Demostración académica. Utiliza tarjetas de prueba del ambiente de integración.</p>
+<form id="salida" method="post" action="{% url 'pedidos:webpay_abrir' intento_id=intento.pk %}">{% csrf_token %}<input type="hidden" name="firma" value="{{ firma }}"><button class="boton boton--bloque" type="submit">{% translate "Pagar" %} <span class="cifra" data-pesos="{{ intento.monto|floatformat:'2u' }}">${{ intento.monto|floatformat:"0g" }}</span></button></form>
+<p class="wp-hint">{% translate "Serás redirigido a Webpay" %}</p>
+<form method="post" action="{% url 'pedidos:webpay_cancelar' intento_id=intento.pk %}">{% csrf_token %}<input type="hidden" name="firma" value="{{ firma }}"><button class="boton boton--bloque boton--fantasma" type="submit">{% translate "Cancelar y volver" %}</button></form>
+<p class="wp-enlace"><a href="{{ resultado_url }}">{% translate "Consultar el estado de este intento" %}</a></p>
+<p class="wp-demo">{% translate "Demostración académica. Utiliza tarjetas de prueba del ambiente de integración." %}</p>
 {% endblock %}
 
 {% block scripts %}<script>(()=>{const f=new Intl.NumberFormat('es-CL',{style:'currency',currency:'CLP',maximumFractionDigits:0});document.querySelectorAll('[data-pesos]').forEach(e=>{const n=Number(e.dataset.pesos);if(Number.isFinite(n))e.textContent=f.format(n)});document.getElementById('imprimir')?.addEventListener('click',()=>window.print());document.querySelectorAll('form').forEach(form=>{let enviando=false;form.addEventListener('submit',e=>{if(enviando){e.preventDefault();return}enviando=true;form.querySelector('button').disabled=true})});window.addEventListener('pageshow',e=>{if(e.persisted)window.location.reload()})})();</script>{% endblock %}

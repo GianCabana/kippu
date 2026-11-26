@@ -94,6 +94,7 @@ MIDDLEWARE = [
     # Sirve /static con DEBUG apagado; va justo después de SecurityMiddleware.
     'whitenoise.middleware.WhiteNoiseMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
+    'config.idioma.IdiomaDelClienteMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
@@ -158,6 +159,13 @@ AUTH_PASSWORD_VALIDATORS = [
 # https://docs.djangoproject.com/en/5.2/topics/i18n/
 
 LANGUAGE_CODE = 'es-cl'
+
+# Fase 3: las páginas del cliente usan el idioma del teléfono (config/idioma.py); el resto, español.
+LANGUAGES = [
+    ('es-cl', 'Español'),
+    ('en', 'English'),
+]
+LOCALE_PATHS = [BASE_DIR / 'locale']
 
 TIME_ZONE = 'America/Santiago'
 

@@ -96,7 +96,9 @@
         const aviso = document.createElement('p');
         aviso.className = 'error-opcion';
         aviso.setAttribute('role', 'alert');
-        aviso.textContent = `Elige una opción de ${nombre}.`;
+        // Texto traducido desde la plantilla (data-texto-elige); el español queda de respaldo.
+        const plantilla = document.getElementById('carta-app')?.dataset.textoElige || 'Elige una opción de %(grupo)s.';
+        aviso.textContent = plantilla.replace('%(grupo)s', nombre);
         grupo.append(aviso);
         if (grupo === grupo.closest('.detalle__cuerpo').querySelector('.grupo-opcion:has(:invalid)')) {
             grupo.scrollIntoView({block: 'center', behavior: demora() ? 'smooth' : 'auto'});

@@ -1,5 +1,6 @@
 """Vistas del pago presencial en caja (D-07): crear y cancelar desde el teléfono, cobrar y cancelar en caja."""
 from django.contrib import messages
+from django.utils.translation import gettext
 from django.contrib.admin.views.decorators import staff_member_required
 from django.shortcuts import get_object_or_404, redirect
 from django.views.decorators.cache import never_cache
@@ -25,7 +26,7 @@ def pagar_en_caja(request, codigo):
     except ErrorPago as exc:
         messages.error(request, str(exc))
         return redirect('carta:por_mesa', codigo=mesa.codigo)
-    messages.success(request, f'Pedido #{pedido.pk} enviado. Acércate a caja para pagar tu pedido.')
+    messages.success(request, gettext('Pedido #%(numero)s enviado. Acércate a caja para pagar tu pedido.') % {'numero': pedido.pk})
     return redirect('pedidos:mis_pedidos', codigo=mesa.codigo)
 
 
@@ -36,9 +37,9 @@ def cancelar_del_cliente(request, codigo, pedido_id):
     # Solo los pedidos de este navegador: el de otra persona da 404.
     pedido = get_object_or_404(_pedidos_del_navegador(request, mesa), pk=pedido_id)
     if cancelar_por_cobrar(pedido.pk):
-        messages.success(request, f'Anulaste el pedido #{pedido.pk}.')
+        messages.success(request, gettext('Anulaste el pedido #%(numero)s.') % {'numero': pedido.pk})
     else:
-        messages.info(request, f'El pedido #{pedido.pk} ya no se puede anular desde aquí.')
+        messages.info(request, gettext('El pedido #%(numero)s ya no se puede anular desde aquí.') % {'numero': pedido.pk})
     return redirect('pedidos:mis_pedidos', codigo=mesa.codigo)
 
 

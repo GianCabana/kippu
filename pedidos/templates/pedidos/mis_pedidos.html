@@ -1,11 +1,12 @@
 {% extends "base.html" %}
+{% load impuestos i18n idioma %}
 
-{% block titulo %}Mis pedidos · Kippu{% endblock %}
+{% block titulo %}{% translate "Mis pedidos" %} · Kippu{% endblock %}
 {% block clase_body %}tk-pantalla{% endblock %}
 {% block encabezado %}
 <header class="tk-barra">
-    <div class="tk-barra__marca"><span class="logo logo--chico" aria-hidden="true">券</span><h1 class="tk-etiqueta">MIS PEDIDOS</h1></div>
-    <span class="tk-mesa">{{ mesa.local.nombre }} · Mesa {{ mesa.numero }}</span>
+    <div class="tk-barra__marca"><span class="logo logo--chico" aria-hidden="true">券</span><h1 class="tk-etiqueta">{% translate "MIS PEDIDOS" %}</h1></div>
+    <span class="tk-mesa">{{ mesa.local.nombre }} · {% blocktranslate with numero=mesa.numero %}Mesa {{ numero }}{% endblocktranslate %}</span>
 </header>
 {% endblock %}
 {% block clase_main %}tk-cuerpo{% endblock %}
@@ -18,22 +19,25 @@
         <span class="tk__local" id="pedido-{{ pedido.pk }}">{{ mesa.local.nombre }}</span>
         <span id="sello-{{ pedido.pk }}">{% include "pedidos/fragmentos/sello_pedido.html" %}</span>
     </div>
-    <p class="tk__ref">PEDIDO #{{ pedido.pk }} · MESA {{ mesa.numero }} · {{ pedido.creado|date:"d/m H:i" }}</p>
-    {% if pedido.nombre %}<p class="tk__nombre">Para <strong>{{ pedido.nombre }}</strong></p>{% endif %}
+    <p class="tk__ref">{% blocktranslate with numero=pedido.pk mesa_numero=mesa.numero %}PEDIDO #{{ numero }} · MESA {{ mesa_numero }}{% endblocktranslate %} · {{ pedido.creado|date:"d/m H:i" }}</p>
+    {% if pedido.nombre %}<p class="tk__nombre">{% blocktranslate with nombre=pedido.nombre %}Para <strong>{{ nombre }}</strong>{% endblocktranslate %}</p>{% endif %}
     <div class="tk__corte"></div>
     {% for detalle in pedido.detalles.all %}
     <div class="tk__linea">
-        <span>{{ detalle.cantidad }} × {{ detalle.nombre_producto }}{% if detalle.requiere_mayoria_edad %} <span class="insignia-18" aria-label="Producto para mayores de 18 años">+18</span>{% endif %}{% if detalle.opciones %}<span class="tk__op">{% for opcion in detalle.opciones %}{{ opcion.nombre }}{% if not forloop.last %} · {% endif %}{% endfor %}</span>{% endif %}</span>
+        <span>{{ detalle.cantidad }} × {% if detalle.producto %}{{ detalle.producto|traducido:"nombre" }}{% else %}{{ detalle.nombre_producto }}{% endif %}{% if detalle.requiere_mayoria_edad %} <span class="insignia-18" aria-label="{% translate "Producto para mayores de 18 años" %}">+18</span>{% endif %}{% if detalle.opciones %}<span class="tk__op">{% for opcion in detalle.opciones %}{{ opcion.nombre }}{% if not forloop.last %} · {% endif %}{% endfor %}</span>{% endif %}</span>
         <span class="cifra">${{ detalle.subtotal|floatformat:"0g" }}</span>
     </div>
     {% endfor %}
-    {% if pedido.propina %}<div class="tk__linea tk__linea--suave"><span>Propina</span><span class="cifra">${{ pedido.propina|floatformat:"0g" }}</span></div>{% endif %}
+    {% with d=pedido.subtotal_productos|iva_incluido %}<div class="tk__linea tk__linea--suave tk__linea--iva"><span>{% translate "Neto" %}</span><span class="cifra">${{ d.neto|floatformat:"0g" }}</span></div>
+    <div class="tk__linea tk__linea--suave tk__linea--iva"><span>{% blocktranslate with tasa="19 %" %}IVA ({{ tasa }}) incluido{% endblocktranslate %}</span><span class="cifra">${{ d.iva|floatformat:"0g" }}</span></div>{% endwith %}
+    {% if pedido.propina %}<div class="tk__linea tk__linea--suave"><span>{% translate "Propina" %}</span><span class="cifra">${{ pedido.propina|floatformat:"0g" }}</span></div>{% endif %}
     <div class="tk__corte"></div>
-    <div class="tk__total"><span>{% if pedido.pago %}Total pagado{% else %}Total{% endif %}</span><span class="cifra">${{ pedido.total_con_propina|floatformat:"0g" }}</span></div>
-    {% if pedido.pago %}<p class="tk__pie">{% if pedido.pago.metodo == 'webpay' %}WEBPAY{% else %}PAGADO EN CAJA · {% if pedido.pago.metodo == 'efectivo' %}EFECTIVO{% elif pedido.pago.metodo == 'debito' %}DÉBITO{% elif pedido.pago.metodo == 'credito' %}CRÉDITO{% else %}{{ pedido.pago.get_metodo_display|upper }}{% endif %}{% endif %} · {{ pedido.pago.creado|date:"H:i" }}</p>{% endif %}
+    <div class="tk__total"><span>{% if pedido.pago %}{% translate "Total pagado" %}{% else %}{% translate "Total" %}{% endif %}</span><span class="cifra">${{ pedido.total_con_propina|floatformat:"0g" }}</span></div>
+    <p class="tk__nota-iva">{% translate "Precios con IVA incluido; la propina no está afecta a IVA." %}</p>
+    {% if pedido.pago %}<p class="tk__pie">{% if pedido.pago.metodo == 'webpay' %}WEBPAY{% else %}{% translate "PAGADO EN CAJA" %} · {% if pedido.pago.metodo == 'efectivo' %}{% translate "EFECTIVO" %}{% elif pedido.pago.metodo == 'debito' %}{% translate "DÉBITO" %}{% elif pedido.pago.metodo == 'credito' %}{% translate "CRÉDITO" %}{% else %}{{ pedido.pago.get_metodo_display|upper }}{% endif %}{% endif %} · {{ pedido.pago.creado|date:"H:i" }}</p>{% endif %}
     {% if pedido.estado == 'sin_pagar' %}
-    <p class="tk__pie">Este pedido aún no pasó a cocina. Revisa el pago antes de reintentar.</p>
-    {% if pedido.resultado_url %}<a class="boton" href="{{ pedido.resultado_url }}">Revisar el pago</a>{% endif %}
+    <p class="tk__pie">{% translate "Este pedido aún no pasó a cocina. Revisa el pago antes de reintentar." %}</p>
+    {% if pedido.resultado_url %}<a class="boton" href="{{ pedido.resultado_url }}">{% translate "Revisar el pago" %}</a>{% endif %}
     {% endif %}
 </article>
 <div class="tk-perforado" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div>
@@ -41,23 +45,23 @@
 {% include "pedidos/fragmentos/linea_tiempo.html" %}
 
 {% else %}
-{% if forloop.counter == 2 %}<p class="tk-subtitulo">Pedidos anteriores</p>{% endif %}
+{% if forloop.counter == 2 %}<p class="tk-subtitulo">{% translate "Pedidos anteriores" %}</p>{% endif %}
 <article class="tk tk--corto">
     <div class="tk__cabeza"><span class="cifra">#{{ pedido.pk }} · {{ pedido.creado|date:"H:i" }}{% if pedido.nombre %} · <span class="tk__nombre">{{ pedido.nombre }}</span>{% endif %}</span><span id="sello-{{ pedido.pk }}">{% include "pedidos/fragmentos/sello_pedido.html" %}</span></div>
     {% for detalle in pedido.detalles.all %}
-    <div class="tk__linea"><span>{{ detalle.cantidad }} × {{ detalle.nombre_producto }}</span><span class="cifra">${{ detalle.subtotal|floatformat:"0g" }}</span></div>
+    <div class="tk__linea"><span>{{ detalle.cantidad }} × {% if detalle.producto %}{{ detalle.producto|traducido:"nombre" }}{% else %}{{ detalle.nombre_producto }}{% endif %}</span><span class="cifra">${{ detalle.subtotal|floatformat:"0g" }}</span></div>
     {% endfor %}
-    <div class="tk__total tk__total--chico"><span>{% if pedido.pago %}Total pagado{% else %}Total{% endif %}</span><span class="cifra">${{ pedido.total_con_propina|floatformat:"0g" }}</span></div>
+    <div class="tk__total tk__total--chico"><span>{% if pedido.pago %}{% translate "Total pagado" %}{% else %}{% translate "Total" %}{% endif %}</span><span class="cifra">${{ pedido.total_con_propina|floatformat:"0g" }}</span></div>
 </article>
 <div class="tk-perforado tk-perforado--chico" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div>
 {% endif %}
 {% empty %}
-<p class="tk-vacio">Aún no tienes pedidos en esta visita.</p>
+<p class="tk-vacio">{% translate "Aún no tienes pedidos en esta visita." %}</p>
 {% endfor %}
 
 <footer class="tk-pie">
-    <a class="boton boton--bloque tk-boton" href="{% url 'carta:por_mesa' codigo=mesa.codigo %}">{% if ya_pidio %}Pedir algo más{% else %}Ir a la carta{% endif %}</a>
-    {% with ultimo=pedidos.0 %}{% if ultimo.resultado_url and ultimo.estado != 'sin_pagar' %}<a class="tk-enlace" href="{{ ultimo.resultado_url }}">Ver pago / comprobante del pedido #{{ ultimo.pk }}</a>{% endif %}{% endwith %}
+    <a class="boton boton--bloque tk-boton" href="{% url 'carta:por_mesa' codigo=mesa.codigo %}">{% if ya_pidio %}{% translate "Pedir algo más" %}{% else %}{% translate "Ir a la carta" %}{% endif %}</a>
+    {% with ultimo=pedidos.0 %}{% if ultimo.resultado_url and ultimo.estado != 'sin_pagar' %}<a class="tk-enlace" href="{{ ultimo.resultado_url }}">{% blocktranslate with numero=ultimo.pk %}Ver pago / comprobante del pedido #{{ numero }}{% endblocktranslate %}</a>{% endif %}{% endwith %}
 </footer>
 {% if consultar_estado %}<p class="sr-only" role="status" id="aviso-estado"></p>{% endif %}
 {% if consultar_estado %}<div hidden hx-get="{% url 'pedidos:mis_pedidos_estado' codigo=mesa.codigo %}" hx-trigger="every 5s [!document.hidden], kippu:volver from:document" hx-swap="none"></div>{% endif %}

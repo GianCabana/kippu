@@ -1,4 +1,5 @@
 from django.shortcuts import get_object_or_404, render
+from django.utils import timezone
 from django.views.decorators.cache import never_cache
 from django.db.models import Prefetch
 
@@ -8,7 +9,7 @@ from pedidos.cierre import cerrar_si_inactiva
 from pedidos.presencial import vencer_por_cobrar
 from pedidos.pagos import calcular_propina, nombre_recordado, sincronizar_carrito
 
-from .models import GrupoOpcion, OpcionProducto, Producto
+from .models import DiaDestacado, GrupoOpcion, OpcionProducto, Producto
 
 
 @never_cache
@@ -19,6 +20,9 @@ def lista_carta(request, codigo=None):
     total_carrito = 0
     requiere_mayoria_edad = False
     productos = Producto.objects.none()
+    # Lunes = 0, en la hora de Chile (TIME_ZONE): el destacado cambia a medianoche del local.
+    hoy = timezone.localdate().weekday()
+    destacados_hoy = []
 
     if codigo is not None:
         mesa = get_object_or_404(
@@ -59,10 +63,16 @@ def lista_carta(request, codigo=None):
             )
             .order_by("categoria__nombre", "categoria_id", "nombre")
         )
+        # Solo productos que ya están en la carta: la ficha de detalle se reutiliza.
+        destacados_hoy = list(
+            productos.filter(dias_destacado__dia=hoy).distinct().order_by("nombre")
+        )
 
     propina_10 = calcular_propina(total_carrito, "10")
     return render(request, "carta/lista.html", {
         "productos": productos,
+        "destacados_hoy": destacados_hoy,
+        "dia_hoy": DiaDestacado.Dia(hoy).label,
         "mesa": mesa,
         "local": mesa.local if mesa else None,
         "detalle_carrito": detalle_carrito,

@@ -1,0 +1,748 @@
+# Kippu: traducción al inglés de las páginas del cliente (fase 3).
+# Se compila con: python manage.py compilar_traducciones
+msgid ""
+msgstr ""
+"Project-Id-Version: Kippu\n"
+"Language: en\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+
+msgid "(opcional)"
+msgstr "(optional)"
+
+#, python-format
+msgid ", a nombre de <strong>%(nombre)s</strong>"
+msgstr ", under the name <strong>%(nombre)s</strong>"
+
+msgid "Abre la cámara de tu teléfono."
+msgstr "Open your phone's camera."
+
+msgid "Abriendo Webpay"
+msgstr "Opening Webpay"
+
+msgid "Abriendo Webpay…"
+msgstr "Opening Webpay…"
+
+msgid "Abrir formulario de Webpay"
+msgstr "Open the Webpay form"
+
+msgid "Actualizando carrito…"
+msgstr "Updating cart…"
+
+msgid "Actualizar la carta"
+msgstr "Refresh the menu"
+
+msgid "Acércate a caja a pagar"
+msgstr "Go to the cashier to pay"
+
+msgid "Agregar"
+msgstr "Add"
+
+#, python-format
+msgid "Agregar %(nombre)s al carrito"
+msgstr "Add %(nombre)s to cart"
+
+#, python-format
+msgid "Agregar %(porcentaje)s"
+msgstr "Add %(porcentaje)s"
+
+#, python-format
+msgid "Agregar una unidad de %(nombre)s"
+msgstr "Add one more %(nombre)s"
+
+#, python-format
+msgid "Agregaste %(producto)s."
+msgstr "You added %(producto)s."
+
+msgid "Algo rico te espera."
+msgstr "Something delicious awaits."
+
+msgid "Anulado"
+msgstr "Voided"
+
+msgid "Anular pedido"
+msgstr "Void order"
+
+#, python-format
+msgid "Anulaste el pedido #%(numero)s."
+msgstr "You voided order #%(numero)s."
+
+msgid "Apunta al código QR que está en tu mesa."
+msgstr "Point it at the QR code on your table."
+
+msgid "Así cocina sabe a quién entregarlo. Solo letras, sin números ni emojis."
+msgstr "So the kitchen knows who to deliver it to. Letters only, no numbers or emojis."
+
+msgid "Autorización"
+msgstr "Authorization"
+
+msgid "Aún no tienes pedidos en esta visita."
+msgstr "You have no orders yet on this visit."
+
+msgid "Bienvenido a"
+msgstr "Welcome to"
+
+msgid "Borrar búsqueda"
+msgstr "Clear search"
+
+msgid "Buscar productos"
+msgstr "Search products"
+
+msgid "COMPROBANTE"
+msgstr "RECEIPT"
+
+msgid "COMPROBANTE DE DEMOSTRACIÓN · AMBIENTE DE INTEGRACIÓN"
+msgstr "DEMO RECEIPT · INTEGRATION ENVIRONMENT"
+
+msgid "CRÉDITO"
+msgstr "CREDIT"
+
+msgid "Cambió la disponibilidad o el precio de una opción o producto. Vuelve a la carta y modifica el carrito antes de pagar."
+msgstr "The availability or price of an option or product changed. Go back to the menu and update your cart before paying."
+
+msgid "Cancelar este intento"
+msgstr "Cancel this attempt"
+
+msgid "Cancelar y volver"
+msgstr "Cancel and go back"
+
+#, python-format
+msgid "Cantidad de %(nombre)s"
+msgstr "Quantity of %(nombre)s"
+
+msgid "Carta"
+msgstr "Menu"
+
+msgid "Cerrar carrito"
+msgstr "Close cart"
+
+msgid "Cerrar detalle"
+msgstr "Close details"
+
+msgid "Comprobante"
+msgstr "Receipt"
+
+msgid "Comprobante de pago · Demostración"
+msgstr "Payment receipt · Demo"
+
+msgid "Comprobaremos el intento anterior antes de iniciar otro pago."
+msgstr "We will check the previous attempt before starting a new payment."
+
+msgid "Con opciones"
+msgstr "With options"
+
+msgid "Confirmación +18 registrada"
+msgstr "18+ confirmation recorded"
+
+msgid "Confirmación obligatoria +18"
+msgstr "Required 18+ confirmation"
+
+msgid "Confirmación registrada"
+msgstr "Confirmation recorded"
+
+msgid "Confirmo que tengo 18 años o más."
+msgstr "I confirm that I am 18 or older."
+
+msgid "Consultar el estado de este intento"
+msgstr "Check the status of this attempt"
+
+msgid "Control de edad"
+msgstr "Age check"
+
+msgid "Cómo pagas"
+msgstr "How you pay"
+
+msgid "Debes confirmar que tienes 18 años o más para comprar los productos marcados +18."
+msgstr "You must confirm that you are 18 or older to buy the products marked 18+."
+
+#, python-format
+msgid "Debes elegir una opción en %(grupo)s."
+msgstr "You must choose an option for %(grupo)s."
+
+msgid "Declaraste ser mayor de 18. Te pueden pedir identificación al entregar."
+msgstr "You stated you are over 18. You may be asked for ID on delivery."
+
+msgid "Demostración académica. Utiliza tarjetas de prueba del ambiente de integración."
+msgstr "Academic demo. Use test cards from the integration environment."
+
+msgid "Destacado de hoy"
+msgstr "Today's special"
+
+msgid "Domingo"
+msgstr "Sunday"
+
+msgid "DÉBITO"
+msgstr "DEBIT"
+
+msgid "Débito o crédito. Te llevamos a Webpay y vuelves acá con el pedido confirmado."
+msgstr "Debit or credit. We take you to Webpay and you come back here with your order confirmed."
+
+msgid "EFECTIVO"
+msgstr "CASH"
+
+msgid "El pago está registrado. Consulta al personal para revisar tu pedido."
+msgstr "The payment is recorded. Ask the staff to check your order."
+
+#, python-format
+msgid "El pedido #%(numero)s ya no se puede anular desde aquí."
+msgstr "Order #%(numero)s can no longer be voided from here."
+
+msgid "El pedido no está pendiente de pago. Revisa su estado con el personal."
+msgstr "The order is not awaiting payment. Check its status with the staff."
+
+msgid "El personal podrá solicitar identificación al entregar el pedido."
+msgstr "Staff may ask for ID when delivering the order."
+
+msgid "El producto, sus opciones o su precio cambiaron. Modifica el carrito antes de pagar nuevamente."
+msgstr "The product, its options or its price changed. Update your cart before paying again."
+
+msgid "El subtotal del pedido cambió. Actualiza el carrito antes de pagar."
+msgstr "The order subtotal changed. Refresh your cart before paying."
+
+#, python-format
+msgid "Elegir opciones de %(nombre)s"
+msgstr "Choose options for %(nombre)s"
+
+#, python-format
+msgid "Elige hasta %(maximo)s."
+msgstr "Choose up to %(maximo)s."
+
+msgid "Elige una opción"
+msgstr "Choose an option"
+
+#, python-format
+msgid "Elige una opción de %(grupo)s."
+msgstr "Choose an option for %(grupo)s."
+
+msgid "En cocina"
+msgstr "In the kitchen"
+
+msgid "En cocina · en cola"
+msgstr "In the kitchen · queued"
+
+msgid "En cocina · preparando"
+msgstr "In the kitchen · preparing"
+
+msgid "En este momento no hay productos disponibles."
+msgstr "No products are available right now."
+
+msgid "Entregado"
+msgstr "Delivered"
+
+msgid "Enviando a caja…"
+msgstr "Sending to the cashier…"
+
+msgid "Ese producto ya está en el carrito con otra configuración. Quítalo antes de elegir opciones diferentes."
+msgstr "That product is already in your cart with other options. Remove it before choosing different options."
+
+msgid "Esta cuenta está cerrada. Vuelve a la carta para una nueva compra."
+msgstr "This bill is closed. Go back to the menu to place a new order."
+
+msgid "Esta cuenta tiene un pago del flujo anterior. Consulta al personal."
+msgstr "This bill has a payment from the previous flow. Ask the staff."
+
+msgid "Estado"
+msgstr "Status"
+
+msgid "Este intento es de una cuenta antigua. Cancélalo y vuelve a tu carrito para crear un pedido nuevo."
+msgstr "This attempt belongs to an old bill. Cancel it and go back to your cart to create a new order."
+
+msgid "Este pedido aún no pasó a cocina. Revisa el pago antes de reintentar."
+msgstr "This order has not reached the kitchen yet. Check the payment before trying again."
+
+msgid "Este pedido contiene productos +18. La edad podrá verificarse al entregar."
+msgstr "This order contains 18+ products. Age may be checked on delivery."
+
+msgid "Este pedido ya no admite pagos. Actualiza tu carrito."
+msgstr "This order no longer accepts payments. Refresh your cart."
+
+msgid "Este pedido ya tiene un pago registrado."
+msgstr "This order already has a recorded payment."
+
+msgid "Existe un pago anterior de esta cuenta por verificar. Consulta al personal."
+msgstr "There is an earlier payment on this bill pending verification. Ask the staff."
+
+msgid "Explorar la carta"
+msgstr "Explore the menu"
+
+msgid "Falta la confirmación de mayoría de edad. Vuelve a la carta antes de pagar."
+msgstr "The age confirmation is missing. Go back to the menu before paying."
+
+msgid "Filtrar por categoría"
+msgstr "Filter by category"
+
+#, python-format
+msgid "Hace %(tiempo)s"
+msgstr "%(tiempo)s ago"
+
+msgid "Hay muchos pedidos en cocina."
+msgstr "The kitchen is very busy."
+
+msgid "Hay muchos pedidos en cocina: podría demorar más de lo habitual."
+msgstr "The kitchen is very busy: it may take longer than usual."
+
+msgid "Hay una cantidad o precio inválido en el carrito."
+msgstr "There is an invalid quantity or price in your cart."
+
+#, python-format
+msgid "IVA (%(tasa)s) incluido"
+msgstr "VAT (%(tasa)s) included"
+
+msgid "Imagen no disponible"
+msgstr "Image not available"
+
+msgid "Imprimir / Guardar como PDF"
+msgstr "Print / Save as PDF"
+
+msgid "Inicio"
+msgstr "Started"
+
+msgid "Ir a la carta"
+msgstr "Go to the menu"
+
+msgid "Jueves"
+msgstr "Thursday"
+
+msgid "Kippu no guarda los datos de tu tarjeta: se ingresan en Webpay, no en Kippu."
+msgstr "Kippu does not store your card details: you enter them in Webpay, not in Kippu."
+
+msgid "La cocina está preparando tu pedido."
+msgstr "The kitchen is preparing your order."
+
+msgid "La cocina ya lo está haciendo"
+msgstr "The kitchen is already making it"
+
+msgid "La propina es opcional y la calcula el servidor. Podrás revisar el total antes de entrar a Webpay."
+msgstr "The tip is optional and calculated by the server. You can review the total before going to Webpay."
+
+msgid "Listo"
+msgstr "Ready"
+
+#, python-format
+msgid "Listo aprox. entre las %(desde)s y las %(hasta)s"
+msgstr "Ready approx. between %(desde)s and %(hasta)s"
+
+#, python-format
+msgid "Listo aprox. entre las %(desde)s y las %(hasta)s."
+msgstr "Ready approx. between %(desde)s and %(hasta)s."
+
+msgid "Los productos marcados +18 no se entregarán a menores de edad."
+msgstr "Products marked 18+ will not be delivered to minors."
+
+msgid "Lunes"
+msgstr "Monday"
+
+#, python-format
+msgid "MESA %(numero)s"
+msgstr "TABLE %(numero)s"
+
+msgid "MIS PEDIDOS"
+msgstr "MY ORDERS"
+
+msgid "Martes"
+msgstr "Tuesday"
+
+msgid "Medio de pago"
+msgstr "Payment method"
+
+#, python-format
+msgid "Mesa %(numero)s"
+msgstr "Table %(numero)s"
+
+#, python-format
+msgid "Mesa %(numero)s · Cuenta #%(cuenta)s"
+msgstr "Table %(numero)s · Bill #%(cuenta)s"
+
+msgid "Mesa / Cuenta"
+msgstr "Table / Bill"
+
+msgid "Mis pedidos"
+msgstr "My orders"
+
+msgid "Miércoles"
+msgstr "Wednesday"
+
+#, python-format
+msgid "Máximo %(tope)s unidades de este producto."
+msgstr "Maximum %(tope)s of this product."
+
+msgid "Neto"
+msgstr "Net"
+
+msgid "Ningún pedido se marca como pagado sin la confirmación de Transbank. Si tienes dudas, consulta al personal."
+msgstr "No order is marked as paid without Transbank's confirmation. If in doubt, ask the staff."
+
+msgid "No encontramos productos con esos filtros."
+msgstr "We found no products with those filters."
+
+msgid "No es una boleta tributaria ni acredita un cobro real."
+msgstr "This is not a tax receipt and does not prove a real charge."
+
+msgid "No hay opciones disponibles."
+msgstr "No options available."
+
+msgid "No pudimos completar el regreso desde Webpay"
+msgstr "We could not complete the return from Webpay"
+
+msgid "No pudimos confirmar el cambio. Actualiza la carta para ver el estado antes de volver a intentarlo."
+msgstr "We could not confirm the change. Refresh the menu to see the current state before trying again."
+
+msgid "Obligatorio"
+msgstr "Required"
+
+msgid "Opcional"
+msgstr "Optional"
+
+msgid "Orden de compra"
+msgstr "Purchase order"
+
+msgid "PAGADO EN CAJA"
+msgstr "PAID AT THE CASHIER"
+
+#, python-format
+msgid "PEDIDO #%(numero)s · MESA %(mesa_numero)s"
+msgstr "ORDER #%(numero)s · TABLE %(mesa_numero)s"
+
+msgid "Pagado"
+msgstr "Paid"
+
+msgid "Pagar"
+msgstr "Pay"
+
+msgid "Pagar con Webpay"
+msgstr "Pay with Webpay"
+
+msgid "Pagar en caja"
+msgstr "Pay at the cashier"
+
+msgid "Pagas solo el valor del pedido"
+msgstr "You pay only the order amount"
+
+msgid "Pago"
+msgstr "Payment"
+
+msgid "Pago autorizado"
+msgstr "Payment approved"
+
+msgid "Pago no completado"
+msgstr "Payment not completed"
+
+msgid "Pago pendiente"
+msgstr "Payment pending"
+
+msgid "Pago por verificar"
+msgstr "Payment to be verified"
+
+#, python-format
+msgid "Para <strong>%(nombre)s</strong>"
+msgstr "For <strong>%(nombre)s</strong>"
+
+msgid "Para pedir, escanea el QR de tu mesa"
+msgstr "To order, scan the QR code on your table"
+
+msgid "Para volver a pedir, escanea el código QR de tu mesa."
+msgstr "To order again, scan the QR code on your table."
+
+#, python-format
+msgid "Pedido #%(numero)s"
+msgstr "Order #%(numero)s"
+
+#, python-format
+msgid "Pedido #%(numero)s enviado. Acércate a caja para pagar tu pedido."
+msgstr "Order #%(numero)s sent. Go to the cashier to pay for your order."
+
+msgid "Pedidos anteriores"
+msgstr "Previous orders"
+
+msgid "Pedidos cerrados por ahora"
+msgstr "Ordering is closed for now"
+
+msgid "Pedidos cerrados por ahora."
+msgstr "Ordering is closed for now."
+
+msgid "Pedidos cerrados por ahora. Puedes ver la carta; para pedir, consulta al personal."
+msgstr "Ordering is closed for now. You can browse the menu; to order, ask the staff."
+
+msgid "Pedir algo más"
+msgstr "Order something else"
+
+msgid "Por pagar en caja"
+msgstr "To pay at the cashier"
+
+msgid "Precios con IVA incluido; la propina no está afecta a IVA."
+msgstr "Prices include VAT; the tip is not subject to VAT."
+
+#, python-format
+msgid "Pregunta por el <strong>pedido #%(numero)s</strong>"
+msgstr "Ask for <strong>order #%(numero)s</strong>"
+
+msgid "Preparando pago…"
+msgstr "Preparing payment…"
+
+msgid "Producto para mayores de 18 años"
+msgstr "Product for adults 18 and over"
+
+msgid "Propina"
+msgstr "Tip"
+
+msgid "Propina opcional"
+msgstr "Optional tip"
+
+#, python-format
+msgid "Puedes agregar hasta %(maximo)s unidades de cada producto."
+msgstr "You can add up to %(maximo)s of each product."
+
+#, python-format
+msgid "Puedes elegir hasta %(maximo)s opciones en %(grupo)s."
+msgstr "You can choose up to %(maximo)s options for %(grupo)s."
+
+msgid "Puedes mirar la carta, pero en este momento no se reciben pedidos. Para pedir, consulta al personal."
+msgstr "You can browse the menu, but orders are not being taken right now. To order, ask the staff."
+
+msgid "Puedes mirar la carta. Para pedir, consulta al personal."
+msgstr "You can browse the menu. To order, ask the staff."
+
+#, python-format
+msgid "Quitar una unidad de %(nombre)s"
+msgstr "Remove one %(nombre)s"
+
+#, python-format
+msgid "Quitaste una unidad de %(producto)s."
+msgstr "You removed one %(producto)s."
+
+msgid "Regreso desde Webpay"
+msgstr "Return from Webpay"
+
+msgid "Reintentar pago"
+msgstr "Retry payment"
+
+msgid "Resuelve el pago en curso antes de modificar el carrito."
+msgstr "Finish the payment in progress before changing your cart."
+
+msgid "Revisar el pago"
+msgstr "Check the payment"
+
+msgid "Seguir explorando"
+msgstr "Keep browsing"
+
+msgid "Selecciona una opción de propina válida."
+msgstr "Choose a valid tip option."
+
+msgid "Serás redirigido a Webpay"
+msgstr "You will be redirected to Webpay"
+
+msgid "Si cancelaste, cerraste el formulario o Webpay muestra un error, vuelve al resultado para reintentar."
+msgstr "If you cancelled, closed the form or Webpay shows an error, go back to the result to try again."
+
+msgid "Si la cámara no lo reconoce, pídele ayuda al personal."
+msgstr "If the camera does not recognize it, ask the staff for help."
+
+#, python-format
+msgid "Si pagas ahora, tu pedido podría tardar unos %(minimo)s–%(maximo)s minutos."
+msgstr "If you pay now, your order could take about %(minimo)s–%(maximo)s minutes."
+
+msgid "Sin foto"
+msgstr "No photo"
+
+msgid "Sin propina"
+msgstr "No tip"
+
+msgid "Solo letras, espacios, guion, apóstrofe y punto."
+msgstr "Letters, spaces, hyphens, apostrophes and periods only."
+
+#, python-format
+msgid "Solo puedes elegir una opción en %(grupo)s."
+msgstr "You can choose only one option for %(grupo)s."
+
+msgid "Subtotal"
+msgstr "Subtotal"
+
+msgid "Sábado"
+msgstr "Saturday"
+
+msgid "Sí, anular"
+msgstr "Yes, void"
+
+msgid "Tarjeta"
+msgstr "Card"
+
+msgid "Tarjeta · Webpay Plus"
+msgstr "Card · Webpay Plus"
+
+msgid "Te estamos llevando al formulario de pago."
+msgstr "We are taking you to the payment form."
+
+msgid "Te lo llevamos a la mesa"
+msgstr "We will bring it to your table"
+
+msgid "Tienes un pago con Webpay en curso. Resuélvelo antes de pagar en caja."
+msgstr "You have a Webpay payment in progress. Finish it before paying at the cashier."
+
+msgid "Toca el enlace que aparece y verás la carta de tu mesa."
+msgstr "Tap the link that appears to see your table's menu."
+
+msgid "Todavía no hay un pago confirmado para este pedido."
+msgstr "There is no confirmed payment for this order yet."
+
+msgid "Todo"
+msgstr "All"
+
+msgid "Todos los precios están expresados en pesos chilenos."
+msgstr "All prices are in Chilean pesos."
+
+msgid "Total"
+msgstr "Total"
+
+msgid "Total a pagar"
+msgstr "Total to pay"
+
+msgid "Total pagado"
+msgstr "Total paid"
+
+#, python-format
+msgid "Total · Mesa %(numero)s"
+msgstr "Total · Table %(numero)s"
+
+msgid "Tu carrito está vacío."
+msgstr "Your cart is empty."
+
+msgid "Tu carrito está vacío. Explora la carta y agrega lo que más te guste."
+msgstr "Your cart is empty. Explore the menu and add whatever you like."
+
+msgid "Tu carrito se guarda, pero no se puede pagar. Para pedir, consulta al personal."
+msgstr "Your cart is saved, but it cannot be paid. To order, ask the staff."
+
+msgid "Tu navegador volvió sin los datos del pago, así que no sabemos cómo terminó."
+msgstr "Your browser came back without the payment details, so we do not know how it ended."
+
+msgid "Tu pedido"
+msgstr "Your order"
+
+msgid "Tu pedido aún no se envía a cocina. El carrito se conserva hasta confirmar el pago."
+msgstr "Your order has not been sent to the kitchen yet. Your cart is kept until the payment is confirmed."
+
+msgid "Tu pedido está listo. Te lo llevamos a la mesa."
+msgstr "Your order is ready. We will bring it to your table."
+
+msgid "Tu pedido está pagado y fue enviado a cocina. Puedes seguir su estado en Mis pedidos."
+msgstr "Your order is paid and was sent to the kitchen. You can follow it in My orders."
+
+msgid "Tu pedido fue entregado."
+msgstr "Your order was delivered."
+
+msgid "Tu pedido llega a cocina cuando se confirma el pago: con Webpay al instante; en caja, cuando el personal te cobre (efectivo o tarjeta)."
+msgstr "Your order reaches the kitchen once payment is confirmed: instantly with Webpay; at the cashier, when the staff charges you (cash or card)."
+
+msgid "Tu pedido llegó a cocina"
+msgstr "Your order reached the kitchen"
+
+msgid "Tu pedido llegó a cocina."
+msgstr "Your order reached the kitchen."
+
+msgid "Tu pedido, una vez pagado, empezará a prepararse. Si no se paga en 30 minutos, se anulará."
+msgstr "Once paid, your order will start being prepared. If it is not paid within 30 minutes, it will be voided."
+
+msgid "Tu sesión necesita actualizarse. Recarga la carta antes de continuar."
+msgstr "Your session needs to be refreshed. Reload the menu before continuing."
+
+msgid "Un producto ya no está disponible. Revisa tu carrito."
+msgstr "A product is no longer available. Check your cart."
+
+msgid "Una opción seleccionada no es válida."
+msgstr "A selected option is not valid."
+
+msgid "Una opción ya no está disponible. Vuelve a elegir el producto."
+msgstr "An option is no longer available. Choose the product again."
+
+msgid "Venta exclusiva para mayores de 18 años."
+msgstr "For adults 18 and over only."
+
+#, python-format
+msgid "Ver %(nombre)s, destacado de hoy"
+msgstr "View %(nombre)s, today's special"
+
+msgid "Ver carrito"
+msgstr "View cart"
+
+#, python-format
+msgid "Ver detalle de %(nombre)s"
+msgstr "View details of %(nombre)s"
+
+msgid "Ver la carta"
+msgstr "See the menu"
+
+msgid "Ver mi carrito"
+msgstr "View my cart"
+
+msgid "Ver mis pedidos"
+msgstr "View my orders"
+
+#, python-format
+msgid "Ver pago / comprobante del pedido #%(numero)s"
+msgstr "View payment / receipt for order #%(numero)s"
+
+msgid "Ver toda la carta"
+msgstr "See the whole menu"
+
+msgid "Verificar con Transbank"
+msgstr "Verify with Transbank"
+
+msgid "Viernes"
+msgstr "Friday"
+
+msgid "Volver"
+msgstr "Back"
+
+msgid "Volver a la carta"
+msgstr "Back to the menu"
+
+msgid "Volver al resultado del pago"
+msgstr "Back to the payment result"
+
+msgid "Ya tienes un pedido por pagar en caja. Págalo o cancélalo antes de pedir otro."
+msgstr "You already have an order to pay at the cashier. Pay or cancel it before ordering another."
+
+msgid "hay muchos pedidos en cocina"
+msgstr "the kitchen is very busy"
+
+msgid "por unidad"
+msgstr "each"
+
+msgid "propina incluida"
+msgstr "tip included"
+
+msgid "redondeado hacia arriba al peso"
+msgstr "rounded up to the peso"
+
+msgid "sin propina"
+msgstr "no tip"
+
+msgid "unidad"
+msgstr "item"
+
+msgid "unidades"
+msgstr "items"
+
+msgid "¡Que lo disfrutes!"
+msgstr "Enjoy!"
+
+msgid "¿Deseas agregar propina?"
+msgstr "Would you like to add a tip?"
+
+#, python-format
+msgid "¿Deseas anular el pedido #%(numero)s?"
+msgstr "Do you want to void order #%(numero)s?"
+
+msgid "¿Para quién es?"
+msgstr "Who is it for?"
+
+msgid "¿Qué se te antoja?"
+msgstr "What are you craving?"
+
+#, python-format
+msgid "Mesa %(numero)s · %(cantidad)s unidad"
+msgid_plural "Mesa %(numero)s · %(cantidad)s unidades"
+msgstr[0] "Table %(numero)s · %(cantidad)s item"
+msgstr[1] "Table %(numero)s · %(cantidad)s items"

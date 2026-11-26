@@ -1,5 +1,5 @@
-{% load static %}<!doctype html>
-<html lang="es-CL">
+{% load static i18n %}<!doctype html>
+{% get_current_language as IDIOMA %}<html lang="{% if IDIOMA == 'en' %}en{% else %}es-CL{% endif %}">
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">

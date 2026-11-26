@@ -40,6 +40,7 @@
 .wp-acciones .boton--bloque { margin-top: 0; }
 .wp-ref { margin: 14px 0 0; color: var(--texto-2); font-family: var(--mono); font-size: 12px; letter-spacing: .06em; text-transform: uppercase; }
 .wp-estado { margin: 12px 0 0; padding: 10px 12px; border-radius: 8px; background: var(--superficie); color: var(--texto); font-size: 13px; line-height: 1.45; }
+.wp-espera { margin: 8px 0 0; color: var(--texto); font-size: 13px; line-height: 1.45; }
 .wp-datos__titulo { margin: 0 0 6px; font-size: 11px; }
 .wp-datos { margin: 0; }
 .wp-datos div { display: flex; justify-content: space-between; gap: 14px; padding: 6px 0; border-bottom: 1px solid var(--linea-suave); font-size: 12.5px; }

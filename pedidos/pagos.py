@@ -14,6 +14,7 @@ from urllib.parse import urlsplit
 
 from django.db import transaction
 from django.utils import timezone
+from django.utils.translation import gettext, gettext_lazy
 from carta.models import Producto
 from mesas.models import Mesa
 from .carrito import Carrito, ErrorOpciones
@@ -21,7 +22,7 @@ from .models import Cuenta, Pedido, DetallePedido, Pago, IntentoWebpay
 from .webpay import obtener_webpay
 
 ESTADOS_ACTIVOS = ('creado', 'iniciado', 'por_verificar')
-PEDIDOS_CERRADOS = 'Pedidos cerrados por ahora. Puedes ver la carta; para pedir, consulta al personal.'
+PEDIDOS_CERRADOS = gettext_lazy('Pedidos cerrados por ahora. Puedes ver la carta; para pedir, consulta al personal.')
 
 
 class ErrorPago(ValueError):
@@ -127,7 +128,7 @@ def calcular_propina(subtotal, opcion):
     if opcion in (None, '', '0'):
         return Decimal('0')
     if opcion != '10':
-        raise ErrorPago('Selecciona una opción de propina válida.')
+        raise ErrorPago(gettext('Selecciona una opción de propina válida.'))
     return (subtotal * Decimal('0.10')).quantize(
         Decimal('1'),
         rounding=ROUND_CEILING,
@@ -201,12 +202,12 @@ def preparar_pedido(request, mesa, carrito, clave, pedido):
         pedido = None
     exigir_pedidos_abiertos(mesa)
     if not carrito.productos:
-        raise ErrorPago('Tu carrito está vacío.')
+        raise ErrorPago(gettext('Tu carrito está vacío.'))
     productos = list(Producto.objects.filter(pk__in=carrito.productos,
         disponible=True, categoria__activa=True,
         categoria__local=mesa.local).order_by('pk'))
     if len(productos) != len(carrito.productos):
-        raise ErrorPago('Un producto ya no está disponible. Revisa tu carrito.')
+        raise ErrorPago(gettext('Un producto ya no está disponible. Revisa tu carrito.'))
     requiere_mayoria_edad = any(
         producto.requiere_mayoria_edad
         for producto in productos
@@ -216,15 +217,15 @@ def preparar_pedido(request, mesa, carrito, clave, pedido):
     )
     if requiere_mayoria_edad and not mayoria_edad_confirmada:
         raise ErrorPago(
-            'Debes confirmar que tienes 18 años o más para comprar '
-            'los productos marcados +18.'
+            gettext('Debes confirmar que tienes 18 años o más para comprar '
+                    'los productos marcados +18.')
         )
     subtotal = Decimal('0')
     configuracion = {}
     for producto in productos:
         cantidad = carrito.productos[str(producto.pk)]
         if type(cantidad) is not int or not 1 <= cantidad <= Carrito.MAXIMO_POR_PRODUCTO or producto.precio < 0:
-            raise ErrorPago('Hay una cantidad o precio inválido en el carrito.')
+            raise ErrorPago(gettext('Hay una cantidad o precio inválido en el carrito.'))
         try:
             opciones = Carrito.validar_opciones(
                 producto,
@@ -247,9 +248,9 @@ def preparar_pedido(request, mesa, carrito, clave, pedido):
     nombre = limpiar_nombre(request.POST.get('nombre'))
     cuenta, _ = Cuenta.objects.get_or_create(mesa=mesa, estado=Cuenta.Estado.ABIERTA)
     if cuenta.intentos_webpay.filter(pedido__isnull=True, estado__in=ESTADOS_ACTIVOS).exists():
-        raise ErrorPago('Existe un pago anterior de esta cuenta por verificar. Consulta al personal.')
+        raise ErrorPago(gettext('Existe un pago anterior de esta cuenta por verificar. Consulta al personal.'))
     if cuenta.pagos.filter(pedido__isnull=True).exists():
-        raise ErrorPago('Esta cuenta tiene un pago del flujo anterior. Consulta al personal.')
+        raise ErrorPago(gettext('Esta cuenta tiene un pago del flujo anterior. Consulta al personal.'))
     if not pedido:
         Pedido.objects.filter(mesa=mesa, cliente_clave=cliente_clave(request),
             estado=Pedido.Estado.SIN_PAGAR, pago__isnull=True).update(estado=Pedido.Estado.CANCELADO)
@@ -267,7 +268,7 @@ def preparar_pedido(request, mesa, carrito, clave, pedido):
             opciones=configuracion[p.pk]['opciones'])
             for p in productos])
     elif pedido.cuenta_id != cuenta.pk or pedido.estado != Pedido.Estado.SIN_PAGAR:
-        raise ErrorPago('Este pedido ya no admite pagos. Actualiza tu carrito.')
+        raise ErrorPago(gettext('Este pedido ya no admite pagos. Actualiza tu carrito.'))
     # Reintentar tras rechazo usa los precios vigentes; no cambia una autorización.
     else:
         actuales = [(p.pk, p.nombre,
@@ -280,8 +281,8 @@ def preparar_pedido(request, mesa, carrito, clave, pedido):
             'requiere_mayoria_edad', 'opciones'))
         if actuales != guardados:
             raise ErrorPago(
-                'El producto, sus opciones o su precio cambiaron. '
-                'Modifica el carrito antes de pagar nuevamente.'
+                gettext('El producto, sus opciones o su precio cambiaron. '
+                        'Modifica el carrito antes de pagar nuevamente.')
             )
         if pedido.propina != propina:
             pedido.propina = propina
@@ -292,7 +293,7 @@ def preparar_pedido(request, mesa, carrito, clave, pedido):
         pedido.save(update_fields=['propina', 'mayoria_edad_confirmada', 'nombre'])
     lineas, subtotal_guardado = detalle_pedido(pedido)
     if subtotal_guardado != subtotal:
-        raise ErrorPago('El subtotal del pedido cambió. Actualiza el carrito antes de pagar.')
+        raise ErrorPago(gettext('El subtotal del pedido cambió. Actualiza el carrito antes de pagar.'))
     return pedido, cuenta, lineas, subtotal, propina
 
 
@@ -474,19 +475,19 @@ def reintentar_pago(intento_id, usuario, return_url):
         if siguiente:
             return siguiente, False
         if not anterior.pedido_id:
-            raise ErrorPago('Este intento es de una cuenta antigua. Cancélalo y vuelve a tu carrito para crear un pedido nuevo.')
+            raise ErrorPago(gettext('Este intento es de una cuenta antigua. Cancélalo y vuelve a tu carrito para crear un pedido nuevo.'))
         pagado = Pago.objects.filter(pedido_id=anterior.pedido_id).first()
         if pagado:
             if pagado.intento_webpay_id:
                 return pagado.intento_webpay, False
-            raise ErrorPago('Este pedido ya tiene un pago registrado.')
+            raise ErrorPago(gettext('Este pedido ya tiene un pago registrado.'))
         if anterior.estado not in ('rechazado', 'anulado', 'fallido'):
             return anterior, False
         if cuenta.estado != Cuenta.Estado.ABIERTA:
-            raise ErrorPago('Esta cuenta está cerrada. Vuelve a la carta para una nueva compra.')
+            raise ErrorPago(gettext('Esta cuenta está cerrada. Vuelve a la carta para una nueva compra.'))
         pedido = Pedido.objects.select_for_update().get(pk=anterior.pedido_id)
         if pedido.estado != Pedido.Estado.SIN_PAGAR:
-            raise ErrorPago('El pedido no está pendiente de pago. Revisa su estado con el personal.')
+            raise ErrorPago(gettext('El pedido no está pendiente de pago. Revisa su estado con el personal.'))
         activo = pedido.intentos_webpay.filter(estado__in=ESTADOS_ACTIVOS).first()
         if activo:
             return activo, False
@@ -497,15 +498,15 @@ def reintentar_pago(intento_id, usuario, return_url):
                 or d.requiere_mayoria_edad != d.producto.requiere_mayoria_edad
                 or d.cantidad > Carrito.MAXIMO_POR_PRODUCTO for d in detalles):
             raise ErrorPago(
-                'Cambió la disponibilidad o el precio de una opción o '
-                'producto. Vuelve '
-                'a la carta y modifica el carrito antes de pagar.'
+                gettext('Cambió la disponibilidad o el precio de una opción o '
+                        'producto. Vuelve '
+                        'a la carta y modifica el carrito antes de pagar.')
             )
         if (any(d.requiere_mayoria_edad for d in detalles)
                 and not pedido.mayoria_edad_confirmada):
             raise ErrorPago(
-                'Falta la confirmación de mayoría de edad. Vuelve a la '
-                'carta antes de pagar.'
+                gettext('Falta la confirmación de mayoría de edad. Vuelve a la '
+                        'carta antes de pagar.')
             )
         lineas, subtotal = detalle_pedido(pedido)
         propina = pedido.propina
